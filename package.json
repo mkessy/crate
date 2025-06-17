@@ -23,7 +23,7 @@
     "@babel/plugin-transform-modules-commonjs": "^7.25.9",
     "@effect/build-utils": "^0.7.7",
     "@effect/eslint-plugin": "^0.2.0",
-    "@effect/language-service": "^0.2.0",
+    "@effect/language-service": "^0.21.2",
     "@effect/vitest": "latest",
     "@eslint/compat": "1.2.2",
     "@eslint/eslintrc": "3.1.0",
@@ -51,5 +51,12 @@
     "patchedDependencies": {
       "babel-plugin-annotate-pure-calls@0.4.0": "patches/babel-plugin-annotate-pure-calls@0.4.0.patch"
     }
+  },
+  "trustedDependencies": [
+    "@parcel/watcher",
+    "unrs-resolver"
+  ],
+  "dependencies": {
+    "package.json": "^2.0.1"
   }
 }

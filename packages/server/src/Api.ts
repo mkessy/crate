@@ -1,19 +1,15 @@
 import { HttpApiBuilder } from "@effect/platform"
-import { TodosApi } from "@template/domain/TodosApi"
+import { SongsApi } from "@template/domain/SongsApi"
 import { Effect, Layer } from "effect"
-import { TodosRepository } from "./TodosRepository.js"
+import { SongsRepository } from "./SongsRepository.js"
 
-const TodosApiLive = HttpApiBuilder.group(TodosApi, "todos", (handlers) =>
+const SongsApiLive = HttpApiBuilder.group(SongsApi, "songs", (handlers) =>
   Effect.gen(function*() {
-    const todos = yield* TodosRepository
+    const songs = yield* SongsRepository
     return handlers
-      .handle("getAllTodos", () => todos.getAll)
-      .handle("getTodoById", ({ path: { id } }) => todos.getById(id))
-      .handle("createTodo", ({ payload: { text } }) => todos.create(text))
-      .handle("completeTodo", ({ path: { id } }) => todos.complete(id))
-      .handle("removeTodo", ({ path: { id } }) => todos.remove(id))
+      .handle("getAllSongs", () => songs.getAll)
   }))
 
-export const ApiLive = HttpApiBuilder.api(TodosApi).pipe(
-  Layer.provide(TodosApiLive)
+export const ApiLive = HttpApiBuilder.api(SongsApi).pipe(
+  Layer.provide(SongsApiLive)
 )

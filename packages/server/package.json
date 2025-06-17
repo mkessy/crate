@@ -23,7 +23,8 @@
     "@effect/platform": "latest",
     "@effect/platform-node": "latest",
     "@template/domain": "workspace:^",
-    "effect": "latest"
+    "effect": "latest",
+    "package.json": "^2.0.1"
   },
   "effect": {
     "generateExports": {

@@ -3,9 +3,9 @@
 import { NodeContext, NodeHttpClient, NodeRuntime } from "@effect/platform-node"
 import { Effect, Layer } from "effect"
 import { cli } from "./Cli.js"
-import { TodosClient } from "./TodosClient.js"
+import { SongsClient } from "./SongsClient.js"
 
-const MainLive = TodosClient.Default.pipe(
+const MainLive = SongsClient.Default.pipe(
   Layer.provide(NodeHttpClient.layerUndici),
   Layer.merge(NodeContext.layer)
 )
