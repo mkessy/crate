@@ -6,7 +6,7 @@
   "description": "The domain template",
   "repository": {
     "type": "git",
-    "url": "<PLACEHOLDER>",
+    "url": "https://github.com/mkessy/crate",
     "directory": "packages/domain"
   },
   "publishConfig": {
