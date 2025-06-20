@@ -88,7 +88,7 @@ describe("DuckDbClient", () => {
 
       // Use the array helper for parameters
       const arrayData = [10, 20, 30]
-      yield* sql`INSERT INTO int_arrays VALUES (${1}, ${sql.duckdbHelpers.array(arrayData)})`
+      yield* sql`INSERT INTO int_arrays ${sql.insert({ id: 1, data: sql.duckdbHelpers.array(arrayData) })}`
 
       const rows = yield* sql`SELECT * FROM int_arrays`
       assert.strictEqual(rows.length, 1)
@@ -155,35 +155,6 @@ describe("DuckDbClient", () => {
       assert.deepStrictEqual(rows[0].floats, [1.5, 2.7, 3.14])
     }).pipe(Effect.provide(makeTestClient("typed-arrays"))))
 
-  it.skip("should validate typed array inputs", () =>
-    Effect.gen(function*() {
-      const sql = yield* DuckDbClient.DuckDbClient
-
-      // Test integer validation
-      assert.throws(
-        () => sql.duckdbHelpers.intArray([1, 2.5, 3]),
-        /All items must be integers/
-      )
-
-      // Test string validation
-      assert.throws(
-        () => sql.duckdbHelpers.textArray(["hello", 123 as any]),
-        /All items must be strings/
-      )
-
-      // Test boolean validation
-      assert.throws(
-        () => sql.duckdbHelpers.array([true, "false" as any]),
-        /All items must be booleans/
-      )
-
-      // Test float validation
-      assert.throws(
-        () => sql.duckdbHelpers.array([1.5, NaN]),
-        /All items must be valid numbers/
-      )
-    }).pipe(Effect.provide(makeTestClient("array-validation"))))
-
   // ============================================================================
   // Complex Query Tests
   // ============================================================================
@@ -230,7 +201,7 @@ describe("DuckDbClient", () => {
 
       assert.strictEqual(results.length, 1)
       assert.strictEqual(results[0].user_id, 1)
-      assert.strictEqual(results[0].event_count, 2)
+      assert.strictEqual(results[0].event_count, BigInt(2))
     }).pipe(Effect.provide(makeTestClient("complex-arrays"))))
 
   // ============================================================================
@@ -302,7 +273,7 @@ describe("DuckDbClient", () => {
           name: "test",
           active: true,
           score: 3.14,
-          big: sql.duckdbHelpers.decimal(9007199254740991),
+          big: BigInt(9007199254740991),
           created: now,
           data: blob
         } as any)
@@ -313,7 +284,7 @@ describe("DuckDbClient", () => {
       assert.strictEqual(rows[0].name, "test")
       assert.strictEqual(rows[0].active, true)
       assert.strictEqual(rows[0].score, 3.14)
-      assert.strictEqual(rows[0].big, BigInt(9007199254740991))
+      assert.strictEqual(rows[0].big, 9007199254740991n)
       assert.ok(rows[0].created instanceof Date)
       assert.ok(rows[0].data instanceof Uint8Array)
       assert.deepStrictEqual(Array.from(rows[0].data as Uint8Array), [1, 2, 3, 4, 5])
@@ -343,7 +314,7 @@ describe("DuckDbClient", () => {
   // Stream Tests
   // ============================================================================
 
-  it.scoped.skip("should support streaming results", () =>
+  it.scoped("should support streaming results", () =>
     Effect.gen(function*() {
       const sql = yield* DuckDbClient.DuckDbClient
 

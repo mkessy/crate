@@ -69,7 +69,7 @@ export const make = (
     // Connection acquirer for the SQL client
     const acquirer = Effect.map(
       Pool.get(connectionPool),
-      (conn) => makeConnection(conn, config)
+      (conn) => makeConnection(conn)
     )
 
     // Transaction acquirer - uses a dedicated connection
@@ -82,7 +82,7 @@ export const make = (
             message: "Failed to create transaction connection"
           })
       }),
-      (conn) => makeTransactionConnection(conn, config)
+      (conn) => makeTransactionConnection(conn)
     )
 
     // Create the base SQL client

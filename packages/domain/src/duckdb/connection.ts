@@ -1,28 +1,24 @@
 /**
  * DuckDB Connection Implementation
- * 
+ *
  * This module implements the Effect SQL Connection interface for DuckDB.
  * It provides methods for executing queries, handling streams, and managing transactions.
  */
 
+import type { DuckDBConnection, DuckDBPreparedStatement } from "@duckdb/node-api"
 import type { Connection } from "@effect/sql/SqlConnection"
 import { SqlError } from "@effect/sql/SqlError"
 import type { Primitive } from "@effect/sql/Statement"
-import type { DuckDBConnection, DuckDBPreparedStatement, DuckDBDataChunk } from "@duckdb/node-api"
 import * as Chunk from "effect/Chunk"
 import * as Effect from "effect/Effect"
-import * as Stream from "effect/Stream"
 import * as Scope from "effect/Scope"
+import * as Stream from "effect/Stream"
 import { bindParameters } from "./parameters.js"
-import type { DuckDbClientConfig } from "./types.js"
 
 /**
  * Create a Connection implementation for DuckDB
  */
-export const makeConnection = (
-  conn: DuckDBConnection,
-  config: DuckDbClientConfig
-): Connection => {
+export const makeConnection = (conn: DuckDBConnection): Connection => {
   /**
    * Prepare and execute a statement with resource management
    */
@@ -34,11 +30,16 @@ export const makeConnection = (
     Effect.acquireUseRelease(
       // Acquire: prepare the statement
       Effect.tryPromise({
-        try: () => conn.prepare(sql),
-        catch: (error) => new SqlError({ 
-          cause: error, 
-          message: `Failed to prepare statement: ${sql}` 
-        })
+        try: () => {
+          console.log("sql", sql)
+          const prepared = conn.prepare(sql)
+          return prepared
+        },
+        catch: (error) =>
+          new SqlError({
+            cause: error,
+            message: `Failed to prepare statement: ${sql}`
+          })
       }),
       // Use: bind parameters and execute handler
       (prepared) =>
@@ -55,29 +56,30 @@ export const makeConnection = (
      */
     execute(sql, params, transformRows) {
       return executePrepared(sql, params, (prepared) =>
-        Effect.gen(function* () {
+        Effect.gen(function*() {
           // Run the query
           const result = yield* Effect.tryPromise({
             try: () => prepared.run(),
-            catch: (error) => new SqlError({ 
-              cause: error, 
-              message: "Failed to execute statement" 
-            })
+            catch: (error) =>
+              new SqlError({
+                cause: error,
+                message: "Failed to execute statement"
+              })
           })
 
           // Get rows as native JS objects
           const rows = yield* Effect.tryPromise({
             try: () => result.getRowObjectsJS(),
-            catch: (error) => new SqlError({ 
-              cause: error, 
-              message: "Failed to retrieve results" 
-            })
+            catch: (error) =>
+              new SqlError({
+                cause: error,
+                message: "Failed to retrieve results"
+              })
           })
 
           // Apply optional row transformation
           return transformRows ? transformRows(rows) : rows
-        })
-      )
+        }))
     },
 
     /**
@@ -85,19 +87,19 @@ export const makeConnection = (
      */
     executeRaw(sql, params) {
       return executePrepared(sql, params, (prepared) =>
-        Effect.gen(function* () {
+        Effect.gen(function*() {
           const result = yield* Effect.tryPromise({
             try: () => prepared.run(),
-            catch: (error) => new SqlError({ 
-              cause: error, 
-              message: "Failed to execute statement" 
-            })
+            catch: (error) =>
+              new SqlError({
+                cause: error,
+                message: "Failed to execute statement"
+              })
           })
 
           // Return raw DuckDB result
           return result as unknown
-        })
-      )
+        }))
     },
 
     /**
@@ -105,18 +107,19 @@ export const makeConnection = (
      */
     executeStream(sql, params, transformRows) {
       return Stream.unwrapScoped(
-        Effect.gen(function* () {
+        Effect.gen(function*() {
           const scope = yield* Scope.Scope
-          
+
           // Prepare statement with scope management
           const prepared = yield* Effect.tryPromise({
             try: () => conn.prepare(sql),
-            catch: (error) => new SqlError({ 
-              cause: error, 
-              message: `Failed to prepare statement: ${sql}` 
-            })
+            catch: (error) =>
+              new SqlError({
+                cause: error,
+                message: `Failed to prepare statement: ${sql}`
+              })
           })
-          
+
           yield* Scope.addFinalizer(scope, Effect.sync(() => prepared.destroySync()))
 
           // Bind parameters if provided
@@ -131,11 +134,11 @@ export const makeConnection = (
           async function* streamChunks(): AsyncGenerator<ReadonlyArray<any>, void, unknown> {
             const result = await pendingResult.getResult()
             const columnNames = result.deduplicatedColumnNames()
-            
+
             while (true) {
               const chunk = await result.fetchChunk()
               if (!chunk || chunk.rowCount === 0) break
-              
+
               // Get rows from chunk
               const rows = chunk.getRowObjects(columnNames)
               yield rows
@@ -151,10 +154,9 @@ export const makeConnection = (
           // Apply transformation if provided
           return transformRows
             ? Stream.mapChunks(stream, (chunk) =>
-                Chunk.unsafeFromArray(
-                  transformRows(Chunk.toReadonlyArray(chunk))
-                )
-              )
+              Chunk.unsafeFromArray(
+                transformRows(Chunk.toReadonlyArray(chunk))
+              ))
             : stream
         })
       )
@@ -165,27 +167,28 @@ export const makeConnection = (
      */
     executeValues(sql, params) {
       return executePrepared(sql, params, (prepared) =>
-        Effect.gen(function* () {
+        Effect.gen(function*() {
           const result = yield* Effect.tryPromise({
             try: () => prepared.run(),
-            catch: (error) => new SqlError({ 
-              cause: error, 
-              message: "Failed to execute statement" 
-            })
+            catch: (error) =>
+              new SqlError({
+                cause: error,
+                message: "Failed to execute statement"
+              })
           })
 
           // Get rows as arrays of values
           const rows = yield* Effect.tryPromise({
             try: () => result.getRowsJS(),
-            catch: (error) => new SqlError({ 
-              cause: error, 
-              message: "Failed to retrieve results" 
-            })
+            catch: (error) =>
+              new SqlError({
+                cause: error,
+                message: "Failed to retrieve results"
+              })
           })
 
           return rows as ReadonlyArray<ReadonlyArray<Primitive>>
-        })
-      )
+        }))
     },
 
     /**
@@ -202,12 +205,9 @@ export const makeConnection = (
  * Create a transaction-aware connection.
  * Transactions in DuckDB are managed at the connection level.
  */
-export const makeTransactionConnection = (
-  conn: DuckDBConnection,
-  config: DuckDbClientConfig
-): Connection => {
-  const base = makeConnection(conn, config)
-  
+export const makeTransactionConnection = (conn: DuckDBConnection): Connection => {
+  const base = makeConnection(conn)
+
   // Transaction connections use the same implementation
   // as DuckDB manages transactions automatically
   return base

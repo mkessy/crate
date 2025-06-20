@@ -1,14 +1,15 @@
 /**
  * DuckDB Parameter Binding
- * 
+ *
  * This module handles parameter binding for DuckDB prepared statements.
  * It maps Effect SQL primitives and custom types to DuckDB's native binding methods.
  */
 
+import type { DuckDBPreparedStatement } from "@duckdb/node-api"
+import { timestampValue } from "@duckdb/node-api"
 import { SqlError } from "@effect/sql/SqlError"
 import type { Primitive } from "@effect/sql/Statement"
 import * as Statement from "@effect/sql/Statement"
-import type { DuckDBPreparedStatement } from "@duckdb/node-api"
 import * as Effect from "effect/Effect"
 import { createListValue, createStructValue } from "./fragments.js"
 
@@ -23,7 +24,7 @@ export const bindParameters = (
   Effect.try({
     try: () => {
       const paramCount = prepared.parameterCount
-      
+
       if (params.length !== paramCount) {
         throw new Error(
           `Parameter count mismatch: expected ${paramCount}, got ${params.length}`
@@ -36,10 +37,11 @@ export const bindParameters = (
         bindParameter(prepared, paramIndex, param)
       })
     },
-    catch: (error) => new SqlError({ 
-      cause: error, 
-      message: "Failed to bind parameters" 
-    })
+    catch: (error) =>
+      new SqlError({
+        cause: error,
+        message: "Failed to bind parameters"
+      })
   })
 
 /**
@@ -109,7 +111,7 @@ const bindCustomParameter = (
       }
       break
     }
-    
+
     case "DuckDbStruct": {
       const fields = segment.i0
       if (fields && typeof fields === "object" && !("entries" in fields)) {
@@ -121,13 +123,13 @@ const bindCustomParameter = (
       }
       break
     }
-    
+
     case "DuckDbJson": {
       // Serialize to JSON string
       prepared.bindVarchar(index, JSON.stringify(segment.i0))
       break
     }
-    
+
     default:
       throw new Error(`Unknown custom parameter type: ${segment.kind}`)
   }
@@ -139,7 +141,6 @@ const bindCustomParameter = (
  */
 const dateToTimestamp = (date: Date): any => {
   // Import at runtime to avoid circular dependency
-  const { timestampValue } = require("@duckdb/node-api")
   const micros = BigInt(date.getTime()) * 1000n // Convert milliseconds to microseconds
   return timestampValue(micros)
 }
@@ -155,7 +156,7 @@ export const extractParameterValue = (
     const segment = value.segments[0]
     if (segment._tag === "Custom") {
       // Return the original value for custom types
-      return segment.i0
+      return segment.i0 as unknown as Primitive
     } else if (segment._tag === "Parameter") {
       return segment.value
     }

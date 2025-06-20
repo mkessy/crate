@@ -20,32 +20,13 @@ import * as Stream from "effect/Stream"
 // ============================================================================
 
 namespace DuckDbTypes {
-  /**
-   * Native value wrapper that preserves DuckDB types through Effect SQL pipeline
-   */
-  export interface NativeValue<T extends duckdb.DuckDBValue = duckdb.DuckDBValue> {
-    readonly _tag: "DuckDbNativeValue"
-    readonly value: T
-    readonly type: duckdb.DuckDBType
-  }
-
-  export const NativeValue = <T extends duckdb.DuckDBValue>(
-    value: T,
-    type: duckdb.DuckDBType
-  ): NativeValue<T> => ({
-    _tag: "DuckDbNativeValue",
-    value,
-    type
-  })
-
-  export const isNativeValue = (u: unknown): u is NativeValue =>
-    typeof u === "object" && u !== null && "_tag" in u && u._tag === "DuckDbNativeValue"
-
-  // Custom types for Effect SQL integration
-  export interface DuckDbArray extends Custom<"DuckDbArray", NativeValue<duckdb.DuckDBArrayValue>> {}
-  export interface DuckDbStruct extends Custom<"DuckDbStruct", NativeValue<duckdb.DuckDBStructValue>> {}
-  export interface DuckDbDecimal extends Custom<"DuckDbDecimal", NativeValue<duckdb.DuckDBDecimalValue>> {}
-  export interface DuckDbUUID extends Custom<"DuckDbUUID", NativeValue<duckdb.DuckDBUUIDValue>> {}
+  // Custom types for Effect SQL integration - simplified to just hold the value
+  export interface DuckDbArray extends Custom<"DuckDbArray", ReadonlyArray<Primitive>, void, void> {}
+  export interface DuckDbStruct extends Custom<"DuckDbStruct", Record<string, Primitive>, void, void> {}
+  export interface DuckDbDecimal
+    extends Custom<"DuckDbDecimal", { value: bigint; width: number; scale: number }, void, void>
+  {}
+  export interface DuckDbUUID extends Custom<"DuckDbUUID", bigint, void, void> {}
 
   export type DuckDbCustom = DuckDbArray | DuckDbStruct | DuckDbDecimal | DuckDbUUID
 }
@@ -55,18 +36,13 @@ namespace DuckDbTypes {
 // ============================================================================
 
 namespace DuckDbValues {
-  import NativeValue = DuckDbTypes.NativeValue
-
   /**
-   * Create array value with type inference
+   * Create array value for LIST type
    */
   export const array = <T extends Primitive>(
     items: ReadonlyArray<T>
   ): Statement.Fragment => {
-    const arrayValue = duckdb.arrayValue(items as Array<any>)
-
-    const native = NativeValue(arrayValue, duckdb.ARRAY(duckdb.DuckDBAnyType.create(), items.length))
-    return Statement.custom<DuckDbTypes.DuckDbArray>("DuckDbArray")(native)
+    return Statement.custom<DuckDbTypes.DuckDbArray>("DuckDbArray")(items, void 0, void 0)
   }
 
   /**
@@ -75,16 +51,7 @@ namespace DuckDbValues {
   export const struct = (
     fields: Record<string, Primitive>
   ): Statement.Fragment => {
-    const structValue = duckdb.structValue(fields as any)
-
-    // Build struct type from fields
-    const entryTypes: Record<string, duckdb.DuckDBType> = {}
-    for (const [key, value] of Object.entries(fields)) {
-      entryTypes[key] = (value as unknown as duckdb.DuckDBAnyType).toLogicalType().asType()
-    }
-
-    const native = NativeValue(structValue, duckdb.STRUCT(entryTypes))
-    return Statement.custom<DuckDbTypes.DuckDbStruct>("DuckDbStruct")(native)
+    return Statement.custom<DuckDbTypes.DuckDbStruct>("DuckDbStruct")(fields, void 0, void 0)
   }
 
   /**
@@ -95,10 +62,11 @@ namespace DuckDbValues {
     width = 18,
     scale = 3
   ): Statement.Fragment => {
-    const decimalValue = duckdb.decimalValue(BigInt(value), width, scale)
-
-    const native = NativeValue(decimalValue, duckdb.DECIMAL(width, scale))
-    return Statement.custom<DuckDbTypes.DuckDbDecimal>("DuckDbDecimal")(native)
+    return Statement.custom<DuckDbTypes.DuckDbDecimal>("DuckDbDecimal")(
+      { value: BigInt(value), width, scale },
+      void 0,
+      void 0
+    )
   }
 
   /**
@@ -107,10 +75,7 @@ namespace DuckDbValues {
   export const uuid = (
     value: string | bigint
   ): Statement.Fragment => {
-    const uuidValue = duckdb.uuidValue(BigInt(value))
-
-    const native = NativeValue(uuidValue, duckdb.UUID)
-    return Statement.custom<DuckDbTypes.DuckDbUUID>("DuckDbUUID")(native)
+    return Statement.custom<DuckDbTypes.DuckDbUUID>("DuckDbUUID")(BigInt(value), void 0, void 0)
   }
 }
 
@@ -119,22 +84,6 @@ namespace DuckDbValues {
 // ============================================================================
 
 namespace ParameterManager {
-  /**
-   * Parameter processor that handles both primitives and native values
-   */
-  export const processParameters = (
-    params: ReadonlyArray<any> | undefined
-  ): ReadonlyArray<any> => {
-    if (!params) return []
-
-    return params.map((param) => {
-      if (DuckDbTypes.isNativeValue(param)) {
-        return param.value
-      }
-      return param
-    })
-  }
-
   /**
    * Bind parameters with full type awareness
    */
@@ -151,70 +100,78 @@ namespace ParameterManager {
       })
     }
 
-    // Create type array for all parameters
-    const types: Array<duckdb.DuckDBType | undefined> = []
-
+    // Bind each parameter individually with proper type handling
     for (let i = 0; i < params.length; i++) {
+      const paramIndex = i + 1 // DuckDB uses 1-based indexing
       const param = params[i]
 
-      if (DuckDbTypes.isNativeValue(param)) {
-        types.push(param.type)
-      } else {
-        // Let DuckDB infer the type
-        types.push(undefined)
-      }
+      bindParameter(prepared, paramIndex, param)
     }
-
-    // Use DuckDB's object-based binding
-    const bindObject: Record<string, any> = {}
-    const typeObject: Record<string, duckdb.DuckDBType | undefined> = {}
-
-    for (let i = 0; i < params.length; i++) {
-      const key = `$${i + 1}`
-      bindObject[key] = params[i]
-      typeObject[key] = types[i]
-    }
-
-    console.log("BINDING", bindObject, typeObject)
-    prepared.bind(params as any)
   }
 
   /**
-   * Validate parameter types against prepared statement
+   * Bind a single parameter with type-specific method
    */
-  export const validateParameterTypes = (
+  const bindParameter = (
     prepared: duckdb.DuckDBPreparedStatement,
-    params: ReadonlyArray<any>
+    index: number,
+    value: any
   ): void => {
-    for (let i = 0; i < params.length; i++) {
-      const expectedType = prepared.parameterType(i + 1)
-      const param = params[i]
-
-      if (DuckDbTypes.isNativeValue(param)) {
-        // Validate type compatibility
-        if (!isTypeCompatible(param.type, expectedType)) {
-          throw new SqlError({
-            cause: new Error(
-              `Parameter ${i + 1}: Type mismatch. Expected ${expectedType.toString()}, got ${param.type.toString()}`
-            ),
-            message: `Parameter ${
-              i + 1
-            }: Type mismatch. Expected ${expectedType.toString()}, got ${param.type.toString()}`
-          })
-        }
-      }
+    // Handle null/undefined
+    if (value === null || value === undefined) {
+      prepared.bindNull(index)
+      return
     }
-  }
 
-  const isTypeCompatible = (
-    actual: duckdb.DuckDBType,
-    expected: duckdb.DuckDBType
-  ): boolean => {
-    if (actual.typeId === expected.typeId) return true
-    if (expected.typeId === duckdb.DuckDBTypeId.ANY) return true
+    // Handle DuckDB special values first
+    if (value instanceof duckdb.DuckDBListValue) {
+      prepared.bindList(index, value)
+      return
+    }
 
-    // Add more compatibility rules as needed
-    return false
+    if (value instanceof duckdb.DuckDBStructValue) {
+      prepared.bindStruct(index, value)
+      return
+    }
+
+    if (value instanceof duckdb.DuckDBDecimalValue) {
+      prepared.bindDecimal(index, value)
+      return
+    }
+
+    if (value instanceof duckdb.DuckDBUUIDValue) {
+      prepared.bindUUID(index, value)
+      return
+    }
+
+    // Handle primitives
+    if (typeof value === "boolean") {
+      prepared.bindBoolean(index, value)
+    } else if (typeof value === "number") {
+      if (Number.isInteger(value) && value >= -2147483648 && value <= 2147483647) {
+        prepared.bindInteger(index, value)
+      } else {
+        prepared.bindDouble(index, value)
+      }
+    } else if (typeof value === "bigint") {
+      prepared.bindBigInt(index, value)
+    } else if (typeof value === "string") {
+      prepared.bindVarchar(index, value)
+    } else if (value instanceof Date) {
+      // Convert Date to timestamp microseconds
+      const micros = BigInt(value.getTime()) * 1000n
+      prepared.bindTimestamp(index, duckdb.timestampValue(micros))
+    } else if (value instanceof Uint8Array) {
+      prepared.bindBlob(index, value)
+    } else if (value instanceof Int8Array) {
+      prepared.bindBlob(index, new Uint8Array(value.buffer, value.byteOffset, value.byteLength))
+    } else if (Array.isArray(value)) {
+      // Direct array binding
+      prepared.bindList(index, duckdb.listValue(value))
+    } else {
+      // Fallback: treat as JSON
+      prepared.bindVarchar(index, JSON.stringify(value))
+    }
   }
 }
 
@@ -228,20 +185,36 @@ namespace ResultProcessor {
    */
   export const processResults = (
     result: duckdb.DuckDBResult,
-    config: { converter?: "JS" | "Json" }
+    config: { converter?: "JS" | "Json"; convertBigInt?: boolean }
   ): Effect.Effect<ReadonlyArray<Row>, SqlError> =>
     Effect.tryPromise({
       try: async () => {
         const converter = config.converter || "JS"
 
         // Use DuckDB's native conversion
+        let rows: ReadonlyArray<Row>
         if (converter === "JS") {
-          // JS converter handles arrays, structs, etc. natively
-          return await result.getRowObjectsJS() as ReadonlyArray<Row>
+          rows = await result.getRowObjectsJS() as ReadonlyArray<Row>
         } else {
-          // JSON converter for serializable output
-          return await result.getRowObjectsJson() as ReadonlyArray<Row>
+          rows = await result.getRowObjectsJson() as ReadonlyArray<Row>
         }
+
+        // Convert BigInt to number for aggregate functions if needed
+        if (config.convertBigInt !== false) {
+          return rows.map((row) => {
+            const converted: any = {}
+            for (const [key, value] of Object.entries(row)) {
+              if (typeof value === "bigint" && value <= Number.MAX_SAFE_INTEGER && value >= Number.MIN_SAFE_INTEGER) {
+                converted[key] = Number(value)
+              } else {
+                converted[key] = value
+              }
+            }
+            return converted
+          })
+        }
+
+        return rows
       },
       catch: (error) =>
         new SqlError({
@@ -254,22 +227,25 @@ namespace ResultProcessor {
    * Stream results with chunked processing
    */
   export const streamResults = (
-    pendingResult: duckdb.DuckDBPendingResult,
-    _config: { chunkSize?: number } = {}
-  ): Stream.Stream<ReadonlyArray<Row>, SqlError> => {
+    pendingResult: duckdb.DuckDBPendingResult
+  ): Stream.Stream<Row, SqlError> => {
     const chunkIterator = async function*() {
       const result = await pendingResult.getResult()
       const columnNames = result.deduplicatedColumnNames()
+
       while (true) {
         const chunk = await result.fetchChunk()
         if (!chunk || chunk.rowCount === 0) break
 
-        console.log("CHUNK", chunk)
-        yield chunk.getRowObjects(columnNames) as ReadonlyArray<Row>
+        const rows = chunk.getRowObjects(columnNames) as ReadonlyArray<Row>
+
+        for (const row of rows) {
+          yield row
+        }
       }
     }
 
-    return Stream.fromAsyncIterable<ReadonlyArray<Row>, SqlError>(
+    return Stream.fromAsyncIterable<Row, SqlError>(
       chunkIterator(),
       (error) => new SqlError({ cause: error, message: "Stream processing failed" })
     )
@@ -293,11 +269,10 @@ const makeConnection = (
         }),
         (prepared) =>
           Effect.gen(function*() {
-            // Process parameters
-            const processed = ParameterManager.processParameters(params)
-
-            // Bind parameters
-            ParameterManager.bindParameters(prepared, processed)
+            // Bind parameters directly - they're already processed by the compiler
+            if (params && params.length > 0) {
+              ParameterManager.bindParameters(prepared, params)
+            }
 
             // Execute
             const result = yield* Effect.tryPromise({
@@ -307,7 +282,8 @@ const makeConnection = (
 
             // Process results
             const rows = yield* ResultProcessor.processResults(result, {
-              converter: config.preferJson ? "Json" : "JS"
+              converter: config.preferJson ? "Json" : "JS",
+              convertBigInt: config.convertBigInt ?? false
             })
 
             // Apply transforms
@@ -329,8 +305,9 @@ const makeConnection = (
         }),
         (prepared) =>
           Effect.gen(function*() {
-            const processed = ParameterManager.processParameters(params)
-            ParameterManager.bindParameters(prepared, processed)
+            if (params && params.length > 0) {
+              ParameterManager.bindParameters(prepared, params)
+            }
 
             const result = yield* Effect.tryPromise({
               try: () => prepared.run(),
@@ -357,12 +334,16 @@ const makeConnection = (
 
         yield* Scope.addFinalizer(scope, Effect.sync(() => prepared.destroySync()))
 
-        const processed = ParameterManager.processParameters(params)
-        ParameterManager.bindParameters(prepared, processed)
+        if (params && params.length > 0) {
+          ParameterManager.bindParameters(prepared, params)
+        }
 
         const pendingResult = prepared.start()
 
-        const stream = ResultProcessor.streamResults(pendingResult)
+        const stream = ResultProcessor.streamResults(pendingResult, {
+          convertBigInt: config.convertBigInt ?? false,
+          chunkSize: config.chunkSize ?? 1000
+        })
 
         if (transformRows) {
           return Stream.mapChunks(stream, (chunk) =>
@@ -400,20 +381,30 @@ const makeCompiler = (transform?: (_: string) => string): Statement.Compiler =>
       ? (value, withoutTransform) => withoutTransform ? escape(value) : escape(transform(value))
       : escape,
     onCustom(type, placeholder) {
+      // Extract the actual value from the custom type
       switch (type.kind) {
-        case "DuckDbArray":
-        case "DuckDbStruct":
-        case "DuckDbDecimal":
-        case "DuckDbUUID":
-          // Pass native value through the pipeline
-          return [placeholder(undefined), [type.i0.value.toString()]]
+        case "DuckDbArray": {
+          // Convert array to DuckDB LIST value
+          const listValue = duckdb.listValue(type.i0 as Array<any>)
+          return [placeholder(listValue), [listValue]]
+        }
+        case "DuckDbStruct": {
+          // Convert object to DuckDB STRUCT value
+          const structValue = duckdb.structValue(type.i0 as any)
+          return [placeholder(structValue), [structValue]]
+        }
+        case "DuckDbDecimal": {
+          const { scale, value, width } = type.i0
+          const decimalValue = duckdb.decimalValue(value, width, scale)
+          return [placeholder(decimalValue), [decimalValue]]
+        }
+        case "DuckDbUUID": {
+          const uuidValue = duckdb.uuidValue(type.i0)
+          return [placeholder(uuidValue), [uuidValue]]
+        }
+        default:
+          throw new Error(`Unknown custom type: ${(type as any).kind}`)
       }
-    },
-    onRecordUpdate(placeholders, valueAlias, valueColumns, values, returning) {
-      return [
-        returning ? `${placeholders} RETURNING ${returning}` : placeholders,
-        values.flat()
-      ]
     }
   })
 
@@ -429,13 +420,14 @@ export type TypeId = typeof TypeId
 export interface DuckDbClient extends Client.SqlClient {
   readonly [TypeId]: TypeId
   readonly config: DuckDbClientConfig
-  readonly array: <T extends Primitive>(items: ReadonlyArray<T>) => DuckDbTypes.DuckDbArray
   readonly duckdbHelpers: DuckDbHelpers
 }
 
 export interface DuckDbClientConfig {
   readonly database?: string
   readonly preferJson?: boolean
+  readonly convertBigInt?: boolean
+  readonly chunkSize?: number
   readonly spanAttributes?: Record<string, unknown>
   readonly transformResultNames?: (str: string) => string
   readonly transformQueryNames?: (str: string) => string
@@ -446,8 +438,6 @@ export interface DuckDbHelpers {
   readonly struct: typeof DuckDbValues.struct
   readonly decimal: typeof DuckDbValues.decimal
   readonly uuid: typeof DuckDbValues.uuid
-  readonly intArray: (items: ReadonlyArray<number>) => Effect.Effect<DuckDbTypes.DuckDbArray, SqlError>
-  readonly textArray: (items: ReadonlyArray<string>) => Effect.Effect<DuckDbTypes.DuckDbArray, SqlError>
 }
 
 export const DuckDbClient = Context.GenericTag<DuckDbClient>("@effect/sql-duckdb/DuckDbClient")
@@ -480,18 +470,16 @@ export const make = (
       timeToLive: Duration.minutes(5)
     })
 
-    // Get connection from pool
-    const connection = yield* Pool.get(connectionPool)
-    const wrappedConnection = makeConnection(connection, config)
-
     // Create acquirer functions
-    const acquirer = Effect.succeed(wrappedConnection)
-    const transactionAcquirer = acquirer // Simplified for now
+    const acquirer = Effect.map(
+      Pool.get(connectionPool),
+      (conn) => makeConnection(conn, config)
+    )
 
     // Create base SQL client
     const sqlClient = yield* Client.make({
       acquirer,
-      transactionAcquirer,
+      transactionAcquirer: acquirer,
       compiler: makeCompiler(config.transformQueryNames),
       spanAttributes: [
         [Otel.SEMATTRS_DB_SYSTEM, "duckdb"],
@@ -502,12 +490,12 @@ export const make = (
         : undefined
     })
 
-    const duckdbHelpers = {
+    const duckdbHelpers: DuckDbHelpers = {
       array: DuckDbValues.array,
       struct: DuckDbValues.struct,
       decimal: DuckDbValues.decimal,
       uuid: DuckDbValues.uuid
-    } as DuckDbHelpers
+    }
 
     return Object.assign(sqlClient, {
       [TypeId]: TypeId as TypeId,
@@ -532,36 +520,3 @@ export const layer = (
         )
     )
   ).pipe(Layer.provide(Reactivity.layer))
-
-// ============================================================================
-// Usage Example
-// ============================================================================
-
-/**
- * @example
- * ```typescript
- * const program = Effect.gen(function* () {
- *   const sql = yield* DuckDbClient.DuckDbClient
- *
- *   // Basic usage - synchronous array creation
- *   yield* sql`CREATE TABLE users (id INTEGER, tags INTEGER[])`
- *   yield* sql`INSERT INTO users VALUES (${1}, ${sql.array([1, 2, 3])})`
- *
- *   // Advanced usage - Effect-based with validation
- *   const tags = yield* sql.duckdb.intArray([10, 20, 30])
- *   yield* sql`INSERT INTO users VALUES (${2}, ${tags})`
- *
- *   // Structs
- *   const profile = yield* sql.duckdb.struct({
- *     name: "Alice",
- *     age: 30,
- *     active: true
- *   })
- *   yield* sql`INSERT INTO profiles VALUES (${1}, ${profile})`
- *
- *   // Results are automatically converted
- *   const users = yield* sql`SELECT * FROM users`
- *   console.log(users[0].tags) // [1, 2, 3] - native array!
- * })
- * ```
- */
