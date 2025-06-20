@@ -21,14 +21,18 @@ import * as Stream from "effect/Stream"
 
 namespace DuckDbTypes {
   // Custom types for Effect SQL integration - simplified to just hold the value
-  export interface DuckDbArray extends Custom<"DuckDbArray", ReadonlyArray<Primitive>, void, void> {}
+  export interface DuckDbList extends Custom<"DuckDbList", ReadonlyArray<Primitive>, void, void> {}
+  export interface DuckDbFixedArray extends Custom<"DuckDbFixedArray", ReadonlyArray<Primitive>, void, void> {}
   export interface DuckDbStruct extends Custom<"DuckDbStruct", Record<string, Primitive>, void, void> {}
   export interface DuckDbDecimal
     extends Custom<"DuckDbDecimal", { value: bigint; width: number; scale: number }, void, void>
   {}
   export interface DuckDbUUID extends Custom<"DuckDbUUID", bigint, void, void> {}
 
-  export type DuckDbCustom = DuckDbArray | DuckDbStruct | DuckDbDecimal | DuckDbUUID
+  // Backward compatibility alias
+  export interface DuckDbArray extends DuckDbList {}
+
+  export type DuckDbCustom = DuckDbList | DuckDbFixedArray | DuckDbStruct | DuckDbDecimal | DuckDbUUID | DuckDbArray
 }
 
 // ============================================================================
@@ -37,12 +41,31 @@ namespace DuckDbTypes {
 
 namespace DuckDbValues {
   /**
-   * Create array value for LIST type
+   * Create list value for variable-length LIST type
+   */
+  export const list = <T extends Primitive>(
+    items: ReadonlyArray<T>
+  ): Statement.Fragment => {
+    return Statement.custom<DuckDbTypes.DuckDbList>("DuckDbList")(items, void 0, void 0)
+  }
+
+  /**
+   * Create fixed-size array value for ARRAY type
+   */
+  export const fixedArray = <T extends Primitive>(
+    items: ReadonlyArray<T>
+  ): Statement.Fragment => {
+    return Statement.custom<DuckDbTypes.DuckDbFixedArray>("DuckDbFixedArray")(items, void 0, void 0)
+  }
+
+  /**
+   * Create array value for LIST type (backward compatibility)
+   * @deprecated Use list() for variable-length lists or fixedArray() for fixed-size arrays
    */
   export const array = <T extends Primitive>(
     items: ReadonlyArray<T>
   ): Statement.Fragment => {
-    return Statement.custom<DuckDbTypes.DuckDbArray>("DuckDbArray")(items, void 0, void 0)
+    return Statement.custom<DuckDbTypes.DuckDbList>("DuckDbList")(items, void 0, void 0)
   }
 
   /**
@@ -55,27 +78,38 @@ namespace DuckDbValues {
   }
 
   /**
-   * Create decimal value with precision
+   * Create decimal value with precision - uses native DuckDB decimal handling
    */
   export const decimal = (
-    value: string | number | bigint,
+    value: number | bigint,
     width = 18,
     scale = 3
   ): Statement.Fragment => {
+    // Use the appropriate native DuckDB method based on input type
+    let duckdbValue: duckdb.DuckDBDecimalValue
+    if (typeof value === "bigint") {
+      // For bigint, assume it's already scaled (user provides scaled value)
+      duckdbValue = new duckdb.DuckDBDecimalValue(value, width, scale)
+    } else {
+      // For number, use the native fromDouble method
+      duckdbValue = duckdb.DuckDBDecimalValue.fromDouble(value, width, scale)
+    }
+
     return Statement.custom<DuckDbTypes.DuckDbDecimal>("DuckDbDecimal")(
-      { value: BigInt(value), width, scale },
+      { value: duckdbValue.value, width: duckdbValue.width, scale: duckdbValue.scale },
       void 0,
       void 0
     )
   }
 
   /**
-   * Create UUID value
+   * Create UUID value - only accepts 128-bit BigInt as per DuckDB native API
+   * For string UUIDs, user must convert to BigInt manually to avoid data loss
    */
   export const uuid = (
-    value: string | bigint
+    uint128: bigint
   ): Statement.Fragment => {
-    return Statement.custom<DuckDbTypes.DuckDbUUID>("DuckDbUUID")(BigInt(value), void 0, void 0)
+    return Statement.custom<DuckDbTypes.DuckDbUUID>("DuckDbUUID")(uint128, void 0, void 0)
   }
 }
 
@@ -124,6 +158,11 @@ namespace ParameterManager {
     }
 
     // Handle DuckDB special values first
+    if (value instanceof duckdb.DuckDBArrayValue) {
+      prepared.bindArray(index, value)
+      return
+    }
+
     if (value instanceof duckdb.DuckDBListValue) {
       prepared.bindList(index, value)
       return
@@ -340,10 +379,7 @@ const makeConnection = (
 
         const pendingResult = prepared.start()
 
-        const stream = ResultProcessor.streamResults(pendingResult, {
-          convertBigInt: config.convertBigInt ?? false,
-          chunkSize: config.chunkSize ?? 1000
-        })
+        const stream = ResultProcessor.streamResults(pendingResult)
 
         if (transformRows) {
           return Stream.mapChunks(stream, (chunk) =>
@@ -383,8 +419,19 @@ const makeCompiler = (transform?: (_: string) => string): Statement.Compiler =>
     onCustom(type, placeholder) {
       // Extract the actual value from the custom type
       switch (type.kind) {
-        case "DuckDbArray": {
+        case "DuckDbList": {
           // Convert array to DuckDB LIST value
+          const listValue = duckdb.listValue(type.i0 as Array<any>)
+          return [placeholder(listValue), [listValue]]
+        }
+        case "DuckDbFixedArray": {
+          // Convert array to DuckDB ARRAY value
+          const arrayValue = duckdb.arrayValue(type.i0 as Array<any>)
+          return [placeholder(arrayValue), [arrayValue]]
+        }
+        // Backward compatibility
+        case "DuckDbArray": {
+          // Convert array to DuckDB LIST value (for backward compatibility)
           const listValue = duckdb.listValue(type.i0 as Array<any>)
           return [placeholder(listValue), [listValue]]
         }
@@ -434,7 +481,9 @@ export interface DuckDbClientConfig {
 }
 
 export interface DuckDbHelpers {
-  readonly array: typeof DuckDbValues.array
+  readonly list: typeof DuckDbValues.list
+  readonly fixedArray: typeof DuckDbValues.fixedArray
+  readonly array: typeof DuckDbValues.array // backward compatibility
   readonly struct: typeof DuckDbValues.struct
   readonly decimal: typeof DuckDbValues.decimal
   readonly uuid: typeof DuckDbValues.uuid
@@ -491,7 +540,9 @@ export const make = (
     })
 
     const duckdbHelpers: DuckDbHelpers = {
-      array: DuckDbValues.array,
+      list: DuckDbValues.list,
+      fixedArray: DuckDbValues.fixedArray,
+      array: DuckDbValues.array, // backward compatibility
       struct: DuckDbValues.struct,
       decimal: DuckDbValues.decimal,
       uuid: DuckDbValues.uuid
