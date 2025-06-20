@@ -175,6 +175,7 @@ namespace ParameterManager {
       typeObject[key] = types[i]
     }
 
+    console.log("BINDING", bindObject, typeObject)
     prepared.bind(params as any)
   }
 
