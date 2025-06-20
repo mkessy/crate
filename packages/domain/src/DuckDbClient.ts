@@ -29,10 +29,32 @@ namespace DuckDbTypes {
   {}
   export interface DuckDbUUID extends Custom<"DuckDbUUID", bigint, void, void> {}
 
+  // Date/Time types
+  export interface DuckDbDate extends Custom<"DuckDbDate", any, void, void> {}
+  export interface DuckDbTime extends Custom<"DuckDbTime", any, void, void> {}
+  export interface DuckDbTimestamp extends Custom<"DuckDbTimestamp", any, void, void> {}
+  export interface DuckDbInterval extends Custom<"DuckDbInterval", any, void, void> {}
+
+  // Binary types
+  export interface DuckDbBlob extends Custom<"DuckDbBlob", any, void, void> {}
+  export interface DuckDbBit extends Custom<"DuckDbBit", any, void, void> {}
+
   // Backward compatibility alias
   export interface DuckDbArray extends DuckDbList {}
 
-  export type DuckDbCustom = DuckDbList | DuckDbFixedArray | DuckDbStruct | DuckDbDecimal | DuckDbUUID | DuckDbArray
+  export type DuckDbCustom =
+    | DuckDbList
+    | DuckDbFixedArray
+    | DuckDbStruct
+    | DuckDbDecimal
+    | DuckDbUUID
+    | DuckDbArray
+    | DuckDbDate
+    | DuckDbTime
+    | DuckDbTimestamp
+    | DuckDbInterval
+    | DuckDbBlob
+    | DuckDbBit
 }
 
 // ============================================================================
@@ -111,6 +133,128 @@ namespace DuckDbValues {
   ): Statement.Fragment => {
     return Statement.custom<DuckDbTypes.DuckDbUUID>("DuckDbUUID")(uint128, void 0, void 0)
   }
+
+  /**
+   * Create date value from Date object or days since epoch
+   */
+  export const date = (
+    value: Date | number
+  ): Statement.Fragment => {
+    let duckdbValue: duckdb.DuckDBDateValue
+    if (value instanceof Date) {
+      // Convert Date to days since epoch (1970-01-01)
+      const epochDays = Math.floor(value.getTime() / (1000 * 60 * 60 * 24))
+      duckdbValue = duckdb.dateValue(epochDays)
+    } else {
+      // Assume it's already days since epoch
+      duckdbValue = duckdb.dateValue(value)
+    }
+    return Statement.custom<DuckDbTypes.DuckDbDate>("DuckDbDate")(duckdbValue, void 0, void 0)
+  }
+
+  /**
+   * Create time value from Date object or microseconds since midnight
+   */
+  export const time = (
+    value: Date | bigint
+  ): Statement.Fragment => {
+    let duckdbValue: duckdb.DuckDBTimeValue
+    if (value instanceof Date) {
+      // Convert Date to microseconds since midnight
+      const hours = value.getHours()
+      const minutes = value.getMinutes()
+      const seconds = value.getSeconds()
+      const millis = value.getMilliseconds()
+      const totalMicros = BigInt((hours * 3600 + minutes * 60 + seconds) * 1000000 + millis * 1000)
+      duckdbValue = duckdb.timeValue(totalMicros)
+    } else {
+      // Assume it's already microseconds
+      duckdbValue = duckdb.timeValue(value)
+    }
+    return Statement.custom<DuckDbTypes.DuckDbTime>("DuckDbTime")(duckdbValue, void 0, void 0)
+  }
+
+  /**
+   * Create timestamp value with different precisions
+   */
+  export const timestamp = (
+    value: Date | bigint,
+    precision: "microseconds" | "milliseconds" | "seconds" | "nanoseconds" = "microseconds"
+  ): Statement.Fragment => {
+    let duckdbValue:
+      | duckdb.DuckDBTimestampValue
+      | duckdb.DuckDBTimestampMillisecondsValue
+      | duckdb.DuckDBTimestampSecondsValue
+      | duckdb.DuckDBTimestampNanosecondsValue
+
+    if (value instanceof Date) {
+      const millis = BigInt(value.getTime())
+      switch (precision) {
+        case "microseconds":
+          duckdbValue = duckdb.timestampValue(millis * 1000n)
+          break
+        case "milliseconds":
+          duckdbValue = duckdb.timestampMillisValue(millis)
+          break
+        case "seconds":
+          duckdbValue = duckdb.timestampSecondsValue(millis / 1000n)
+          break
+        case "nanoseconds":
+          duckdbValue = duckdb.timestampNanosValue(millis * 1000000n)
+          break
+      }
+    } else {
+      // Assume bigint is already in the correct units
+      switch (precision) {
+        case "microseconds":
+          duckdbValue = duckdb.timestampValue(value)
+          break
+        case "milliseconds":
+          duckdbValue = duckdb.timestampMillisValue(value)
+          break
+        case "seconds":
+          duckdbValue = duckdb.timestampSecondsValue(value)
+          break
+        case "nanoseconds":
+          duckdbValue = duckdb.timestampNanosValue(value)
+          break
+      }
+    }
+
+    return Statement.custom<DuckDbTypes.DuckDbTimestamp>("DuckDbTimestamp")(duckdbValue, void 0, void 0)
+  }
+
+  /**
+   * Create interval value
+   */
+  export const interval = (
+    months: number,
+    days: number,
+    microseconds: bigint
+  ): Statement.Fragment => {
+    const duckdbValue = duckdb.intervalValue(months, days, microseconds)
+    return Statement.custom<DuckDbTypes.DuckDbInterval>("DuckDbInterval")(duckdbValue, void 0, void 0)
+  }
+
+  /**
+   * Create blob value from Uint8Array or string
+   */
+  export const blob = (
+    value: Uint8Array | string
+  ): Statement.Fragment => {
+    const duckdbValue = duckdb.blobValue(value)
+    return Statement.custom<DuckDbTypes.DuckDbBlob>("DuckDbBlob")(duckdbValue, void 0, void 0)
+  }
+
+  /**
+   * Create bit value from string, boolean array, or number array
+   */
+  export const bit = (
+    value: string | ReadonlyArray<boolean> | ReadonlyArray<number>
+  ): Statement.Fragment => {
+    const duckdbValue = duckdb.bitValue(value)
+    return Statement.custom<DuckDbTypes.DuckDbBit>("DuckDbBit")(duckdbValue, void 0, void 0)
+  }
 }
 
 // ============================================================================
@@ -180,6 +324,47 @@ namespace ParameterManager {
 
     if (value instanceof duckdb.DuckDBUUIDValue) {
       prepared.bindUUID(index, value)
+      return
+    }
+
+    // Date/Time types
+    if (value instanceof duckdb.DuckDBDateValue) {
+      prepared.bindDate(index, value)
+      return
+    }
+
+    if (value instanceof duckdb.DuckDBTimeValue) {
+      prepared.bindTime(index, value)
+      return
+    }
+
+    if (value instanceof duckdb.DuckDBTimestampValue) {
+      prepared.bindTimestamp(index, value)
+      return
+    }
+
+    if (
+      value instanceof duckdb.DuckDBTimestampMillisecondsValue ||
+      value instanceof duckdb.DuckDBTimestampSecondsValue ||
+      value instanceof duckdb.DuckDBTimestampNanosecondsValue
+    ) {
+      prepared.bindTimestamp(index, value)
+      return
+    }
+
+    if (value instanceof duckdb.DuckDBIntervalValue) {
+      prepared.bindInterval(index, value)
+      return
+    }
+
+    // Binary types
+    if (value instanceof duckdb.DuckDBBlobValue) {
+      prepared.bindBlob(index, value)
+      return
+    }
+
+    if (value instanceof duckdb.DuckDBBitValue) {
+      prepared.bindBit(index, value)
       return
     }
 
@@ -449,6 +634,24 @@ const makeCompiler = (transform?: (_: string) => string): Statement.Compiler =>
           const uuidValue = duckdb.uuidValue(type.i0)
           return [placeholder(uuidValue), [uuidValue]]
         }
+        case "DuckDbDate": {
+          return [placeholder(type.i0), [type.i0]]
+        }
+        case "DuckDbTime": {
+          return [placeholder(type.i0), [type.i0]]
+        }
+        case "DuckDbTimestamp": {
+          return [placeholder(type.i0), [type.i0]]
+        }
+        case "DuckDbInterval": {
+          return [placeholder(type.i0), [type.i0]]
+        }
+        case "DuckDbBlob": {
+          return [placeholder(type.i0), [type.i0]]
+        }
+        case "DuckDbBit": {
+          return [placeholder(type.i0), [type.i0]]
+        }
         default:
           throw new Error(`Unknown custom type: ${(type as any).kind}`)
       }
@@ -487,6 +690,12 @@ export interface DuckDbHelpers {
   readonly struct: typeof DuckDbValues.struct
   readonly decimal: typeof DuckDbValues.decimal
   readonly uuid: typeof DuckDbValues.uuid
+  readonly date: typeof DuckDbValues.date
+  readonly time: typeof DuckDbValues.time
+  readonly timestamp: typeof DuckDbValues.timestamp
+  readonly interval: typeof DuckDbValues.interval
+  readonly blob: typeof DuckDbValues.blob
+  readonly bit: typeof DuckDbValues.bit
 }
 
 export const DuckDbClient = Context.GenericTag<DuckDbClient>("@effect/sql-duckdb/DuckDbClient")
@@ -545,7 +754,13 @@ export const make = (
       array: DuckDbValues.array, // backward compatibility
       struct: DuckDbValues.struct,
       decimal: DuckDbValues.decimal,
-      uuid: DuckDbValues.uuid
+      uuid: DuckDbValues.uuid,
+      date: DuckDbValues.date,
+      time: DuckDbValues.time,
+      timestamp: DuckDbValues.timestamp,
+      interval: DuckDbValues.interval,
+      blob: DuckDbValues.blob,
+      bit: DuckDbValues.bit
     }
 
     return Object.assign(sqlClient, {
