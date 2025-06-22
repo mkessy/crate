@@ -16,4 +16,11 @@ scratchpad/*
 .env.test.local
 .env.production.local
 
-packages/server/data/music.db
+packages/domain/data/*.sqlite
+packages/domain/data/*.db
+packages/domain/data/*.db-journal
+packages/domain/data/*.db-wal
+packages/domain/data/*.db-shm
+packages/domain/data/*.db-trace
+packages/domain/data/*.db-trace-wal
+packages/domain/data/*.db-trace-shm
