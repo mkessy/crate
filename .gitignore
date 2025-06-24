@@ -24,3 +24,6 @@ packages/domain/data/*.db-shm
 packages/domain/data/*.db-trace
 packages/domain/data/*.db-trace-wal
 packages/domain/data/*.db-trace-shm
+packages/domain/src/data/kexp_kb.db
+packages/domain/src/data/kexp_kb.db-shm
+packages/domain/src/data/kexp_kb.db-wal
