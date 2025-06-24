@@ -1,11 +1,11 @@
-import { Schema } from "effect"
 import { Model } from "@effect/sql"
+import { Schema } from "effect"
 
 // Fact Plays table
 export class FactPlays extends Model.Class<FactPlays>("FactPlays")({
-  play_id: Schema.Number,
+  play_id: Schema.NumberFromString,
   airdate_iso: Model.FieldOption(Schema.String),
-  show_id: Model.FieldOption(Schema.Number),
+  show_id: Model.FieldOption(Schema.NumberFromString),
   track_id_internal: Model.FieldOption(Schema.String),
   comment: Model.FieldOption(Schema.String),
   rotation_status: Model.FieldOption(Schema.String),

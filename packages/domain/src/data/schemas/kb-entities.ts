@@ -31,8 +31,8 @@ export class KbAlbum extends Model.Class<KbAlbum>("KbAlbum")({
 // Song entity
 export class KbSong extends Model.Class<KbSong>("KbSong")({
   kb_id: Schema.String,
-  title: Schema.String,
-  length_ms: Model.FieldOption(Schema.Number),
+  title: Model.FieldOption(Schema.String),
+  length_ms: Model.FieldOption(Schema.NumberFromString),
   mb_recording_id: Model.FieldOption(Schema.String),
   disambiguation: Model.FieldOption(Schema.String),
   created_at: Model.DateTimeInsert,
@@ -69,8 +69,8 @@ export class KbLocation extends Model.Class<KbLocation>("KbLocation")({
   mb_area_id: Model.FieldOption(Schema.String),
   type: Model.FieldOption(Schema.String),
   country_code: Model.FieldOption(Schema.String),
-  latitude: Model.FieldOption(Schema.Number),
-  longitude: Model.FieldOption(Schema.Number),
+  latitude: Model.FieldOption(Schema.NumberFromString),
+  longitude: Model.FieldOption(Schema.NumberFromString),
   created_at: Model.DateTimeInsert
 }) {}
 
@@ -80,7 +80,7 @@ export class KbRecordLabel extends Model.Class<KbRecordLabel>("KbRecordLabel")({
   name: Schema.String,
   mb_label_id: Model.FieldOption(Schema.String),
   country: Model.FieldOption(Schema.String),
-  label_code: Model.FieldOption(Schema.Number),
+  label_code: Model.FieldOption(Schema.NumberFromString),
   created_at: Model.DateTimeInsert
 }) {}
 
@@ -103,7 +103,7 @@ export class KbRelationship extends Model.Class<KbRelationship>("KbRelationship"
 export class KbHost extends Model.Class<KbHost>("KbHost")({
   kb_id: Schema.String,
   name: Schema.String,
-  kexp_host_id: Model.FieldOption(Schema.Number),
+  kexp_host_id: Model.FieldOption(Schema.NumberFromString),
   host_uri: Model.FieldOption(Schema.String),
   created_at: Model.DateTimeInsert,
   updated_at: Model.DateTimeUpdate
@@ -113,7 +113,7 @@ export class KbHost extends Model.Class<KbHost>("KbHost")({
 export class KbProgram extends Model.Class<KbProgram>("KbProgram")({
   kb_id: Schema.String,
   name: Schema.String,
-  kexp_program_id: Model.FieldOption(Schema.Number),
+  kexp_program_id: Model.FieldOption(Schema.NumberFromString),
   description: Model.FieldOption(Schema.String),
   tags: Model.FieldOption(Schema.String),
   program_uri: Model.FieldOption(Schema.String),
@@ -125,7 +125,7 @@ export class KbProgram extends Model.Class<KbProgram>("KbProgram")({
 // Show entity
 export class KbShow extends Model.Class<KbShow>("KbShow")({
   kb_id: Schema.String,
-  kexp_show_id: Schema.Number,
+  kexp_show_id: Schema.NumberFromString,
   show_uri: Model.FieldOption(Schema.String),
   start_time: Model.FieldOption(Schema.String),
   title: Model.FieldOption(Schema.String),
@@ -139,7 +139,7 @@ export class KbShow extends Model.Class<KbShow>("KbShow")({
 // Play entity
 export class KbPlay extends Model.Class<KbPlay>("KbPlay")({
   kb_id: Schema.String,
-  play_id: Schema.Number,
+  play_id: Schema.NumberFromString,
   airdate: Model.FieldOption(Schema.String),
   rotation_status: Model.FieldOption(Schema.String),
   is_local: Model.FieldOption(Model.BooleanFromNumber),
@@ -147,7 +147,7 @@ export class KbPlay extends Model.Class<KbPlay>("KbPlay")({
   is_live: Model.FieldOption(Model.BooleanFromNumber),
   play_type: Model.FieldOption(Schema.String),
   has_comment: Model.FieldOption(Model.BooleanFromNumber),
-  comment_length: Model.FieldOption(Schema.Number),
+  comment_length: Model.FieldOption(Schema.NumberFromString),
   created_at: Model.DateTimeInsert,
   updated_at: Model.DateTimeUpdate
 }) {}
@@ -155,9 +155,9 @@ export class KbPlay extends Model.Class<KbPlay>("KbPlay")({
 // KEXP Comment entity
 export class KbKexpComment extends Model.Class<KbKexpComment>("KbKexpComment")({
   kb_id: Schema.String,
-  play_id: Schema.Number,
+  play_id: Schema.NumberFromString,
   comment_text: Schema.String,
-  comment_length: Schema.Number,
+  comment_length: Schema.parseNumber(Schema.String),
   has_links: Model.FieldOption(Model.BooleanFromNumber),
   contains_url: Model.FieldOption(Model.BooleanFromNumber),
   comment_type: Model.FieldOption(Schema.String),

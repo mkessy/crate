@@ -38,7 +38,7 @@ export default Effect.gen(function*() {
     sql`
         CREATE TABLE IF NOT EXISTS kb_Song (
           kb_id TEXT PRIMARY KEY,
-          title TEXT NOT NULL,
+          title TEXT,
           length_ms INTEGER,
           mb_recording_id TEXT UNIQUE,
           disambiguation TEXT,

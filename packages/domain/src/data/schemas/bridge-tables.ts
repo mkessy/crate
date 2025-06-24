@@ -27,14 +27,14 @@ export class BridgeLabelIdToNames extends Model.Class<BridgeLabelIdToNames>("Bri
 
 // Bridge Play to Artist
 export class BridgePlayToArtist extends Model.Class<BridgePlayToArtist>("BridgePlayToArtist")({
-  play_id: Schema.Number,
-  artist_id_internal: Schema.String
+  play_id: Schema.parseNumber(Schema.String),
+  artist_id_internal: Model.FieldOption(Schema.String)
 }) {}
 
 // Bridge Play to Label
 export class BridgePlayToLabel extends Model.Class<BridgePlayToLabel>("BridgePlayToLabel")({
-  play_id: Schema.Number,
-  label_id_internal: Schema.String
+  play_id: Schema.parseNumber(Schema.String),
+  label_id_internal: Model.FieldOption(Schema.String)
 }) {}
 
 // Bridge Release ID to Names
@@ -45,12 +45,12 @@ export class BridgeReleaseIdToNames extends Model.Class<BridgeReleaseIdToNames>(
 
 // Bridge Show Hosts
 export class BridgeShowHosts extends Model.Class<BridgeShowHosts>("BridgeShowHosts")({
-  show_id: Schema.Number,
-  host_id: Schema.Number
+  show_id: Schema.parseNumber(Schema.String),
+  host_id: Schema.parseNumber(Schema.String)
 }) {}
 
 // Bridge Timeslot Hosts
 export class BridgeTimeslotHosts extends Model.Class<BridgeTimeslotHosts>("BridgeTimeslotHosts")({
-  timeslot_id: Schema.Number,
-  host_id: Schema.Number
+  timeslot_id: Schema.parseNumber(Schema.String),
+  host_id: Schema.parseNumber(Schema.String)
 }) {}

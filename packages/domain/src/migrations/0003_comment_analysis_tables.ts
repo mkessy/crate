@@ -26,7 +26,7 @@ export default Effect.flatMap(
         chunk_index INTEGER,
         chunk_text TEXT NOT NULL,
         chunk_length INTEGER NOT NULL,
-        normalized_chunk_text TEXT NOT NULL,
+        normalized_chunk_text TEXT NULL,
         is_url_only INTEGER NOT NULL CHECK(is_url_only IN (0, 1)),
         contains_url INTEGER NOT NULL CHECK(contains_url IN (0, 1)),
         alpha_ratio REAL,

@@ -10,7 +10,7 @@ export class DimArtistsMaster extends Model.Class<DimArtistsMaster>("DimArtistsM
 
 // Dimension Hosts
 export class DimHosts extends Model.Class<DimHosts>("DimHosts")({
-  host_id: Schema.Number,
+  host_id: Schema.NumberFromString,
   primary_name: Model.FieldOption(Schema.String),
   host_uri: Model.FieldOption(Schema.String)
 }) {}
@@ -24,7 +24,7 @@ export class DimLabelsMaster extends Model.Class<DimLabelsMaster>("DimLabelsMast
 
 // Dimension Programs
 export class DimPrograms extends Model.Class<DimPrograms>("DimPrograms")({
-  program_id: Schema.Number,
+  program_id: Schema.NumberFromString,
   primary_name: Model.FieldOption(Schema.String),
   program_uri: Model.FieldOption(Schema.String),
   description: Model.FieldOption(Schema.String),
@@ -43,7 +43,7 @@ export class DimReleasesMaster extends Model.Class<DimReleasesMaster>("DimReleas
 
 // Dimension Shows
 export class DimShows extends Model.Class<DimShows>("DimShows")({
-  show_id: Schema.Number,
+  show_id: Schema.NumberFromString,
   show_uri: Model.FieldOption(Schema.String),
   program_id: Model.FieldOption(Schema.String),
   start_time_iso: Model.FieldOption(Schema.String),
@@ -56,9 +56,9 @@ export class DimShows extends Model.Class<DimShows>("DimShows")({
 
 // Dimension Timeslots
 export class DimTimeslots extends Model.Class<DimTimeslots>("DimTimeslots")({
-  timeslot_id: Schema.Number,
-  program_id: Model.FieldOption(Schema.Number),
-  weekday: Model.FieldOption(Schema.Number),
+  timeslot_id: Schema.NumberFromString,
+  program_id: Model.FieldOption(Schema.NumberFromString),
+  weekday: Model.FieldOption(Schema.NumberFromString),
   start_date_iso: Model.FieldOption(Schema.String),
   end_date_iso: Model.FieldOption(Schema.String),
   start_time_str: Model.FieldOption(Schema.String),

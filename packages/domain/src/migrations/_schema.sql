@@ -28,7 +28,7 @@ CREATE TABLE kb_Album (
         );
 CREATE TABLE kb_Song (
           kb_id TEXT PRIMARY KEY,
-          title TEXT NOT NULL,
+          title TEXT,
           length_ms INTEGER,
           mb_recording_id TEXT UNIQUE,
           disambiguation TEXT,
@@ -367,7 +367,7 @@ CREATE INDEX idx_mb_artists_raw_name ON mb_artists_raw(name);
 CREATE INDEX idx_mb_relations_enhanced_artist_mb_id ON mb_relations_enhanced(artist_mb_id);
 CREATE INDEX idx_mb_relations_enhanced_relation_type ON mb_relations_enhanced(relation_type);
 
-INSERT INTO effect_sql_migrations VALUES(1,'2025-06-21 23:12:37','initial_schema');
-INSERT INTO effect_sql_migrations VALUES(2,'2025-06-21 23:12:37','fact_dimension_tables');
-INSERT INTO effect_sql_migrations VALUES(3,'2025-06-21 23:12:37','comment_analysis_tables');
-INSERT INTO effect_sql_migrations VALUES(4,'2025-06-21 23:12:37','musicbrainz_tables');
+INSERT INTO effect_sql_migrations VALUES(1,'2025-06-22 23:42:07','initial_schema');
+INSERT INTO effect_sql_migrations VALUES(2,'2025-06-22 23:42:07','fact_dimension_tables');
+INSERT INTO effect_sql_migrations VALUES(3,'2025-06-22 23:42:07','comment_analysis_tables');
+INSERT INTO effect_sql_migrations VALUES(4,'2025-06-22 23:42:07','musicbrainz_tables');
