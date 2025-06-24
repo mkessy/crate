@@ -2,7 +2,7 @@ import { FileSystem } from "@effect/platform"
 import { BunFileSystem } from "@effect/platform-bun"
 import { assert, describe, it } from "@effect/vitest"
 import { Chunk, Effect, Schema, Stream } from "effect"
-import { parseCsv } from "../src/csv/parseCsv.js"
+import { parseCsv } from "../src/csv/parseLines.js"
 
 const TestRow = Schema.Struct({
   id: Schema.NumberFromString,

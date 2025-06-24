@@ -28,7 +28,8 @@
     "@effect/platform-bun": "^0.70.4",
     "@effect/sql": "latest",
     "@effect/sql-sqlite-bun": "^0.39.2",
-    "effect": "latest"
+    "effect": "latest",
+    "fast-csv": "^5.0.2"
   },
   "effect": {
     "generateExports": {
