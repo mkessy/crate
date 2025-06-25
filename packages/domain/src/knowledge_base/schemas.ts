@@ -1,6 +1,7 @@
 import type { SqlError } from "@effect/sql"
 import { Model, SqlClient, SqlSchema } from "@effect/sql"
 import { Chunk, Effect, Equal, Hash, Option, pipe, Schema, Stream, String } from "effect"
+import { FactPlays } from "../data/schemas/fact-tables.js"
 import { KexpTrackPlay } from "../kexp/schemas.js"
 import { MusicKBSqlLive } from "../Sql.js"
 
@@ -187,8 +188,17 @@ const p = Effect.gen(function*() {
     execute: (request) => sql`SELECT * FROM mb_master_lookup WHERE artist_mb_id = ${request} LIMIT 1`
   })
 
+  const selectOnePlay = SqlSchema.single({
+    Request: Schema.String,
+    Result: FactPlays,
+    execute: (request) => sql`SELECT * FROM fact_plays WHERE id = ${request} LIMIT 1`
+  })
+
   const result = yield* selectOne("82799747-1c25-4df6-92e1-6803e330b7f7")
   yield* Effect.log(result)
+
+  const result2 = yield* selectOnePlay("1185851")
+  yield* Effect.log(result2.show)
 }).pipe(Effect.provide(MusicKBSqlLive))
 
 Effect.runPromise(p)
