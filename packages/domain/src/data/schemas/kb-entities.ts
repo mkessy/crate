@@ -1,16 +1,19 @@
 import { Model } from "@effect/sql"
 import { Schema } from "effect"
 
+export type kbArtistType = Schema.Schema.Type<typeof KbArtistType>
+export const KbArtistType = Schema.Literal("PERSON", "GROUP", "ORCHESTRA", "CHOIR", "CHARACTER", "OTHER")
+
 // Artist entity
 export class KbArtist extends Model.Class<KbArtist>("KbArtist")({
   kb_id: Schema.String,
   name: Schema.String,
-  sort_name: Model.FieldOption(Schema.String),
-  type: Model.FieldOption(Schema.Literal("PERSON", "GROUP", "ORCHESTRA", "CHOIR", "CHARACTER", "OTHER")),
-  mb_artist_id: Model.FieldOption(Schema.String),
-  begin_date: Model.FieldOption(Schema.String),
-  end_date: Model.FieldOption(Schema.String),
-  disambiguation: Model.FieldOption(Schema.String),
+  sort_name: Schema.String,
+  type: KbArtistType,
+  mb_artist_id: Schema.String,
+  begin_date: Schema.String,
+  end_date: Schema.String,
+  disambiguation: Schema.String,
   created_at: Model.DateTimeInsert,
   updated_at: Model.DateTimeUpdate
 }) {}
@@ -126,12 +129,12 @@ export class KbProgram extends Model.Class<KbProgram>("KbProgram")({
 export class KbShow extends Model.Class<KbShow>("KbShow")({
   kb_id: Schema.String,
   kexp_show_id: Schema.NumberFromString,
-  show_uri: Model.FieldOption(Schema.String),
-  start_time: Model.FieldOption(Schema.String),
-  title: Model.FieldOption(Schema.String),
-  tagline: Model.FieldOption(Schema.String),
-  program_name: Model.FieldOption(Schema.String),
-  program_tags: Model.FieldOption(Schema.String),
+  show_uri: Schema.String,
+  start_time: Schema.String,
+  title: Schema.String,
+  tagline: Schema.String,
+  program_name: Schema.String,
+  program_tags: Schema.String,
   created_at: Model.DateTimeInsert,
   updated_at: Model.DateTimeUpdate
 }) {}

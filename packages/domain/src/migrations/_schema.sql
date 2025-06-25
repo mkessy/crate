@@ -229,7 +229,7 @@ CREATE TABLE fact_plays (
         original_artist_text TEXT,
         original_album_text TEXT,
         original_song_text TEXT
-      );
+      , kexp_json JSON);
 CREATE TABLE bridge_artist_id_to_names (
         artist_id_internal TEXT,
         observed_name_string TEXT
@@ -277,7 +277,7 @@ CREATE TABLE comment_chunks_raw (
         chunk_index INTEGER,
         chunk_text TEXT NOT NULL,
         chunk_length INTEGER NOT NULL,
-        normalized_chunk_text TEXT NOT NULL,
+        normalized_chunk_text TEXT NULL,
         is_url_only INTEGER NOT NULL CHECK(is_url_only IN (0, 1)),
         contains_url INTEGER NOT NULL CHECK(contains_url IN (0, 1)),
         alpha_ratio REAL,
@@ -329,29 +329,6 @@ CREATE TABLE bridge_chunk_topic (
 CREATE UNIQUE INDEX idx_comment_chunks_raw_chunk_id ON comment_chunks_raw(chunk_id);
 CREATE INDEX idx_chunk_embeddings_chunk_id ON chunk_embeddings(chunk_id);
 CREATE INDEX idx_bridge_chunk_topic_chunk_id ON bridge_chunk_topic(chunk_id);
-CREATE TABLE mb_artists_raw (
-        type TEXT,
-        id TEXT,
-        aliases TEXT, -- JSON
-        life_span TEXT, -- JSON
-        area TEXT, -- JSON
-        begin_area TEXT, -- JSON
-        annotation TEXT,
-        relations TEXT, -- JSON
-        sort_name TEXT,
-        type_id TEXT,
-        country TEXT,
-        end_area TEXT, -- JSON
-        isnis TEXT, -- JSON array
-        ipis TEXT, -- JSON array
-        gender_id TEXT,
-        tags TEXT, -- JSON
-        gender TEXT,
-        genres TEXT, -- JSON
-        rating TEXT, -- JSON
-        name TEXT,
-        disambiguation TEXT
-      );
 CREATE TABLE mb_relations_enhanced (
         artist_mb_id TEXT,
         artist_name TEXT,
@@ -362,12 +339,24 @@ CREATE TABLE mb_relations_enhanced (
         begin_date TEXT,
         end_date TEXT
       );
-CREATE INDEX idx_mb_artists_raw_id ON mb_artists_raw(id);
-CREATE INDEX idx_mb_artists_raw_name ON mb_artists_raw(name);
 CREATE INDEX idx_mb_relations_enhanced_artist_mb_id ON mb_relations_enhanced(artist_mb_id);
 CREATE INDEX idx_mb_relations_enhanced_relation_type ON mb_relations_enhanced(relation_type);
+CREATE TABLE mb_artists_raw (
+        id PRIMARY KEY,
+        type TEXT,
+        aliases TEXT, 
+        sort_name TEXT,
+        country TEXT,
+        gender TEXT,
+        name TEXT NOT NULL,
+        disambiguation TEXT
+      );
+CREATE INDEX idx_mb_artists_raw_id ON mb_artists_raw(id);
+CREATE INDEX idx_mb_artists_raw_name ON mb_artists_raw(name);
 
-INSERT INTO effect_sql_migrations VALUES(1,'2025-06-22 23:42:07','initial_schema');
-INSERT INTO effect_sql_migrations VALUES(2,'2025-06-22 23:42:07','fact_dimension_tables');
-INSERT INTO effect_sql_migrations VALUES(3,'2025-06-22 23:42:07','comment_analysis_tables');
-INSERT INTO effect_sql_migrations VALUES(4,'2025-06-22 23:42:07','musicbrainz_tables');
+INSERT INTO effect_sql_migrations VALUES(1,'2025-06-25 05:00:24','initial_schema');
+INSERT INTO effect_sql_migrations VALUES(2,'2025-06-25 05:00:24','fact_dimension_tables');
+INSERT INTO effect_sql_migrations VALUES(3,'2025-06-25 05:00:24','comment_analysis_tables');
+INSERT INTO effect_sql_migrations VALUES(4,'2025-06-25 05:00:24','musicbrainz_tables');
+INSERT INTO effect_sql_migrations VALUES(5,'2025-06-25 05:00:24','add_kexp_json');
+INSERT INTO effect_sql_migrations VALUES(6,'2025-06-25 05:00:24','simplify_mb_artists');

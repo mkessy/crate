@@ -16,13 +16,13 @@ export class BridgeKbSongToKexp extends Model.Class<BridgeKbSongToKexp>("BridgeK
 // Bridge Artist ID to Names
 export class BridgeArtistIdToNames extends Model.Class<BridgeArtistIdToNames>("BridgeArtistIdToNames")({
   artist_id_internal: Schema.String,
-  observed_name_string: Model.FieldOption(Schema.String)
+  observed_name_string: Schema.String
 }) {}
 
 // Bridge Label ID to Names
 export class BridgeLabelIdToNames extends Model.Class<BridgeLabelIdToNames>("BridgeLabelIdToNames")({
   label_id_internal: Schema.String,
-  observed_label_name_string: Model.FieldOption(Schema.String)
+  observed_label_name_string: Schema.String
 }) {}
 
 // Bridge Play to Artist
@@ -40,7 +40,7 @@ export class BridgePlayToLabel extends Model.Class<BridgePlayToLabel>("BridgePla
 // Bridge Release ID to Names
 export class BridgeReleaseIdToNames extends Model.Class<BridgeReleaseIdToNames>("BridgeReleaseIdToNames")({
   release_id_internal: Schema.String,
-  observed_album_name_string: Model.FieldOption(Schema.String)
+  observed_album_name_string: Schema.String
 }) {}
 
 // Bridge Show Hosts

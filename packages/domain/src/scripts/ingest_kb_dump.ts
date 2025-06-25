@@ -6,62 +6,61 @@ import * as KbSchemas from "../data/schemas/index.js"
 import { SqlLive } from "../Sql.js"
 
 const kbDumpPath = "/Users/pooks/Dev/kexp_data_scripts/kexp_kb_export"
-const bertopic_hierarchy = parseCsv(kbDumpPath + "/bertopic_hierarchy.csv", KbSchemas.BertopicHierarchy.insert)
-const bertopic_runs = parseCsv(kbDumpPath + "/bertopic_runs.csv", KbSchemas.BertopicRuns.insert)
-const bertopic_topics = parseCsv(kbDumpPath + "/bertopic_topics.csv", KbSchemas.BertopicTopics.insert)
+const bertopic_hierarchy = parseCsv(`${kbDumpPath}/bertopic_hierarchy.csv`, KbSchemas.BertopicHierarchy.insert)
+const bertopic_runs = parseCsv(`${kbDumpPath}/bertopic_runs.csv`, KbSchemas.BertopicRuns.insert)
+const bertopic_topics = parseCsv(`${kbDumpPath}/bertopic_topics.csv`, KbSchemas.BertopicTopics.insert)
 const bridge_artist_id_to_names = parseCsv(
-  kbDumpPath + "/bridge_artist_id_to_names.csv",
+  `${kbDumpPath}/bridge_artist_id_to_names.csv`,
   KbSchemas.BridgeArtistIdToNames.insert
 )
-const bridge_chunk_topic = parseCsv(kbDumpPath + "/bridge_chunk_topic.csv", KbSchemas.BridgeChunkTopic.insert)
+const bridge_chunk_topic = parseCsv(`${kbDumpPath}/bridge_chunk_topic.csv`, KbSchemas.BridgeChunkTopic.insert)
 const bridge_kb_artist_to_kexp = parseCsv(
-  kbDumpPath + "/bridge_kb_artist_to_kexp.csv",
+  `${kbDumpPath}/bridge_kb_artist_to_kexp.csv`,
   KbSchemas.BridgeKbArtistToKexp.insert
 )
-const bridge_kb_song_to_kexp = parseCsv(kbDumpPath + "/bridge_kb_song_to_kexp.csv", KbSchemas.BridgeKbSongToKexp.insert)
+const bridge_kb_song_to_kexp = parseCsv(`${kbDumpPath}/bridge_kb_song_to_kexp.csv`, KbSchemas.BridgeKbSongToKexp.insert)
 const bridge_label_id_to_names = parseCsv(
-  kbDumpPath + "/bridge_label_id_to_names.csv",
+  `${kbDumpPath}/bridge_label_id_to_names.csv`,
   KbSchemas.BridgeLabelIdToNames.insert
 )
-const bridge_play_to_artist = parseCsv(kbDumpPath + "/bridge_play_to_artist.csv", KbSchemas.BridgePlayToArtist.insert)
-const bridge_play_to_label = parseCsv(kbDumpPath + "/bridge_play_to_label.csv", KbSchemas.BridgePlayToLabel.insert)
+const bridge_play_to_artist = parseCsv(`${kbDumpPath}/bridge_play_to_artist.csv`, KbSchemas.BridgePlayToArtist.insert)
+const bridge_play_to_label = parseCsv(`${kbDumpPath}/bridge_play_to_label.csv`, KbSchemas.BridgePlayToLabel.insert)
 const bridge_release_id_to_names = parseCsv(
-  kbDumpPath + "/bridge_release_id_to_names.csv",
+  `${kbDumpPath}/bridge_release_id_to_names.csv`,
   KbSchemas.BridgeReleaseIdToNames.insert
 )
-const bridge_show_hosts = parseCsv(kbDumpPath + "/bridge_show_hosts.csv", KbSchemas.BridgeShowHosts.insert)
-const bridge_timeslot_hosts = parseCsv(kbDumpPath + "/bridge_timeslot_hosts.csv", KbSchemas.BridgeTimeslotHosts.insert)
-const chunk_embeddings = parseCsv(kbDumpPath + "/chunk_embeddings.csv", KbSchemas.ChunkEmbeddings.insert)
-const comment_chunks_raw = parseCsv(kbDumpPath + "/comment_chunks_raw.csv", KbSchemas.CommentChunksRaw.insert)
+const bridge_show_hosts = parseCsv(`${kbDumpPath}/bridge_show_hosts.csv`, KbSchemas.BridgeShowHosts.insert)
+const chunk_embeddings = parseCsv(`${kbDumpPath}/chunk_embeddings.csv`, KbSchemas.ChunkEmbeddings.insert)
+const comment_chunks_raw = parseCsv(`${kbDumpPath}/comment_chunks_raw.csv`, KbSchemas.CommentChunksRaw.insert)
 const comment_splitting_strategies = parseCsv(
-  kbDumpPath + "/comment_splitting_strategies.csv",
+  `${kbDumpPath}/comment_splitting_strategies.csv`,
   KbSchemas.CommentSplittingStrategies.insert
 )
-const dim_artists_master = parseCsv(kbDumpPath + "/dim_artists_master.csv", KbSchemas.DimArtistsMaster.insert)
-const dim_hosts = parseCsv(kbDumpPath + "/dim_hosts.csv", KbSchemas.DimHosts.insert)
-const dim_labels_master = parseCsv(kbDumpPath + "/dim_labels_master.csv", KbSchemas.DimLabelsMaster.insert)
-const dim_programs = parseCsv(kbDumpPath + "/dim_programs.csv", KbSchemas.DimPrograms.insert)
-const dim_releases_master = parseCsv(kbDumpPath + "/dim_releases_master.csv", KbSchemas.DimReleasesMaster.insert)
-const dim_shows = parseCsv(kbDumpPath + "/dim_shows.csv", KbSchemas.DimShows.insert)
-const dim_timeslots = parseCsv(kbDumpPath + "/dim_timeslots.csv", KbSchemas.DimTimeslots.insert)
-const dim_tracks = parseCsv(kbDumpPath + "/dim_tracks.csv", KbSchemas.DimTracks.insert)
-const fact_plays = parseCsv(kbDumpPath + "/fact_plays.csv", KbSchemas.FactPlays.insert)
-const kb_Album = parseCsv(kbDumpPath + "/kb_album.csv", KbSchemas.KbAlbum.insert)
-const kb_Artist = parseCsv(kbDumpPath + "/kb_artist.csv", KbSchemas.KbArtist.insert)
-const kb_Genre = parseCsv(kbDumpPath + "/kb_genre.csv", KbSchemas.KbGenre.insert)
-const kb_Host = parseCsv(kbDumpPath + "/kb_host.csv", KbSchemas.KbHost.insert)
-const kb_KexpComment = parseCsv(kbDumpPath + "/kb_kexpcomment.csv", KbSchemas.KbKexpComment.insert)
-const kb_Location = parseCsv(kbDumpPath + "/kb_location.csv", KbSchemas.KbLocation.insert)
-const kb_Play = parseCsv(kbDumpPath + "/kb_play.csv", KbSchemas.KbPlay.insert)
-const kb_Program = parseCsv(kbDumpPath + "/kb_program.csv", KbSchemas.KbProgram.insert)
-const kb_RecordLabel = parseCsv(kbDumpPath + "/kb_recordlabel.csv", KbSchemas.KbRecordLabel.insert)
-const kb_Relationship = parseCsv(kbDumpPath + "/kb_relationship.csv", KbSchemas.KbRelationship.insert)
-const kb_Release = parseCsv(kbDumpPath + "/kb_release.csv", KbSchemas.KbRelease.insert)
-const kb_Show = parseCsv(kbDumpPath + "/kb_show.csv", KbSchemas.KbShow.insert)
-const kb_Song = parseCsv(kbDumpPath + "/kb_song.csv", KbSchemas.KbSong.insert)
-const mb_artists_raw = parseCsv(kbDumpPath + "/mb_artists_raw.csv", KbSchemas.MbArtistsRaw.insert)
+const dim_artists_master = parseCsv(`${kbDumpPath}/dim_artists_master.csv`, KbSchemas.DimArtistsMaster.insert)
+const dim_hosts = parseCsv(`${kbDumpPath}/dim_hosts.csv`, KbSchemas.DimHosts.insert)
+const dim_labels = parseCsv(`${kbDumpPath}/dim_labels_master.csv`, KbSchemas.DimLabelsMaster.insert)
+const dim_programs = parseCsv(`${kbDumpPath}/dim_programs.csv`, KbSchemas.DimPrograms.insert)
+const dim_releases_master = parseCsv(`${kbDumpPath}/dim_releases_master.csv`, KbSchemas.DimReleasesMaster.insert)
+const dim_shows = parseCsv(`${kbDumpPath}/dim_shows.csv`, KbSchemas.DimShows.insert)
+const dim_timeslots = parseCsv(`${kbDumpPath}/dim_timeslots.csv`, KbSchemas.DimTimeslots.insert)
+const dim_tracks = parseCsv(`${kbDumpPath}/dim_tracks.csv`, KbSchemas.DimTracks.insert)
+const fact_plays = parseCsv(`${kbDumpPath}/fact_plays.csv`, KbSchemas.FactPlays.insert)
+const kb_Album = parseCsv(`${kbDumpPath}/kb_album.csv`, KbSchemas.KbAlbum.insert)
+const kb_Artist = parseCsv(`${kbDumpPath}/kb_artist.csv`, KbSchemas.KbArtist.insert)
+const kb_Genre = parseCsv(`${kbDumpPath}/kb_genre.csv`, KbSchemas.KbGenre.insert)
+const kb_Host = parseCsv(`${kbDumpPath}/kb_host.csv`, KbSchemas.KbHost.insert)
+const kb_KexpComment = parseCsv(`${kbDumpPath}/kb_kexpcomment.csv`, KbSchemas.KbKexpComment.insert)
+const kb_Location = parseCsv(`${kbDumpPath}/kb_location.csv`, KbSchemas.KbLocation.insert)
+const kb_Play = parseCsv(`${kbDumpPath}/kb_play.csv`, KbSchemas.KbPlay.insert)
+const kb_Program = parseCsv(`${kbDumpPath}/kb_program.csv`, KbSchemas.KbProgram.insert)
+const kb_RecordLabel = parseCsv(`${kbDumpPath}/kb_recordlabel.csv`, KbSchemas.KbRecordLabel.insert)
+const kb_Relationship = parseCsv(`${kbDumpPath}/kb_relationship.csv`, KbSchemas.KbRelationship.insert)
+const kb_Release = parseCsv(`${kbDumpPath}/kb_release.csv`, KbSchemas.KbRelease.insert)
+const kb_Show = parseCsv(`${kbDumpPath}/kb_show.csv`, KbSchemas.KbShow.insert)
+const kb_Song = parseCsv(`${kbDumpPath}/kb_song.csv`, KbSchemas.KbSong.insert)
+const mb_artists_raw = parseCsv(`${kbDumpPath}/mb_artists_raw.csv`, KbSchemas.MbArtistsRaw.jsonCreate)
 const mb_relations_enhanced = parseJsonl(
-  kbDumpPath + "/mb_relations_enhanced.jsonl",
+  `${kbDumpPath}/mb_relations_enhanced.jsonl`,
   KbSchemas.MbRelationsEnhanced.insert
 )
 
@@ -88,7 +87,7 @@ const SAFE_LOADING_ORDER = [
   // "dim_shows",
   // "dim_timeslots",
   // "dim_tracks",
-  // "mb_artists_raw",
+  "mb_artists_raw",
   "mb_relations_enhanced"
   // Tier 1: Single dependencies
   // "kb_release", // depends on kb_Album
@@ -368,7 +367,7 @@ const ingest_dim_tracks = Effect.gen(function*() {
 
 const ingest_mb_artists_raw = Effect.gen(function*() {
   const sql = yield* SqlClient.SqlClient
-  const encode = Schema.encodeSync(KbSchemas.MbArtistsRaw.insert)
+  const encode = Schema.encodeSync(KbSchemas.MbArtistsRaw.jsonCreate)
   const stream = mb_artists_raw.pipe(
     Stream.mapEffect((row) => sql`insert into mb_artists_raw ${sql.insert(encode(row))}`)
   )
