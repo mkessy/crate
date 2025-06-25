@@ -1,6 +1,5 @@
-import type { SqlError } from "@effect/sql"
 import { Model, SqlClient, SqlSchema } from "@effect/sql"
-import { Chunk, Effect, Equal, Hash, Option, pipe, Schema, Stream, String } from "effect"
+import { Effect, Equal, Hash, pipe, Schema, String } from "effect"
 import { FactPlays } from "../data/schemas/fact-tables.js"
 import { KexpTrackPlay } from "../kexp/schemas.js"
 import { MusicKBSqlLive } from "../Sql.js"
@@ -77,22 +76,22 @@ export class KexPlay extends Model.Class<KexPlay>("KexPlay")({
   }
 }
 
-const MbRecordingId = Schema.String.pipe(Schema.brand("mb_recording_id"))
-const MbReleaseId = Schema.String.pipe(Schema.brand("mb_release_id"))
-const MbReleaseGroupId = Schema.String.pipe(Schema.brand("mb_release_group_id"))
-const MbLabelId = Schema.String.pipe(Schema.brand("mb_label_id"))
-type MbArtistId = Schema.Schema.Type<typeof MbArtistId>
-const MbArtistId = Schema.String.pipe(Schema.brand("mb_artist_id"))
+export const MbRecordingId = Schema.String.pipe(Schema.brand("mb_recording_id"))
+export const MbReleaseId = Schema.String.pipe(Schema.brand("mb_release_id"))
+export const MbReleaseGroupId = Schema.String.pipe(Schema.brand("mb_release_group_id"))
+export const MbLabelId = Schema.String.pipe(Schema.brand("mb_label_id"))
+export type MbArtistId = Schema.Schema.Type<typeof MbArtistId>
+export const MbArtistId = Schema.String.pipe(Schema.brand("mb_artist_id"))
 
-const MbAreaId = Schema.String.pipe(Schema.brand("mb_area_id"))
-const _MbGenreId = Schema.String.pipe(Schema.brand("mb_genre_id"))
-const MbWorkId = Schema.String.pipe(Schema.brand("mb_work_id"))
+export const MbAreaId = Schema.String.pipe(Schema.brand("mb_area_id"))
+export const _MbGenreId = Schema.String.pipe(Schema.brand("mb_genre_id"))
+export const MbWorkId = Schema.String.pipe(Schema.brand("mb_work_id"))
 
 export class Work extends Model.Class<Work>("Work")({
   mb_id: MbWorkId,
   name: Schema.String,
-  disambiguation: Schema.String,
-  type: Schema.String,
+  disambiguation: Schema.NullOr(Schema.String),
+  type: Schema.Literal("work"),
   comment: Schema.String,
   created_at: Model.DateTimeInsert,
   updated_at: Model.DateTimeUpdate
@@ -101,6 +100,7 @@ export class Work extends Model.Class<Work>("Work")({
 export class Area extends Model.Class<Area>("Area")({
   mb_id: MbAreaId,
   name: Schema.String,
+  type: Schema.Literal("area"),
   disambiguation: Schema.NullOr(Schema.String),
   entity_metadata: Model.FieldOption(Model.JsonFromString(Schema.Unknown)),
   created_at: Model.DateTimeInsert,
@@ -110,7 +110,8 @@ export class Area extends Model.Class<Area>("Area")({
 export class Recording extends Model.Class<Recording>("Recording")({
   mb_id: MbRecordingId,
   name: Schema.String,
-  disambiguation: Schema.String,
+  type: Schema.Literal("recording"),
+  disambiguation: Schema.NullOr(Schema.String),
   begin_date: Schema.String,
   end_date: Schema.String,
   recording_length: Schema.NullOr(Schema.Number),
@@ -121,7 +122,8 @@ export class Recording extends Model.Class<Recording>("Recording")({
 export class Release extends Model.Class<Release>("Release")({
   mb_id: MbReleaseId,
   name: Schema.String,
-  disambiguation: Schema.String,
+  type: Schema.Literal("release"),
+  disambiguation: Schema.NullOr(Schema.String),
   begin_date: Schema.String,
   end_date: Schema.String,
   barcode: Schema.NullOr(Schema.String),
@@ -134,7 +136,8 @@ export class Release extends Model.Class<Release>("Release")({
 export class ReleaseGroup extends Model.Class<ReleaseGroup>("ReleaseGroup")({
   mb_id: MbReleaseGroupId,
   name: Schema.String,
-  disambiguation: Schema.String,
+  type: Schema.Literal("release_group"),
+  disambiguation: Schema.NullOr(Schema.String),
   created_at: Model.DateTimeInsert,
   updated_at: Model.DateTimeUpdate
 }) {}
@@ -150,7 +153,8 @@ export class Artist extends Model.Class<Artist>("Artist")({
 export class Label extends Model.Class<Label>("Label")({
   mb_id: MbLabelId,
   name: Schema.String,
-  disambiguation: Schema.String,
+  type: Schema.Literal("label"),
+  disambiguation: Schema.NullOr(Schema.String),
   ended: Schema.Boolean,
   created_at: Model.DateTimeInsert,
   updated_at: Model.DateTimeUpdate
