@@ -2,6 +2,7 @@ import { Model } from "@effect/sql"
 import { Equal, Hash, pipe, Schema, String } from "effect"
 import { KexpTrackPlay } from "../../kexp/schemas.js"
 
+export type EntityType = Schema.Schema.Type<typeof EntityType>
 export const EntityType = Schema.Literal(
   "recording",
   "work",
@@ -13,6 +14,7 @@ export const EntityType = Schema.Literal(
   "release_group"
 )
 
+export type RelationType = Schema.Schema.Type<typeof RelationType>
 export const RelationType = Schema.String
 
 const normalizeText = (text: string) => {
@@ -77,14 +79,22 @@ export class KexPlay extends Model.Class<KexPlay>("KexPlay")({
 }
 
 export const MbRecordingId = Schema.String.pipe(Schema.brand("mb_recording_id"))
+export type MbRecordingId = Schema.Schema.Type<typeof MbRecordingId>
 export const MbReleaseId = Schema.String.pipe(Schema.brand("mb_release_id"))
+export type MbReleaseId = Schema.Schema.Type<typeof MbReleaseId>
 export const MbReleaseGroupId = Schema.String.pipe(Schema.brand("mb_release_group_id"))
+export type MbReleaseGroupId = Schema.Schema.Type<typeof MbReleaseGroupId>
 export const MbLabelId = Schema.String.pipe(Schema.brand("mb_label_id"))
+export type MbLabelId = Schema.Schema.Type<typeof MbLabelId>
 export const MbArtistId = Schema.String.pipe(Schema.brand("mb_artist_id"))
+export type MbArtistId = Schema.Schema.Type<typeof MbArtistId>
 
 export const MbAreaId = Schema.String.pipe(Schema.brand("mb_area_id"))
-export const _MbGenreId = Schema.String.pipe(Schema.brand("mb_genre_id"))
+export type MbAreaId = Schema.Schema.Type<typeof MbAreaId>
+export const MbGenreId = Schema.String.pipe(Schema.brand("mb_genre_id"))
+export type MbGenreId = Schema.Schema.Type<typeof MbGenreId>
 export const MbWorkId = Schema.String.pipe(Schema.brand("mb_work_id"))
+export type MbWorkId = Schema.Schema.Type<typeof MbWorkId>
 
 export class Work extends Model.Class<Work>("Work")({
   mb_id: MbWorkId,
