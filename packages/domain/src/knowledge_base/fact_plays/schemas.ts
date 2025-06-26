@@ -61,26 +61,26 @@ export class FactPlay extends Model.Class<FactPlay>("FactPlay")({
     }
     return false
   }
-  
+
   [Hash.symbol](): number {
     return Hash.hash(this.id)
   }
 
   // Helper to parse artist_ids JSON
-  get parsedArtistIds(): string[] {
+  get parsedArtistIds(): Array<string> {
     if (!this.artist_ids) return []
     try {
-      return JSON.parse(this.artist_ids) as string[]
+      return JSON.parse(this.artist_ids) as Array<string>
     } catch {
       return []
     }
   }
 
   // Helper to parse label_ids JSON
-  get parsedLabelIds(): string[] {
+  get parsedLabelIds(): Array<string> {
     if (!this.label_ids) return []
     try {
-      return JSON.parse(this.label_ids) as string[]
+      return JSON.parse(this.label_ids) as Array<string>
     } catch {
       return []
     }
@@ -96,40 +96,7 @@ export type DateRange = Schema.Schema.Type<typeof DateRange>
 
 // Pagination schema
 export const Pagination = Schema.Struct({
-  limit: Schema.Number.pipe(Schema.positive()),
-  offset: Schema.Number.pipe(Schema.nonNegative())
+  limit: Schema.Int.pipe(Schema.positive()),
+  offset: Schema.Int.pipe(Schema.nonNegative())
 })
 export type Pagination = Schema.Schema.Type<typeof Pagination>
-
-// Schema for enriched play data with MB information
-export class FactPlayWithMB extends Schema.Class<FactPlayWithMB>("FactPlayWithMB")({ 
-  // FactPlay fields
-  play_id: PlayId,
-  airdate: Schema.String,
-  show: ShowId,
-  song: Schema.NullOr(Schema.String),
-  artist: Schema.NullOr(Schema.String),
-  album: Schema.NullOr(Schema.String),
-  rotation_status: Schema.NullOr(Schema.String),
-  is_local: Model.BooleanFromNumber,
-  is_request: Model.BooleanFromNumber,
-  is_live: Model.BooleanFromNumber,
-  // MB enriched data
-  mb_artist_name: Schema.NullOr(Schema.String),
-  mb_artist_disambiguation: Schema.NullOr(Schema.String),
-  mb_recording_name: Schema.NullOr(Schema.String),
-  mb_release_name: Schema.NullOr(Schema.String),
-  mb_release_date: Schema.NullOr(Schema.String)
-}) {}
-
-// Schema for artist plays with related entities
-export class ArtistPlayWithRelatedEntities extends Schema.Class<ArtistPlayWithRelatedEntities>("ArtistPlayWithRelatedEntities")({
-  play_id: PlayId,
-  airdate: Schema.String,
-  song: Schema.NullOr(Schema.String),
-  album: Schema.NullOr(Schema.String),
-  // Related entities from mb_master_lookup
-  related_entity_type: Schema.NullOr(Schema.String),
-  related_entity_name: Schema.NullOr(Schema.String),
-  relation_type: Schema.NullOr(Schema.String)
-}) {}
