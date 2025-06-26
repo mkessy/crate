@@ -74,7 +74,7 @@ CREATE TABLE master_relations (
       attribute_type      TEXT,
       source              TEXT NOT NULL,
       kexp_play_id        INTEGER
-    );
+    , updated_at DATETIME, created_at DATETIME);
 CREATE UNIQUE INDEX idx_master_relations_pk 
 ON master_relations(subject_id, predicate, object_id, attribute_type);
 CREATE INDEX idx_relations_forward
@@ -97,3 +97,4 @@ INSERT INTO effect_sql_migrations VALUES(6,'2025-06-26 06:12:05','create_master_
 INSERT INTO effect_sql_migrations VALUES(7,'2025-06-26 06:29:09','migrate_data_relations_table');
 INSERT INTO effect_sql_migrations VALUES(8,'2025-06-26 06:50:48','populate_master_relations');
 INSERT INTO effect_sql_migrations VALUES(9,'2025-06-26 06:50:48','create_master_relations_idexes');
+INSERT INTO effect_sql_migrations VALUES(10,'2025-06-26 22:11:12','backfill_updated_created');
