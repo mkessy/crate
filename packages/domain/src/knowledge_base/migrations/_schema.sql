@@ -57,7 +57,15 @@ CREATE TABLE fact_plays (
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL
       );
+CREATE UNIQUE INDEX idx_fact_plays_id ON fact_plays (id);
+CREATE INDEX idx_artist_entity_relation ON mb_master_lookup(artist_mb_id, entity_type, relation_type);
+CREATE INDEX idx_artist_entity ON mb_master_lookup(artist_mb_id, entity_type);
+CREATE INDEX idx_entity_relation ON mb_master_lookup(entity_mb_id, relation_type);
+CREATE INDEX idx_relation_entity ON mb_master_lookup(relation_type, entity_type);
+CREATE INDEX idx_artist_relation ON mb_master_lookup(artist_mb_id, relation_type);
 
 INSERT INTO effect_sql_migrations VALUES(1,'2025-06-25 07:56:52','initial_masters_table');
 INSERT INTO effect_sql_migrations VALUES(2,'2025-06-25 07:58:51','create_indexes_on_mb_master_lookup');
 INSERT INTO effect_sql_migrations VALUES(3,'2025-06-25 09:16:30','add_plays_table');
+INSERT INTO effect_sql_migrations VALUES(4,'2025-06-25 09:46:16','add_idx_fact_plays');
+INSERT INTO effect_sql_migrations VALUES(5,'2025-06-25 19:41:29','add_composite_idx_masters_table');
