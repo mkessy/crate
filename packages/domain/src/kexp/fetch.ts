@@ -1,6 +1,7 @@
 import { FetchHttpClient, HttpClient, HttpClientRequest, HttpClientResponse } from "@effect/platform"
 
 import { BunRuntime } from "@effect/platform-bun"
+import type { Schema } from "effect"
 import { Effect, Schedule } from "effect"
 import * as KEXP from "./schemas.js"
 
@@ -64,12 +65,24 @@ export class KEXPApi extends Effect.Service<KEXPApi>()("KEXPAPI", {
         }
       }).pipe(Effect.flatMap(HttpClientResponse.schemaBodyJson(KEXP.KexpHostsResponse)))
 
+    const fetchPaginated = <A, I, R>(
+      path: string,
+      options: PaginationOptions = defaultPaginationOptions,
+      schema: Schema.Schema<A, I, R>
+    ) =>
+      client.get(path, {
+        urlParams: {
+          ...options
+        }
+      }).pipe(Effect.flatMap(HttpClientResponse.schemaBodyJson(schema)))
+
     return {
       fetchPrograms,
       fetchShows,
       fetchTimeslots,
       fetchPlays,
-      fetchHosts
+      fetchHosts,
+      fetchPaginated
     }
   }),
   dependencies: [FetchHttpClient.layer]

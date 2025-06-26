@@ -133,21 +133,38 @@ export const KexpHost = Schema.Struct({
 
 // === API Response Wrappers ===
 
-export const KexpPaginatedResponse = <A>(itemSchema: Schema.Schema<A>) =>
-  Schema.Struct({
-    count: Schema.optional(Schema.Number),
-    next: Schema.NullOr(Schema.String),
-    previous: Schema.NullOr(Schema.String),
-    results: Schema.Array(itemSchema)
-  })
+export const KexpPaginatedResponse = Schema.Struct({
+  count: Schema.optional(Schema.Number),
+  next: Schema.NullOr(Schema.String),
+  previous: Schema.NullOr(Schema.String)
+})
+
+export const KexpPlaysResponse = Schema.Struct({
+  ...KexpPaginatedResponse.fields,
+  results: Schema.Array(KexpPlay)
+})
+
+export const KexpProgramsResponse = Schema.Struct({
+  ...KexpPaginatedResponse.fields,
+  results: Schema.Array(KexpProgram)
+})
+
+export const KexpTimeslotsResponse = Schema.Struct({
+  ...KexpPaginatedResponse.fields,
+  results: Schema.Array(KexpTimeslot)
+})
+
+export const KexpShowsResponse = Schema.Struct({
+  ...KexpPaginatedResponse.fields,
+  results: Schema.Array(KexpShow)
+})
+
+export const KexpHostsResponse = Schema.Struct({
+  ...KexpPaginatedResponse.fields,
+  results: Schema.Array(KexpHost)
+})
 
 export const isTrackPlay = (play: KexpPlay): play is KexpTrackPlay => play.play_type === "trackplay"
-
-export const KexpPlaysResponse = KexpPaginatedResponse(KexpPlay)
-export const KexpProgramsResponse = KexpPaginatedResponse(KexpProgram)
-export const KexpTimeslotsResponse = KexpPaginatedResponse(KexpTimeslot)
-export const KexpShowsResponse = KexpPaginatedResponse(KexpShow)
-export const KexpHostsResponse = KexpPaginatedResponse(KexpHost)
 
 // Type aliases for better readability
 export type KexpPlay = Schema.Schema.Type<typeof KexpPlay>
