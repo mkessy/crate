@@ -63,9 +63,37 @@ CREATE INDEX idx_artist_entity ON mb_master_lookup(artist_mb_id, entity_type);
 CREATE INDEX idx_entity_relation ON mb_master_lookup(entity_mb_id, relation_type);
 CREATE INDEX idx_relation_entity ON mb_master_lookup(relation_type, entity_type);
 CREATE INDEX idx_artist_relation ON mb_master_lookup(artist_mb_id, relation_type);
+CREATE TABLE master_relations (
+      subject_id          TEXT NOT NULL,
+      subject_type        TEXT NOT NULL,
+      subject_name        TEXT,
+      predicate           TEXT NOT NULL,
+      object_id           TEXT NOT NULL,
+      object_type         TEXT NOT NULL,
+      object_name         TEXT,
+      attribute_type      TEXT,
+      source              TEXT NOT NULL,
+      kexp_play_id        INTEGER
+    );
+CREATE UNIQUE INDEX idx_master_relations_pk 
+ON master_relations(subject_id, predicate, object_id, attribute_type);
+CREATE INDEX idx_relations_forward
+ON master_relations (subject_id, predicate, object_type);
+CREATE INDEX idx_relations_reverse
+ON master_relations (object_id, predicate, subject_type);
+CREATE INDEX idx_relations_predicate
+ON master_relations (predicate);
+CREATE INDEX idx_relations_source
+ON master_relations (source);
+CREATE INDEX idx_relations_kexp_play
+ON master_relations (kexp_play_id) WHERE kexp_play_id IS NOT NULL;
 
 INSERT INTO effect_sql_migrations VALUES(1,'2025-06-25 07:56:52','initial_masters_table');
 INSERT INTO effect_sql_migrations VALUES(2,'2025-06-25 07:58:51','create_indexes_on_mb_master_lookup');
 INSERT INTO effect_sql_migrations VALUES(3,'2025-06-25 09:16:30','add_plays_table');
 INSERT INTO effect_sql_migrations VALUES(4,'2025-06-25 09:46:16','add_idx_fact_plays');
 INSERT INTO effect_sql_migrations VALUES(5,'2025-06-25 19:41:29','add_composite_idx_masters_table');
+INSERT INTO effect_sql_migrations VALUES(6,'2025-06-26 06:12:05','create_master_relations_table');
+INSERT INTO effect_sql_migrations VALUES(7,'2025-06-26 06:29:09','migrate_data_relations_table');
+INSERT INTO effect_sql_migrations VALUES(8,'2025-06-26 06:50:48','populate_master_relations');
+INSERT INTO effect_sql_migrations VALUES(9,'2025-06-26 06:50:48','create_master_relations_idexes');
