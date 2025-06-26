@@ -1,6 +1,5 @@
 import { FetchHttpClient, HttpClient, HttpClientRequest, HttpClientResponse } from "@effect/platform"
 
-import { BunRuntime } from "@effect/platform-bun"
 import type { Schema } from "effect"
 import { Effect, Schedule } from "effect"
 import * as KEXP from "./schemas.js"
@@ -87,20 +86,3 @@ export class KEXPApi extends Effect.Service<KEXPApi>()("KEXPAPI", {
   }),
   dependencies: [FetchHttpClient.layer]
 }) {}
-
-const test = Effect.gen(function*() {
-  const api = yield* KEXPApi
-  const programs = yield* api.fetchPrograms()
-  const shows = yield* api.fetchShows()
-  const timeslots = yield* api.fetchTimeslots()
-  const plays = yield* api.fetchPlays()
-  const hosts = yield* api.fetchHosts()
-
-  console.log(programs)
-  console.log(shows)
-  console.log(timeslots)
-  console.log(plays)
-  console.log(hosts)
-})
-
-test.pipe(Effect.provide(KEXPApi.Default), BunRuntime.runMain)
