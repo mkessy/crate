@@ -1,7 +1,7 @@
 import { SqlClient, SqlSchema } from "@effect/sql"
 import { Effect } from "effect"
 import { FactPlays } from "../data/schemas/fact-tables.js"
-import { MusicKBSqlLive, SqlLive } from "../Sql.js"
+import { MusicKBSqlLive } from "../Sql.js"
 
 export class FactPlaysRepo extends Effect.Service<FactPlaysRepo>()(
   "FactPlaysRepo",

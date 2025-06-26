@@ -2,6 +2,7 @@ import { SqlClient, SqlSchema } from "@effect/sql"
 import { Duration, Effect, Schedule, Schema } from "effect"
 import { FactPlays } from "../data/schemas/fact-tables.js"
 import { MusicKBSqlLive } from "../Sql.js"
+import * as FactPlaysService from "./fact_plays/service.js"
 import { ArtistMBEntityMaster } from "./mb_entity/schemas.js"
 import * as MusicBrainzService from "./mb_entity/service.js"
 
@@ -81,4 +82,12 @@ export const typeSafeQueryExamples = {
 // Quick tests you can run
 export const runExampleUsage = () => exampleUsage.pipe(Effect.runPromise)
 
-runExampleUsage()
+const updatePlays = Effect.gen(function*() {
+  const fp = yield* FactPlaysService.FactPlaysService
+
+  yield* fp.updatePlays
+}).pipe(Effect.provide(FactPlaysService.FactPlaysService.Default))
+
+const runUpdatePlays = () => updatePlays.pipe(Effect.runPromise)
+
+runUpdatePlays()

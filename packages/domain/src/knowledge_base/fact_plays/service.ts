@@ -1,9 +1,22 @@
 import { SqlClient, SqlSchema } from "@effect/sql"
-import type { Option } from "effect"
-import { Data, Duration, Effect, Layer, Request, RequestResolver, Schema } from "effect"
+import {
+  Array,
+  Data,
+  DateTime,
+  Duration,
+  Effect,
+  Layer,
+  Option,
+  Request,
+  RequestResolver,
+  Schedule,
+  Schema
+} from "effect"
+import { KEXPApi } from "../../kexp/fetch.js"
+import * as KEXPSchemas from "../../kexp/schemas.js"
 import { MusicKBSqlLive } from "../../Sql.js"
 import type { DateRange, Pagination } from "./schemas.js"
-import { FactPlay, PlayId, ShowId } from "./schemas.js"
+import { FactPlay, factPlayFromKexpPlay, PlayId, ShowId } from "./schemas.js"
 
 // Query schema for play by ID
 export const PlayByIdQuerySchema = Schema.TemplateLiteralParser("play:", PlayId)
@@ -66,12 +79,22 @@ export const LocalPlaysQuerySchema = Schema.TemplateLiteralParser(
 )
 export type LocalPlaysQuery = Schema.Schema.Encoded<typeof LocalPlaysQuerySchema>
 
+export const InsertPlaysQuerySchema = Schema.ArrayEnsure(FactPlay.insert)
+export type InsertPlaysQuery = Schema.Schema.Encoded<typeof InsertPlaysQuerySchema>
+
 // Error class for fact plays queries
 class FactPlaysQueryError extends Data.TaggedError("FactPlaysQueryError")<{
   readonly cause: unknown
   readonly message: string
   readonly queryType: string
 }> {}
+
+interface InsertPlaysRequest extends Request.Request<void, FactPlaysQueryError> {
+  readonly _tag: "InsertPlaysRequest"
+  readonly plays: InsertPlaysQuery
+}
+
+const InsertPlaysRequest = Request.tagged<InsertPlaysRequest>("InsertPlaysRequest")
 
 // Request types
 interface PlayByIdRequest extends Request.Request<Option.Option<FactPlay>, FactPlaysQueryError> {
@@ -123,11 +146,35 @@ export type FactPlaysRequest =
   | PlaysByShowRequest
   | PlaysByRotationStatusRequest
   | LocalPlaysRequest
+  | InsertPlaysRequest
 
 export class FactPlaysService extends Effect.Service<FactPlaysService>()("FactPlaysService", {
   accessors: true,
   effect: Effect.gen(function*() {
     const sql = yield* SqlClient.SqlClient
+    const kexp = yield* KEXPApi
+
+    const InsertPlaysResolver = RequestResolver.fromEffect(
+      (request: InsertPlaysRequest) =>
+        Effect.gen(function*() {
+          const plays = yield* Schema.decodeUnknown(InsertPlaysQuerySchema)(request.plays)
+          const query = SqlSchema.void({
+            Request: InsertPlaysQuerySchema,
+            execute: (params) => sql`INSERT OR IGNORE INTO fact_plays ${sql.insert(Array.ensure(params))}`
+          })
+          return yield* query(plays)
+        }).pipe(
+          Effect.catchAll((error) =>
+            Effect.fail(
+              new FactPlaysQueryError({
+                cause: error,
+                message: `Failed to insert plays: ${error}`,
+                queryType: "InsertPlays"
+              })
+            )
+          )
+        )
+    )
 
     // Resolver for getting a single play by ID
     const PlayByIdResolver = RequestResolver.fromEffect(
@@ -360,7 +407,39 @@ export class FactPlaysService extends Effect.Service<FactPlaysService>()("FactPl
         )
     )
 
-    // Service methods
+    const insertPlays = (plays: InsertPlaysQuery) => Effect.request(InsertPlaysRequest({ plays }), InsertPlaysResolver)
+
+    const isFactPlaysUpToDate = Effect.gen(function*() {
+      const mostRecentPlay = yield* getRecentPlays(1).pipe(Effect.map(Array.head))
+      if (Option.isNone(mostRecentPlay)) {
+        return false
+      }
+
+      const mostRecentPlayDate = DateTime.unsafeMake(mostRecentPlay.value.airdate)
+      const currentTime = yield* DateTime.now
+      const timeSinceLastAirdate = DateTime.distanceDuration(mostRecentPlayDate, currentTime)
+
+      const isUpToDate = Duration.lessThan(timeSinceLastAirdate, Duration.minutes(5))
+
+      yield* Effect.logInfo(`Fact plays are up to date: ${isUpToDate}`)
+
+      return isUpToDate
+    })
+
+    const fetchAndInsertPlays = kexp.fetchPlays({ limit: 100, offset: 0 }).pipe(
+      Effect.flatMap((results) =>
+        Schema.decode(Schema.Array(factPlayFromKexpPlay))(results.results.filter(KEXPSchemas.isTrackPlay))
+      ),
+      Effect.flatMap(Schema.encode(Schema.Array(FactPlay.insert))),
+      Effect.flatMap(insertPlays)
+    )
+
+    const updatePlays = Effect.repeat(fetchAndInsertPlays, {
+      until: () => isFactPlaysUpToDate,
+      schedule: Schedule.spaced(Duration.minutes(2)),
+      times: 10
+    })
+
     const getPlayById = (playId: PlayId) =>
       Effect.request(PlayByIdRequest({ queryString: `play:${playId}` }), PlayByIdResolver).pipe(
         Effect.withRequestCaching(true)
@@ -451,6 +530,8 @@ export class FactPlaysService extends Effect.Service<FactPlaysService>()("FactPl
 
     return {
       // Query methods
+      insertPlays,
+      updatePlays,
       getPlayById,
       getPlaysByArtist,
       getPlaysByDateRange,
@@ -480,5 +561,5 @@ export class FactPlaysService extends Effect.Service<FactPlaysService>()("FactPl
       )
     )
   ),
-  dependencies: [MusicKBSqlLive]
+  dependencies: [MusicKBSqlLive, KEXPApi.Default]
 }) {}

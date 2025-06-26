@@ -1,5 +1,7 @@
 import { Model } from "@effect/sql"
-import { Equal, Hash, Schema } from "effect"
+import { DateTime, Equal, Hash, Schema } from "effect"
+import type { RotationStatus } from "../../kexp/schemas.js"
+import { KexpPlay, KexpTrackPlay } from "../../kexp/schemas.js"
 
 // Play ID branded type
 export const PlayId = Schema.Number.pipe(Schema.brand("play_id"))
@@ -12,10 +14,6 @@ export type ShowId = Schema.Schema.Type<typeof ShowId>
 // Play type literal
 export const PlayType = Schema.Literal("trackplay", "nontrackplay")
 export type PlayType = Schema.Schema.Type<typeof PlayType>
-
-// Rotation status - using string for flexibility as values may vary
-export const RotationStatus = Schema.String.pipe(Schema.brand("rotation_status"))
-export type RotationStatus = Schema.Schema.Type<typeof RotationStatus>
 
 // MB IDs for joining
 export const MBArtistId = Schema.String.pipe(Schema.brand("mb_artist_id"))
@@ -86,6 +84,67 @@ export class FactPlay extends Model.Class<FactPlay>("FactPlay")({
     }
   }
 }
+
+export const factPlayFromKexpPlay = Schema.transform(KexpTrackPlay, Schema.asSchema(FactPlay.insert), {
+  decode: (play) => ({
+    id: play.id,
+    airdate: play.airdate,
+    show: play.show,
+    show_uri: play.show_uri,
+    image_uri: play.image_uri,
+    thumbnail_uri: play.thumbnail_uri,
+    song: play.song,
+    track_id: play.track_id,
+    recording_id: play.recording_id,
+    artist: play.artist,
+    artist_ids: play.artist_ids.length > 0 ? JSON.stringify(play.artist_ids) : null,
+    album: play.album,
+    release_id: play.release_id,
+    release_group_id: play.release_group_id,
+    labels: play.labels.length > 0 ? JSON.stringify(play.labels) : null,
+    label_ids: play.label_ids.length > 0 ? JSON.stringify(play.label_ids) : null,
+    release_date: play.release_date,
+    rotation_status: play.rotation_status,
+    is_local: play.is_local ? 1 as const : 0 as const,
+    is_request: play.is_request ? 1 as const : 0 as const,
+    is_live: play.is_live ? 1 as const : 0 as const,
+    comment: play.comment,
+    play_type: play.play_type,
+    created_at: DateTime.formatUtc(DateTime.unsafeNow()),
+    updated_at: DateTime.formatUtc(DateTime.unsafeNow())
+  }),
+  encode: (play) => ({
+    id: play.id,
+    uri: play.show_uri,
+    airdate: play.airdate,
+    show: play.show,
+    show_uri: play.show_uri,
+    image_uri: play.image_uri,
+    thumbnail_uri: play.thumbnail_uri,
+    artist_ids: play.artist_ids ? JSON.parse(play.artist_ids) : null,
+    song: play.song,
+    track_id: play.track_id,
+    recording_id: play.recording_id,
+    artist: play.artist,
+    album: play.album,
+    release_id: play.release_id,
+    release_group_id: play.release_group_id,
+    labels: play.labels ? JSON.parse(play.labels) : null,
+    label_ids: play.label_ids ? JSON.parse(play.label_ids) : null,
+    release_date: play.release_date,
+    rotation_status: play.rotation_status as RotationStatus,
+    is_local: play.is_local === 1,
+    is_request: play.is_request === 1,
+    is_live: play.is_live === 1,
+    comment: play.comment,
+    play_type: "trackplay" as const,
+    created_at: play.created_at,
+    updated_at: play.updated_at,
+    location: 1,
+    location_name: "Default"
+  }),
+  strict: true
+})
 
 // Date range schema for queries
 export const DateRange = Schema.Struct({
