@@ -12,7 +12,7 @@ import {
   Schedule,
   Schema
 } from "effect"
-import { KEXPApi } from "../../kexp/fetch.js"
+import { KEXPApi } from "../../kexp/api.js"
 import * as KEXPSchemas from "../../kexp/schemas.js"
 import { MusicKBSqlLive } from "../../Sql.js"
 import type { DateRange, Pagination } from "./schemas.js"
@@ -158,9 +158,15 @@ export class FactPlaysService extends Effect.Service<FactPlaysService>()("FactPl
       (request: InsertPlaysRequest) =>
         Effect.gen(function*() {
           const plays = yield* Schema.decodeUnknown(InsertPlaysQuerySchema)(request.plays)
-          const query = SqlSchema.void({
+          const query = SqlSchema.single({
             Request: InsertPlaysQuerySchema,
-            execute: (params) => sql`INSERT OR IGNORE INTO fact_plays ${sql.insert(Array.ensure(params))}`
+            Result: Schema.Struct({ num_inserted: Schema.Number }),
+            execute: (params) =>
+              sql.withTransaction(
+                sql`INSERT OR IGNORE INTO fact_plays ${sql.insert(Array.ensure(params))}`.pipe(
+                  Effect.andThen(sql`SELECT changes() as num_inserted`)
+                )
+              )
           })
           return yield* query(plays)
         }).pipe(
@@ -438,7 +444,7 @@ export class FactPlaysService extends Effect.Service<FactPlaysService>()("FactPl
       until: () => isFactPlaysUpToDate,
       schedule: Schedule.spaced(Duration.minutes(2)),
       times: 10
-    })
+    }).pipe(Effect.tap((numUpdated) => Effect.log(`Updated ${numUpdated} plays`)))
 
     const getPlayById = (playId: PlayId) =>
       Effect.request(PlayByIdRequest({ queryString: `play:${playId}` }), PlayByIdResolver).pipe(
@@ -486,19 +492,23 @@ export class FactPlaysService extends Effect.Service<FactPlaysService>()("FactPl
         LocalPlaysResolver
       ).pipe(Effect.withRequestCaching(true))
 
-    const getRecentPlays = (limit: number = 50) =>
+    const getRecentPlays = (limit: number = 50, offset: number = 0) =>
       Effect.gen(function*() {
         const query = SqlSchema.findAll({
-          Request: Schema.Struct({ limit: Schema.Int.pipe(Schema.positive()) }),
+          Request: Schema.Struct({
+            limit: Schema.Int.pipe(Schema.positive()),
+            offset: Schema.Int.pipe(Schema.nonNegative())
+          }),
           Result: FactPlay,
           execute: (params) =>
             sql`
             SELECT * FROM fact_plays 
             ORDER BY airdate DESC
-            LIMIT ${params.limit}
+            LIMIT ${sql.literal(params.limit.toString())}
+            OFFSET ${sql.literal(params.offset.toString())}
           `
         })
-        return yield* query({ limit })
+        return yield* query({ limit, offset })
       })
 
     const searchPlays = (searchTerm: string, pagination: Pagination) =>

@@ -57,6 +57,11 @@ const program = Effect.gen(function*() {
 
   console.log("labels:", labels)
 
+  const plays = yield* service.getSubjectType(
+    "subject:2d5fbbfd-27a7-4b74-848a-2b1f24fa1d0a type:play"
+  )
+  console.log("plays:", plays)
+
   // Example 6: Get all relationships for a subject (utility method)
   const allRelationships = yield* service.getSubjectRelationships(
     "2d5fbbfd-27a7-4b74-848a-2b1f24fa1d0a"
