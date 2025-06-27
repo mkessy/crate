@@ -35,17 +35,29 @@
     "module": "NodeNext",
     "incremental": true,
     "removeComments": false,
-    "plugins": [{ "name": "@effect/language-service" }],
+    "plugins": [
+      {
+        "name": "@effect/language-service",
+        "transform": "@effect/language-service/transform",
+        "diagnostics": true,
+        "diagnosticSeverity": {
+          "floatingEffect": "warning"
+        },
+        "quickinfo": true,
+        "completions": true,
+        "allowedDuplicatedPackages": ["@effect/platform-node-shared"]
+      }
+    ],
     "paths": {
-      "@template/cli": ["./packages/cli/src/index.js"],
-      "@template/cli/*": ["./packages/cli/src/*.js"],
-      "@template/cli/test/*": ["./packages/cli/test/*.js"],
-      "@template/domain": ["./packages/domain/src/index.js"],
-      "@template/domain/*": ["./packages/domain/src/*.js"],
-      "@template/domain/test/*": ["./packages/domain/test/*.js"],
-      "@template/server": ["./packages/server/src/index.js"],
-      "@template/server/*": ["./packages/server/src/*.js"],
-      "@template/server/test/*": ["./packages/server/test/*.js"]
+      "@crate/cli": ["./packages/cli/src/index.js"],
+      "@crate/cli/*": ["./packages/cli/src/*.js"],
+      "@crate/cli/test/*": ["./packages/cli/test/*.js"],
+      "@crate/domain": ["./packages/domain/src/index.js"],
+      "@crate/domain/*": ["./packages/domain/src/*.js"],
+      "@crate/domain/test/*": ["./packages/domain/test/*.js"],
+      "@crate/server": ["./packages/server/src/index.js"],
+      "@crate/server/*": ["./packages/server/src/*.js"],
+      "@crate/server/test/*": ["./packages/server/test/*.js"]
     }
   }
 }

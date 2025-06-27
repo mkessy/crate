@@ -1,9 +1,9 @@
 {
-  "name": "@template/cli",
+  "name": "@crate/cli",
   "version": "0.0.0",
   "type": "module",
   "license": "MIT",
-  "description": "The CLI template",
+  "description": "The CLI for Crate",
   "repository": {
     "type": "git",
     "url": "https://github.com/mkessy/crate",
@@ -27,14 +27,14 @@
     "@effect/cli": "latest",
     "@effect/platform": "latest",
     "@effect/platform-node": "latest",
-    "@template/domain": "workspace:^",
+    "@crate/domain": "workspace:^",
     "effect": "latest"
   },
   "devDependencies": {
     "@effect/cli": "latest",
     "@effect/platform": "latest",
     "@effect/platform-node": "latest",
-    "@template/domain": "workspace:^",
+    "@crate/domain": "workspace:^",
     "effect": "latest"
   },
   "effect": {
