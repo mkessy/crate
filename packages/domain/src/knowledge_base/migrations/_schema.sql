@@ -87,6 +87,76 @@ CREATE INDEX idx_relations_source
 ON master_relations (source);
 CREATE INDEX idx_relations_kexp_play
 ON master_relations (kexp_play_id) WHERE kexp_play_id IS NOT NULL;
+CREATE TABLE sqlite_stat1(tbl,idx,stat);
+CREATE TABLE sqlite_stat4(tbl,idx,neq,nlt,ndlt,sample);
+CREATE TRIGGER fact_plays_has_recording_trigger
+AFTER INSERT ON fact_plays
+FOR EACH ROW
+WHEN NEW.recording_id IS NOT NULL
+BEGIN
+    INSERT OR IGNORE INTO master_relations (
+        subject_id, 
+        subject_type, 
+        subject_name, 
+        predicate, 
+        object_id, 
+        object_type, 
+        object_name,
+        attribute_type,
+        source, 
+        kexp_play_id,
+        created_at, 
+        updated_at
+    )
+    VALUES (
+        NEW.id, 
+        'play', 
+        NEW.song,
+        'has_recording',
+        NEW.recording_id, 
+        'recording', 
+        NEW.song,
+        NULL,
+        'kexp', 
+        NEW.id,
+        datetime('now'), 
+        datetime('now')
+    );
+END;
+CREATE TRIGGER fact_plays_has_release_trigger
+AFTER INSERT ON fact_plays
+FOR EACH ROW
+WHEN NEW.release_id IS NOT NULL
+BEGIN
+    INSERT OR IGNORE INTO master_relations (
+        subject_id, 
+        subject_type, 
+        subject_name, 
+        predicate, 
+        object_id, 
+        object_type, 
+        object_name,
+        attribute_type,
+        source, 
+        kexp_play_id,
+        created_at, 
+        updated_at
+    )
+    VALUES (
+        NEW.id, 
+        'play', 
+        NEW.song,
+        'has_release',
+        NEW.release_id, 
+        'release', 
+        NEW.album,
+        NULL,
+        'kexp', 
+        NEW.id,
+        datetime('now'), 
+        datetime('now')
+    );
+END;
 
 INSERT INTO effect_sql_migrations VALUES(1,'2025-06-25 07:56:52','initial_masters_table');
 INSERT INTO effect_sql_migrations VALUES(2,'2025-06-25 07:58:51','create_indexes_on_mb_master_lookup');
@@ -97,4 +167,4 @@ INSERT INTO effect_sql_migrations VALUES(6,'2025-06-26 06:12:05','create_master_
 INSERT INTO effect_sql_migrations VALUES(7,'2025-06-26 06:29:09','migrate_data_relations_table');
 INSERT INTO effect_sql_migrations VALUES(8,'2025-06-26 06:50:48','populate_master_relations');
 INSERT INTO effect_sql_migrations VALUES(9,'2025-06-26 06:50:48','create_master_relations_idexes');
-INSERT INTO effect_sql_migrations VALUES(10,'2025-06-26 22:11:12','backfill_updated_created');
+INSERT INTO effect_sql_migrations VALUES(10,'2025-06-27 01:25:23','create_triggers_recording_release');
