@@ -2,8 +2,8 @@ import { Reactivity } from "@effect/experimental"
 import { BunContext } from "@effect/platform-bun"
 import { SqlClient } from "@effect/sql"
 import { SqliteClient, SqliteMigrator } from "@effect/sql-sqlite-bun"
+import { fromFileSystem } from "@effect/sql/Migrator/FileSystem"
 import { Effect, Layer } from "effect"
-import { fileURLToPath } from "node:url"
 import { DomainConfig } from "./config/DomainConfig.js"
 
 /**
@@ -25,12 +25,16 @@ const MusicKBClientLive = Layer.effect(
   })
 )
 
-export const MusicKBMigratorLive = SqliteMigrator.layer({
-  loader: SqliteMigrator.fromFileSystem(
-    fileURLToPath(new URL("knowledge_base/migrations", import.meta.url))
-  ),
-  schemaDirectory: fileURLToPath(new URL("knowledge_base/migrations", import.meta.url))
-}).pipe(Layer.provide(BunContext.layer))
+export const MusicKBMigratorLive = Effect.gen(function*() {
+  const config = yield* DomainConfig
+  const dbSettings = yield* config.getDatabaseSettings
+  yield* Effect.log("SETTINGS: ", dbSettings)
+
+  return SqliteMigrator.layer({
+    loader: fromFileSystem(dbSettings.migrationsPath),
+    schemaDirectory: dbSettings.migrationsPath
+  })
+}).pipe(Layer.unwrapEffect, Layer.provide(BunContext.layer), Layer.provide(MusicKBClientLive))
 
 export const MusicKBSqlLive = MusicKBMigratorLive.pipe(
   Layer.provideMerge(MusicKBClientLive),

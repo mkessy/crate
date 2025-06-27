@@ -12,6 +12,7 @@ export class DomainConfig extends Context.Tag("DomainConfig")<
     readonly getDatabasePath: Effect.Effect<string>
     readonly getDatabaseSettings: Effect.Effect<{
       readonly path: string
+      readonly migrationsPath: string
       readonly enableWAL: boolean
     }>
   }
@@ -21,6 +22,9 @@ export class DomainConfig extends Context.Tag("DomainConfig")<
 const databaseConfigSchema = Config.all({
   path: Config.string("CRATE_DB_PATH").pipe(
     Config.withDefault(path.join(process.cwd(), "data", "music_kb.sqlite"))
+  ),
+  migrationsPath: Config.string("CRATE_DB_MIGRATIONS_PATH").pipe(
+    Config.withDefault(path.join(process.cwd(), "migrations"))
   ),
   enableWAL: Config.boolean("CRATE_DB_ENABLE_WAL").pipe(
     Config.withDefault(true)
@@ -62,6 +66,7 @@ export const DomainConfigTest = Layer.succeed(
     getDatabasePath: Effect.succeed(":memory:"),
     getDatabaseSettings: Effect.succeed({
       path: ":memory:",
+      migrationsPath: ":memory:",
       enableWAL: false
     })
   })
@@ -73,6 +78,7 @@ export const DomainConfigTest = Layer.succeed(
  */
 export const makeDomainConfig = (settings: {
   databasePath: string
+  migrationsPath: string
   enableWAL?: boolean
 }) =>
   Layer.succeed(
@@ -81,6 +87,7 @@ export const makeDomainConfig = (settings: {
       getDatabasePath: Effect.succeed(settings.databasePath),
       getDatabaseSettings: Effect.succeed({
         path: settings.databasePath,
+        migrationsPath: settings.migrationsPath,
         enableWAL: settings.enableWAL ?? true
       })
     })
