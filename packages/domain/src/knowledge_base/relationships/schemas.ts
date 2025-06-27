@@ -110,7 +110,13 @@ export const PredicateType = Schema.Literal(
   "vocal arranger",
   "vocal supporting musician",
   "voice actor",
-  "writer"
+  "writer",
+  // KEXP-specific predicates
+  "played_on", // artist → play (reverse relationship)
+  "has_recording", // play → recording
+  "has_artist", // play → artist
+  "has_release", // play → release
+  "has_label" // play → label
 )
 export type PredicateType = Schema.Schema.Type<typeof PredicateType>
 
@@ -123,7 +129,9 @@ export const EntityType = Schema.Literal(
   "recording",
   "release",
   "release_group",
-  "work"
+  "work",
+  // KEXP entity
+  "play" // KEXP play instance
 )
 export type EntityType = Schema.Schema.Type<typeof EntityType>
 
