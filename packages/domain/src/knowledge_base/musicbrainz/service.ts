@@ -181,7 +181,7 @@ export class MusicBrainzService extends Effect.Service<MusicBrainzService>()("Mu
                 const entity = yield* mbData.insertArtistEntity(artistInsert)
 
                 // Delete unresolved artist
-                yield* mbData.deleteUnresolvedMBArtists(entity.artist_mb_id)
+                yield* mbData.deleteUnresolvedMBArtists(MBEntities.MbArtistId.make(unresolved.artist_mb_id))
 
                 // Insert relationships if any exist
                 yield* Effect.when(() => validRelationships.length > 0)(
