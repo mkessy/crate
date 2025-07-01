@@ -31,7 +31,7 @@ export const SubjectTypeQuerySchema = Schema.TemplateLiteralParser(
 export type SubjectTypeQuery = Schema.Schema.Encoded<typeof SubjectTypeQuerySchema>
 
 // Error class for relationship queries
-class RelationshipQueryError extends Data.TaggedError("RelationshipQueryError")<{
+export class RelationshipQueryError extends Data.TaggedError("RelationshipQueryError")<{
   readonly cause: unknown
   readonly message: string
   readonly queryType: string

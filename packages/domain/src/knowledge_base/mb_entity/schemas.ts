@@ -173,7 +173,7 @@ export class ArtistMBEntityMaster extends Model.Class<ArtistMBEntityMaster>("Art
   artist_mb_id: MbArtistId,
   artist_name: Schema.String,
   artist_disambiguation: Schema.NullOr(Schema.String),
-  artist_type: Schema.String,
+  artist_type: Schema.NullishOr(Schema.String),
   artist_gender: Schema.NullOr(Schema.String),
   artist_country: Schema.NullOr(Schema.String),
   artist_life_begin: Schema.NullOr(Schema.String),
@@ -189,7 +189,7 @@ export class ArtistMBEntityMaster extends Model.Class<ArtistMBEntityMaster>("Art
   end_date: Schema.NullOr(Schema.String),
   attribute_type: Schema.NullOr(Schema.String),
   entity_metadata: Model.JsonFromString(Schema.Unknown),
-  created_at: Model.DateTimeInsert,
+  created_at: Model.DateTimeWithNow,
   updated_at: Model.DateTimeUpdate
 }) {}
 

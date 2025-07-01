@@ -1,6 +1,5 @@
 import { Model } from "@effect/sql"
 import { Schema } from "effect"
-import * as MBSchemas from "../musicbrainz/schemas.js"
 
 // fetch logs for musicbrainz
 export type MBArtistFetchMetaData = Schema.Schema.Type<typeof MBArtistFetchMetaData>
@@ -9,7 +8,7 @@ export const MBArtistFetchMetaData = Schema.TaggedStruct("audit_log_data", {
   type: Schema.Literal("musicbrainz_artist_fetch"),
   kexp_play_id: Schema.NullishOr(Schema.Number),
   mb_url: Schema.String,
-  mb_response: Schema.NullOr(Schema.parseJson(MBSchemas.MBArtistResponse)),
+  mb_response: Schema.NullOr(Schema.Unknown),
   status: Schema.Number
 })
 

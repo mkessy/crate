@@ -37,20 +37,20 @@ export const EntityDiscoveryQuerySchema = Schema.TemplateLiteralParser(
 )
 export type EntityDiscoveryQuery = Schema.Schema.Encoded<typeof EntityDiscoveryQuerySchema>
 
-class MBQueryError extends Data.TaggedError("MBQueryError")<{
+export class MBQueryError extends Data.TaggedError("MBQueryError")<{
   readonly cause: unknown
   readonly message: string
   readonly queryType: string
 }> {}
 
-interface ArtistEntityRequest extends Request.Request<ReadonlyArray<ArtistEntity>, MBQueryError> {
+export interface ArtistEntityRequest extends Request.Request<ReadonlyArray<ArtistEntity>, MBQueryError> {
   readonly _tag: "ArtistEntityRequest"
   readonly queryString: ArtistEntityQuery
 }
 
-const ArtistEntityRequest = Request.tagged<ArtistEntityRequest>("ArtistEntityRequest")
+export const ArtistEntityRequest = Request.tagged<ArtistEntityRequest>("ArtistEntityRequest")
 
-interface ArtistRelationRequest extends Request.Request<ReadonlyArray<ArtistEntity>, MBQueryError> {
+export interface ArtistRelationRequest extends Request.Request<ReadonlyArray<ArtistEntity>, MBQueryError> {
   readonly _tag: "ArtistRelationRequest"
   readonly queryString: ArtistRelationQuery
 }
@@ -78,17 +78,27 @@ interface ArtistEntityInsertRequest extends Request.Request<ArtistMBEntityMaster
 
 const ArtistEntityInsertRequest = Request.tagged<ArtistEntityInsertRequest>("ArtistEntityInsertRequest")
 
+interface DeleteUnresolvedMBArtistsRequest extends Request.Request<MbArtistId, MBQueryError> {
+  readonly _tag: "DeleteUnresolvedMBArtistsRequest"
+  readonly artist_mb_id: MbArtistId
+}
+const DeleteUnresolvedMBArtistsRequest = Request.tagged<DeleteUnresolvedMBArtistsRequest>(
+  "DeleteUnresolvedMBArtistsRequest"
+)
+
 export type MBRequest =
   | ArtistEntityRequest
   | ArtistRelationRequest
   | ArtistEntityRelationRequest
   | EntityDiscoveryRequest
   | ArtistEntityInsertRequest
+  | DeleteUnresolvedMBArtistsRequest
 
 export class MBDataService extends Effect.Service<MBDataService>()("MBDataService", {
   accessors: true,
   effect: Effect.gen(function*() {
     const sql = yield* SqlClient.SqlClient
+
     const ArtistEntityResolver = RequestResolver.fromEffect(
       (request: ArtistEntityRequest) =>
         Effect.gen(function*() {
@@ -106,7 +116,7 @@ export class MBDataService extends Effect.Service<MBDataService>()("MBDataServic
                 FROM mb_master_lookup 
                 WHERE ${
                 sql.and([
-                  sql`artist_mb_id = ${params.artist_mb_id}`,
+                  sql`artist_mb_id = ${sql(params.artist_mb_id)}`,
                   sql`entity_type = ${sql(params.entity_type)}`
                 ])
               }
@@ -148,7 +158,7 @@ export class MBDataService extends Effect.Service<MBDataService>()("MBDataServic
                 FROM mb_master_lookup 
                 WHERE ${
                 sql.and([
-                  sql`artist_mb_id = ${params.artist_mb_id}`,
+                  sql`artist_mb_id = ${sql(params.artist_mb_id)}`,
                   sql`relation_type = ${sql(params.relation_type)}`
                 ])
               }
@@ -164,6 +174,35 @@ export class MBDataService extends Effect.Service<MBDataService>()("MBDataServic
                 cause: error,
                 message: `Failed to fetch artist relation: ${error}`,
                 queryType: "ArtistRelation"
+              })
+            )
+          )
+        )
+    )
+
+    const DeleteUnresolvedMBArtistsResolver = RequestResolver.fromEffect(
+      (request: DeleteUnresolvedMBArtistsRequest) =>
+        Effect.gen(function*() {
+          yield* Effect.logInfo(`Deleting unresolved MB artist: ${JSON.stringify(request)}`)
+          const query = SqlSchema.single({
+            Request: MbArtistId,
+            Result: Schema.Struct({ artist_mb_id: MbArtistId }),
+            execute: (params) =>
+              sql`DELETE FROM mb_artist_unresolved WHERE artist_mb_id = ${sql(params)} RETURNING artist_mb_id`
+          })
+
+          const { artist_mb_id } = yield* query(request.artist_mb_id)
+          return MbArtistId.make(artist_mb_id)
+        }).pipe(
+          Effect.catchTags({
+            NoSuchElementException: () => Effect.succeed(MbArtistId.make(request.artist_mb_id))
+          }),
+          Effect.catchAll((error) =>
+            Effect.fail(
+              new MBQueryError({
+                cause: error,
+                message: `Failed to delete unresolved MB artists: ${error}`,
+                queryType: "DeleteUnresolvedMBArtists"
               })
             )
           )
@@ -216,7 +255,7 @@ export class MBDataService extends Effect.Service<MBDataService>()("MBDataServic
                 FROM mb_master_lookup 
                 WHERE ${
                 sql.and([
-                  sql`artist_mb_id = ${params.artist_mb_id}`,
+                  sql`artist_mb_id = ${sql(params.artist_mb_id)}`,
                   sql`entity_type = ${sql(params.entity_type)}`
                 ])
               }
@@ -305,6 +344,12 @@ export class MBDataService extends Effect.Service<MBDataService>()("MBDataServic
     const insertArtistEntity = (data: Schema.Schema.Type<typeof ArtistMBEntityMaster.insert>) =>
       Effect.request(ArtistEntityInsertRequest({ data }), ArtistEntityInsertResolver)
 
+    const deleteUnresolvedMBArtists = (artist_mb_id: MbArtistId) =>
+      Effect.request(
+        DeleteUnresolvedMBArtistsRequest({ artist_mb_id }),
+        DeleteUnresolvedMBArtistsResolver
+      )
+
     return {
       // Original DSL query methods (unchanged API)
 
@@ -314,6 +359,7 @@ export class MBDataService extends Effect.Service<MBDataService>()("MBDataServic
       getArtistEntityRelation,
       getEntityDiscovery,
       insertArtistEntity,
+      deleteUnresolvedMBArtists,
 
       // Request constructors for external use
       ArtistEntityRequest,

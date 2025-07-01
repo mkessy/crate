@@ -95,9 +95,9 @@ export class UnresolvedMBArtist extends Model.Class<UnresolvedMBArtist>("Unresol
   id: Model.Generated(Schema.Number),
   artist_mb_id: Schema.String,
   artist: Schema.String,
-  source: Schema.Literal("musicbrainz", "kexp_play"),
+  source: Schema.Literal("musicbrainz", "kexp_fact_plays"),
   kexp_play_id: Schema.NullOr(Schema.Number),
-  latest_play: Schema.NullOr(Model.DateTimeFromDate),
+  latest_play: Model.DateTimeInsert,
   created_at: Model.DateTimeInsert,
   updated_at: Model.DateTimeUpdate
 }) {}

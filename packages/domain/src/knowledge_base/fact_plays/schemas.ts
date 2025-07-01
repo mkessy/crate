@@ -1,7 +1,7 @@
 import { Model } from "@effect/sql"
 import { DateTime, Equal, Hash, Schema } from "effect"
 import type { RotationStatus } from "../../kexp/schemas.js"
-import { KexpPlay, KexpTrackPlay } from "../../kexp/schemas.js"
+import { KexpTrackPlay } from "../../kexp/schemas.js"
 
 // Play ID branded type
 export const PlayId = Schema.Number.pipe(Schema.brand("play_id"))
@@ -110,8 +110,8 @@ export const factPlayFromKexpPlay = Schema.transform(KexpTrackPlay, Schema.asSch
     is_live: play.is_live ? 1 as const : 0 as const,
     comment: play.comment,
     play_type: play.play_type,
-    created_at: DateTime.formatUtc(DateTime.unsafeNow()),
-    updated_at: DateTime.formatUtc(DateTime.unsafeNow())
+    created_at: DateTime.formatIsoDateUtc(DateTime.unsafeNow()),
+    updated_at: DateTime.formatIsoDateUtc(DateTime.unsafeNow())
   }),
   encode: (play) => ({
     id: play.id,
