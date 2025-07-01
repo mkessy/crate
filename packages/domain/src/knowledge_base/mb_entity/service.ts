@@ -1,7 +1,7 @@
 import { SqlClient, SqlSchema } from "@effect/sql"
 import { Data, Duration, Effect, Layer, Request, RequestResolver, Schema } from "effect"
 import { MusicKBSqlLive } from "../../Sql.js"
-import { ArtistEntity, EntityType, MbArtistId, RelationType } from "./schemas.js"
+import { ArtistEntity, ArtistMBEntityMaster, EntityType, MbArtistId, RelationType } from "./schemas.js"
 
 export const ArtistEntityQuerySchema = Schema.TemplateLiteralParser(
   "artist:",
@@ -62,7 +62,7 @@ interface ArtistEntityRelationRequest extends Request.Request<ReadonlyArray<Arti
   readonly queryString: ArtistEntityRelationQuery
 }
 
-const ArtistEntityRelationRequest = Request.tagged<ArtistEntityRelationRequest>("ArtistEntityRelationRequest")
+export const ArtistEntityRelationRequest = Request.tagged<ArtistEntityRelationRequest>("ArtistEntityRelationRequest")
 
 interface EntityDiscoveryRequest extends Request.Request<ReadonlyArray<ArtistEntity>, MBQueryError> {
   readonly _tag: "EntityDiscoveryRequest"
@@ -71,11 +71,19 @@ interface EntityDiscoveryRequest extends Request.Request<ReadonlyArray<ArtistEnt
 
 const EntityDiscoveryRequest = Request.tagged<EntityDiscoveryRequest>("EntityDiscoveryRequest")
 
+interface ArtistEntityInsertRequest extends Request.Request<ArtistMBEntityMaster, MBQueryError> {
+  readonly _tag: "ArtistEntityInsertRequest"
+  readonly data: Schema.Schema.Type<typeof ArtistMBEntityMaster.insert>
+}
+
+const ArtistEntityInsertRequest = Request.tagged<ArtistEntityInsertRequest>("ArtistEntityInsertRequest")
+
 export type MBRequest =
   | ArtistEntityRequest
   | ArtistRelationRequest
   | ArtistEntityRelationRequest
   | EntityDiscoveryRequest
+  | ArtistEntityInsertRequest
 
 export class MBDataService extends Effect.Service<MBDataService>()("MBDataService", {
   accessors: true,
@@ -156,6 +164,32 @@ export class MBDataService extends Effect.Service<MBDataService>()("MBDataServic
                 cause: error,
                 message: `Failed to fetch artist relation: ${error}`,
                 queryType: "ArtistRelation"
+              })
+            )
+          )
+        )
+    )
+
+    const ArtistEntityInsertResolver = RequestResolver.fromEffect(
+      (request: ArtistEntityInsertRequest) =>
+        Effect.gen(function*() {
+          const query = SqlSchema.single(
+            {
+              Request: ArtistMBEntityMaster.insert,
+              Result: ArtistMBEntityMaster,
+              execute: (params) => sql`INSERT OR IGNORE INTO mb_master_lookup ${sql.insert(params)} RETURNING *`
+            }
+          )
+
+          const result = yield* query(request.data)
+          return result
+        }).pipe(
+          Effect.catchAll((error) =>
+            Effect.fail(
+              new MBQueryError({
+                cause: error,
+                message: `Failed to insert artist entity: ${error}`,
+                queryType: "ArtistEntityInsert"
               })
             )
           )
@@ -268,6 +302,9 @@ export class MBDataService extends Effect.Service<MBDataService>()("MBDataServic
         Effect.withRequestCaching(true)
       )
 
+    const insertArtistEntity = (data: Schema.Schema.Type<typeof ArtistMBEntityMaster.insert>) =>
+      Effect.request(ArtistEntityInsertRequest({ data }), ArtistEntityInsertResolver)
+
     return {
       // Original DSL query methods (unchanged API)
 
@@ -276,12 +313,14 @@ export class MBDataService extends Effect.Service<MBDataService>()("MBDataServic
       getArtistRelation,
       getArtistEntityRelation,
       getEntityDiscovery,
+      insertArtistEntity,
 
       // Request constructors for external use
       ArtistEntityRequest,
       ArtistRelationRequest,
       ArtistEntityRelationRequest,
-      EntityDiscoveryRequest
+      EntityDiscoveryRequest,
+      ArtistEntityInsertRequest
     }
   }).pipe(
     Effect.provide(

@@ -571,5 +571,5 @@ export class FactPlaysService extends Effect.Service<FactPlaysService>()("FactPl
       )
     )
   ),
-  dependencies: [MusicKBSqlLive, KEXPApi.Default]
+  dependencies: [KEXPApi.Default, MusicKBSqlLive]
 }) {}

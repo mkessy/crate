@@ -59,15 +59,45 @@ interface SubjectTypeRequest extends Request.Request<ReadonlyArray<Relationship>
 
 const SubjectTypeRequest = Request.tagged<SubjectTypeRequest>("SubjectTypeRequest")
 
+interface RelationshipInsertRequest extends Request.Request<void, RelationshipQueryError> {
+  readonly _tag: "RelationshipInsertRequest"
+  readonly data: Array<Schema.Schema.Type<typeof Relationship.insert>>
+}
+
+const RelationshipInsertRequest = Request.tagged<RelationshipInsertRequest>("RelationshipInsertRequest")
+
 export type RelationshipRequest =
   | SubjectPredicateRequest
   | ObjectPredicateRequest
   | SubjectTypeRequest
+  | RelationshipInsertRequest
 
 export class RelationshipService extends Effect.Service<RelationshipService>()("RelationshipService", {
   accessors: true,
   effect: Effect.gen(function*() {
     const sql = yield* SqlClient.SqlClient
+
+    const RelationshipInsertResolver = RequestResolver.fromEffect(
+      (request: RelationshipInsertRequest) =>
+        Effect.gen(function*() {
+          const query = SqlSchema.void({
+            Request: Schema.Array(Relationship.insert),
+            execute: (params) => sql`INSERT OR IGNORE INTO master_relations ${sql.insert(params)}`
+          })
+
+          return yield* query(request.data)
+        }).pipe(
+          Effect.catchAll((error) =>
+            Effect.fail(
+              new RelationshipQueryError({
+                cause: error,
+                message: `Failed to insert relationships: ${error}`,
+                queryType: "RelationshipInsert"
+              })
+            )
+          )
+        )
+    )
 
     // Resolver for subject-predicate queries
     const SubjectPredicateResolver = RequestResolver.fromEffect(
@@ -217,6 +247,9 @@ export class RelationshipService extends Effect.Service<RelationshipService>()("
         Effect.withRequestCaching(true)
       )
 
+    const insertRelationships = (data: Array<Schema.Schema.Type<typeof Relationship.insert>>) =>
+      Effect.request(RelationshipInsertRequest({ data }), RelationshipInsertResolver)
+
     // Utility function to get all relationships for a subject
     const getSubjectRelationships = (subjectId: string) =>
       Effect.gen(function*() {
@@ -270,6 +303,7 @@ export class RelationshipService extends Effect.Service<RelationshipService>()("
       // Utility methods
       getSubjectRelationships,
       getObjectRelationships,
+      insertRelationships,
 
       // Request constructors for external use
       SubjectPredicateRequest,

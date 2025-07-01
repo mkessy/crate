@@ -188,7 +188,7 @@ export class ArtistMBEntityMaster extends Model.Class<ArtistMBEntityMaster>("Art
   begin_date: Schema.NullOr(Schema.String),
   end_date: Schema.NullOr(Schema.String),
   attribute_type: Schema.NullOr(Schema.String),
-  entity_metadata: Model.FieldOption(Model.JsonFromString(Schema.Unknown)),
+  entity_metadata: Model.JsonFromString(Schema.Unknown),
   created_at: Model.DateTimeInsert,
   updated_at: Model.DateTimeUpdate
 }) {}
