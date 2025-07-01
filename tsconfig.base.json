@@ -60,7 +60,10 @@
       "@crate/domain/test/*": ["./packages/domain/test/*.js"],
       "@crate/server": ["./packages/server/src/index.js"],
       "@crate/server/*": ["./packages/server/src/*.js"],
-      "@crate/server/test/*": ["./packages/server/test/*.js"]
+      "@crate/server/test/*": ["./packages/server/test/*.js"],
+      "@crate/web": ["./packages/web/src/index.js"],
+      "@crate/web/*": ["./packages/web/src/*.js"],
+      "@crate/web/test/*": ["./packages/web/test/*.js"]
     }
   }
 }

@@ -172,7 +172,6 @@ export class MusicBrainzService extends Effect.Service<MusicBrainzService>()("Mu
             yield* Effect.logInfo(`Processing unresolved artist: ${unresolved.artist_mb_id} ${unresolved.artist}`)
 
             const validRelationships = Array.getRights(relationships)
-            const _invalidRelationships = Array.getLefts(relationships)
 
             // Combine all operations in a single transaction
             const artistEntity = yield* sql.withTransaction(
