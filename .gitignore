@@ -28,3 +28,4 @@ packages/domain/src/data/kexp_kb.db
 packages/domain/src/data/kexp_kb.db-shm
 packages/domain/src/data/kexp_kb.db-wal
 packages/domain/src/data/music_kb.sqlite
+data/* 
