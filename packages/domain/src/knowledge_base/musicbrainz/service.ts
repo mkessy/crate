@@ -36,7 +36,10 @@ export class MusicBrainzService extends Effect.Service<MusicBrainzService>()("Mu
       artistId: string,
       kexpPlayId: number | null,
       userAgent: string = "CrateAPI/1.0 (https://github.com/mkessy)"
-    ): Effect.Effect<MBSchemas.MBArtistResponse, ParseError | RequestError | ResponseError | SqlError> =>
+    ): Effect.Effect<
+      MBSchemas.MBArtistResponse,
+      ParseError | RequestError | ResponseError | SqlError | MBDataService.MBQueryError
+    > =>
       Effect.gen(function*() {
         const inclString = Object.entries(MBRElationshipParams).map(([_key, value]) => `${value}`).join("+")
         const mbUrl = `https://musicbrainz.org/ws/2/artist/${artistId}?inc=${inclString}&fmt=json`
@@ -57,9 +60,11 @@ export class MusicBrainzService extends Effect.Service<MusicBrainzService>()("Mu
           mbUrl
         ).pipe(
           Effect.catchTag("ResponseError", (error) =>
-            Effect.gen(function*() {
+            sql.withTransaction(Effect.gen(function*() {
               if (error.response.status === 404) {
-                yield* Effect.logError(`Artist ${artistId} not found in MusicBrainz API`)
+                yield* Effect.logError(
+                  `Artist ${artistId} not found in MusicBrainz API. Deleting from unresolved table.`
+                )
                 yield* audit.insertAuditLog(AuditLog.insert.make({
                   type: "http_fetch",
                   metadata: MBArtistFetchMetaData.make({
@@ -71,9 +76,10 @@ export class MusicBrainzService extends Effect.Service<MusicBrainzService>()("Mu
                     status: error.response.status
                   })
                 }))
+                yield* mbData.deleteUnresolvedMBArtists(MBEntities.MbArtistId.make(artistId))
               }
               return yield* Effect.fail(error)
-            })),
+            }))),
           Effect.tap((response) =>
             audit.insertAuditLog(AuditLog.insert.make({
               type: "http_fetch",
@@ -163,23 +169,38 @@ export class MusicBrainzService extends Effect.Service<MusicBrainzService>()("Mu
               "CrateAPI/1.0 "
             )
 
-            const artistEntity = yield* mbData.insertArtistEntity(artistInsert).pipe(
-              Effect.tap((a) => mbData.deleteUnresolvedMBArtists(a.artist_mb_id))
+            yield* Effect.logInfo(`Processing unresolved artist: ${unresolved.artist_mb_id} ${unresolved.artist}`)
+
+            const validRelationships = Array.getRights(relationships)
+            const _invalidRelationships = Array.getLefts(relationships)
+
+            // Combine all operations in a single transaction
+            const artistEntity = yield* sql.withTransaction(
+              Effect.gen(function*() {
+                // Insert artist entity
+                const entity = yield* mbData.insertArtistEntity(artistInsert)
+
+                // Delete unresolved artist
+                yield* mbData.deleteUnresolvedMBArtists(entity.artist_mb_id)
+
+                // Insert relationships if any exist
+                yield* Effect.when(() => validRelationships.length > 0)(
+                  relationshipService.insertRelationships(validRelationships).pipe(
+                    Effect.tap(() => Effect.logInfo(`Inserted ${validRelationships.length} relationships`))
+                  )
+                )
+
+                return entity
+              })
             )
+
+            // Logging outside transaction
             yield* Effect.logInfo(
               `Inserted and deleted unresolved artist entity: ${artistEntity.artist_mb_id} ${artistEntity.artist_name}`
             )
 
-            if (Array.getRights(relationships).length > 0) {
-              yield* relationshipService.insertRelationships(Array.getRights(relationships))
-              yield* Effect.logInfo(`Inserted ${Array.getRights(relationships).length} relationships`)
-            }
-
-            const _invalidRelationships = Array.getLefts(relationships)
-            yield* Effect.logInfo(`Skipped ${_invalidRelationships.length} relationships`)
             return artistEntity
           }).pipe(
-            sql.withTransaction,
             Effect.catchTag("ResponseError", (error) =>
               Effect.gen(function*() {
                 if (error.response.status === 404) {

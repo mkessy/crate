@@ -188,14 +188,19 @@ export class MBDataService extends Effect.Service<MBDataService>()("MBDataServic
             Request: MbArtistId,
             Result: Schema.Struct({ artist_mb_id: MbArtistId }),
             execute: (params) =>
-              sql`DELETE FROM mb_artist_unresolved WHERE artist_mb_id = ${sql(params)} RETURNING artist_mb_id`
+              sql`DELETE FROM mb_artist_unresolved WHERE mb_artist_unresolved.artist_mb_id = ${
+                sql(params)
+              } RETURNING artist_mb_id`
           })
 
           const { artist_mb_id } = yield* query(request.artist_mb_id)
           return MbArtistId.make(artist_mb_id)
         }).pipe(
           Effect.catchTags({
-            NoSuchElementException: () => Effect.succeed(MbArtistId.make(request.artist_mb_id))
+            NoSuchElementException: () =>
+              Effect.logError(`No such element: ${request.artist_mb_id}`).pipe(
+                Effect.flatMap(() => Effect.succeed(MbArtistId.make(request.artist_mb_id)))
+              )
           }),
           Effect.catchAll((error) =>
             Effect.fail(

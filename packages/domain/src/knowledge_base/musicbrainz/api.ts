@@ -49,6 +49,12 @@ export const relationsFromMBArtist = (
         objectName = relation.area.name
       }
 
+      // Normalize attribute handling
+      const attributes = relation.attributes || []
+      const attributeType = attributes.length > 0
+        ? JSON.stringify(attributes)
+        : null // Use null instead of '[]' for empty attributes
+
       const result = yield* Effect.either(Effect.try({
         try: () =>
           Relationships.Relationship.insert.make({
@@ -59,7 +65,7 @@ export const relationsFromMBArtist = (
             object_id: objectId,
             object_type: targetType === "release-group" ? "release_group" : targetType as Relationships.EntityType,
             object_name: objectName,
-            attribute_type: JSON.stringify(relation["attributes"]),
+            attribute_type: attributeType, // Now consistent
             source: "musicbrainz",
             kexp_play_id: kexpPlayId
           }),
