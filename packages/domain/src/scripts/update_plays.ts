@@ -1,5 +1,4 @@
 import { Effect } from "effect"
-import { DomainConfigLive } from "../config/DomainConfig.js"
 import * as FactPlaysService from "../knowledge_base/fact_plays/service.js"
 
 const updatePlays = Effect.scoped(
@@ -10,7 +9,9 @@ const updatePlays = Effect.scoped(
     yield* fp.updatePlays
 
     yield* Effect.log("plays updated")
-  }).pipe(Effect.provide(FactPlaysService.FactPlaysService.Default), Effect.provide(DomainConfigLive))
+  }).pipe(
+    Effect.provide(FactPlaysService.FactPlaysService.Default)
+  )
 )
 
 const runUpdatePlays = () => updatePlays.pipe(Effect.runPromise)

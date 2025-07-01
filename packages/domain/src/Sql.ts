@@ -4,7 +4,7 @@ import { SqlClient } from "@effect/sql"
 import { SqliteClient, SqliteMigrator } from "@effect/sql-sqlite-bun"
 import { fromFileSystem } from "@effect/sql/Migrator/FileSystem"
 import { Effect, Layer } from "effect"
-import { DomainConfig } from "./config/DomainConfig.js"
+import { DomainConfig, DomainConfigLive } from "./config/DomainConfig.js"
 
 /**
  * Creates a SQLite client layer using configuration from DomainConfig.
@@ -36,7 +36,8 @@ export const MusicKBMigratorLive = Effect.gen(function*() {
   })
 }).pipe(Layer.unwrapEffect, Layer.provide(BunContext.layer), Layer.provide(MusicKBClientLive))
 
-export const MusicKBSqlLive = MusicKBMigratorLive.pipe(
-  Layer.provideMerge(MusicKBClientLive),
-  Layer.provide(Reactivity.layer)
+export const MusicKBSqlLive = MusicKBClientLive.pipe(
+  Layer.provide(MusicKBMigratorLive),
+  Layer.provideMerge(Reactivity.layer),
+  Layer.provideMerge(DomainConfigLive)
 )
