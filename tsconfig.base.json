@@ -45,7 +45,10 @@
         },
         "quickinfo": true,
         "completions": true,
-        "allowedDuplicatedPackages": ["@effect/platform-node-shared"]
+        "allowedDuplicatedPackages": [
+          "@effect/platform-node-shared",
+          "@effect/platform-bun"
+        ]
       }
     ],
     "paths": {
