@@ -1,5 +1,5 @@
 import { SqlClient, SqlSchema } from "@effect/sql"
-import { Console, Effect, Option, Schema } from "effect"
+import { Console, Effect, Layer, Option, Schema } from "effect"
 import { MusicKBSqlLive } from "../Sql.js"
 import { FactPlaysService } from "./fact_plays/index.js"
 import { FactPlay } from "./fact_plays/schemas.js"
@@ -167,6 +167,7 @@ const runAllTests = Effect.gen(function*() {
 
 // Execute the tests
 runAllTests.pipe(
+  Effect.provide(Layer.scope),
   Effect.tapError((error) => Console.error("Test failed:", error)),
   Effect.runPromise
 ).catch(console.error)

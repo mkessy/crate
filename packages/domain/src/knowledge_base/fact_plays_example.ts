@@ -1,4 +1,4 @@
-import { Effect, Console, Option } from "effect"
+import { Console, Effect, Layer, Option } from "effect"
 import { FactPlaysService } from "./fact_plays/index.js"
 
 // Example usage of the FactPlaysService
@@ -27,7 +27,7 @@ const program = Effect.gen(function*() {
   yield* Console.log("\n=== Example 4: Get local plays ===")
   const localPlays = yield* factPlaysService.getLocalPlays(true, { limit: 5, offset: 0 })
   yield* Console.log(`Found ${localPlays.length} local plays`)
-  
+
   // Example 5: Get recent plays
   yield* Console.log("\n=== Example 5: Get recent plays ===")
   const recentPlays = yield* factPlaysService.getRecentPlays(5)
@@ -42,26 +42,14 @@ const program = Effect.gen(function*() {
   yield* Console.log(`Found ${searchResults.length} plays matching 'jazz'`)
 
   // Example 7: Get plays with MB data (joins)
-  yield* Console.log("\n=== Example 7: Get plays with MB enrichment ===")
-  const enrichedPlays = yield* factPlaysService.getPlaysWithMBData({ limit: 5, offset: 0 })
-  yield* Console.log(`Found ${enrichedPlays.length} enriched plays`)
-  for (const play of enrichedPlays) {
-    yield* Console.log(`  - KEXP: ${play.artist} | MB: ${play.mb_artist_name || "N/A"}`)
-  }
-
-  // Example 8: Get artist plays with related entities
-  yield* Console.log("\n=== Example 8: Get artist plays with related entities ===")
-  const artistRelatedPlays = yield* factPlaysService.getArtistPlaysWithRelatedEntities(
-    "The Beatles",
-    { limit: 10, offset: 0 }
-  )
-  yield* Console.log(`Found ${artistRelatedPlays.length} plays with related entities for The Beatles`)
 })
 
 // Run the program
 const runnable = program.pipe(
   Effect.provide(FactPlaysService.Default),
   Effect.tapError((error) => Console.error("Error:", error))
+).pipe(
+  Effect.provide(Layer.scope)
 )
 
 // Execute

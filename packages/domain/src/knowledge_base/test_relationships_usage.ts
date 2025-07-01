@@ -1,4 +1,4 @@
-import { Effect } from "effect"
+import { Effect, Layer } from "effect"
 import { RelationshipService } from "./relationships/service.js"
 
 // Example usage of the RelationshipService with type-safe predicates and entity types
@@ -71,7 +71,8 @@ const program = Effect.gen(function*() {
 
 // The service would be provided via the layer system in your application
 const runnable = program.pipe(
-  Effect.provide(RelationshipService.Default)
+  Effect.provide(RelationshipService.Default),
+  Effect.provide(Layer.scope)
 )
 
 runnable.pipe(Effect.runPromise)
