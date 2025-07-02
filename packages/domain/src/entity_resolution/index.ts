@@ -6,5 +6,5 @@
  * and can be used in both server and web contexts.
  */
 
+export * from "./schemas.js"
 export * from "./services.js"
-export * from "./types.js"
