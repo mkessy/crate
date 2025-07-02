@@ -4,42 +4,24 @@ import { Schema } from "effect"
 // Core Entity Types (shared across the system)
 // =============================================
 
-export const EntityType = Schema.Literal(
-  "recording",
-  "work",
-  "area",
-  "artist",
-  "release",
-  "genre",
-  "label",
-  "release_group"
-)
-export type EntityType = Schema.Schema.Type<typeof EntityType>
+// Import EntityType from knowledge-base to ensure consistency
+import { EntityType } from "../knowledge-base/types.js"
 
-// Branded IDs for type safety
-export const MbRecordingId = Schema.String.pipe(Schema.brand("mb_recording_id"))
-export type MbRecordingId = Schema.Schema.Type<typeof MbRecordingId>
+// Import branded IDs from knowledge-base to ensure consistency
+import {
+  MbAreaId,
+  MbArtistId,
+  MbGenreId,
+  MbLabelId,
+  MbRecordingId,
+  MbReleaseGroupId,
+  MbReleaseId,
+  MbWorkId
+} from "../knowledge-base/types.js"
 
-export const MbReleaseId = Schema.String.pipe(Schema.brand("mb_release_id"))
-export type MbReleaseId = Schema.Schema.Type<typeof MbReleaseId>
+export { EntityType }
 
-export const MbReleaseGroupId = Schema.String.pipe(Schema.brand("mb_release_group_id"))
-export type MbReleaseGroupId = Schema.Schema.Type<typeof MbReleaseGroupId>
-
-export const MbLabelId = Schema.String.pipe(Schema.brand("mb_label_id"))
-export type MbLabelId = Schema.Schema.Type<typeof MbLabelId>
-
-export const MbArtistId = Schema.String.pipe(Schema.brand("mb_artist_id"))
-export type MbArtistId = Schema.Schema.Type<typeof MbArtistId>
-
-export const MbAreaId = Schema.String.pipe(Schema.brand("mb_area_id"))
-export type MbAreaId = Schema.Schema.Type<typeof MbAreaId>
-
-export const MbGenreId = Schema.String.pipe(Schema.brand("mb_genre_id"))
-export type MbGenreId = Schema.Schema.Type<typeof MbGenreId>
-
-export const MbWorkId = Schema.String.pipe(Schema.brand("mb_work_id"))
-export type MbWorkId = Schema.Schema.Type<typeof MbWorkId>
+export { MbAreaId, MbArtistId, MbGenreId, MbLabelId, MbRecordingId, MbReleaseGroupId, MbReleaseId, MbWorkId }
 
 // =============================================
 // Entity Resolution Types
@@ -131,11 +113,11 @@ export class EntityCandidate extends Schema.Class<EntityCandidate>("EntityCandid
 
 // Resolution status
 export const ResolutionStatus = Schema.Literal(
-  "resolved",       // High confidence single match
-  "ambiguous",      // Multiple plausible matches
-  "unresolved",     // No matches found
-  "needs_review",   // Flagged for human review
-  "deferred"        // Resolution deferred for later
+  "resolved", // High confidence single match
+  "ambiguous", // Multiple plausible matches
+  "unresolved", // No matches found
+  "needs_review", // Flagged for human review
+  "deferred" // Resolution deferred for later
 )
 
 // Result of entity resolution
@@ -165,8 +147,8 @@ export class ResolutionConfig extends Schema.Class<ResolutionConfig>("Resolution
     // Confidence thresholds
     thresholds: Schema.Struct({
       autoResolve: Schema.Number.pipe(Schema.between(0, 1)), // Min confidence for auto-resolution
-      ambiguous: Schema.Number.pipe(Schema.between(0, 1)),   // Max confidence gap for ambiguity
-      minimum: Schema.Number.pipe(Schema.between(0, 1))      // Min confidence to include
+      ambiguous: Schema.Number.pipe(Schema.between(0, 1)), // Max confidence gap for ambiguity
+      minimum: Schema.Number.pipe(Schema.between(0, 1)) // Min confidence to include
     }),
     // Processing limits
     limits: Schema.Struct({

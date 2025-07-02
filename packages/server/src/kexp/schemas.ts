@@ -3,7 +3,6 @@ import { Schema } from "effect"
 // === Common Types ===
 
 export const RotationStatus = Schema.Literal("Heavy", "Medium", "Light", "R/N", "Library")
-export type RotationStatus = Schema.Schema.Type<typeof RotationStatus>
 
 // === Play Entity ===
 
@@ -49,6 +48,7 @@ export const KexpNonTrackPlay = Schema.Struct({
   ...KexpTrackPlay.fields,
   play_type: Schema.Literal("nontrackplay")
 })
+export type KexpNonTrackPlay = Schema.Schema.Type<typeof KexpNonTrackPlay>
 
 export const KexpAirbreak = Schema.Struct({
   id: Schema.Number,
@@ -175,3 +175,12 @@ export type KexpProgram = Schema.Schema.Type<typeof KexpProgram>
 export type KexpTimeslot = Schema.Schema.Type<typeof KexpTimeslot>
 export type KexpShow = Schema.Schema.Type<typeof KexpShow>
 export type KexpHost = Schema.Schema.Type<typeof KexpHost>
+export type KexpAirbreakEncoded = Schema.Schema.Encoded<typeof KexpAirbreak>
+export type KexpNonTrackPlayEncoded = Schema.Schema.Encoded<typeof KexpNonTrackPlay>
+
+export type KexpShowEncoded = Schema.Schema.Encoded<typeof KexpShow>
+export type KexpHostEncoded = Schema.Schema.Encoded<typeof KexpHost>
+export type KexpTrackPlayEncoded = Schema.Schema.Encoded<typeof KexpTrackPlay>
+
+export type RotationStatus = Schema.Schema.Type<typeof RotationStatus>
+export type RotationStatusEncoded = Schema.Schema.Encoded<typeof RotationStatus>

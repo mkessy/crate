@@ -96,6 +96,7 @@ export type MbGenreId = Schema.Schema.Type<typeof MbGenreId>
 export const MbWorkId = Schema.String.pipe(Schema.brand("mb_work_id"))
 export type MbWorkId = Schema.Schema.Type<typeof MbWorkId>
 
+export type MbWorkIdEncoded = Schema.Schema.Encoded<typeof MbWorkId>
 export class Work extends Model.Class<Work>("Work")({
   mb_id: MbWorkId,
   name: Schema.String,
@@ -106,6 +107,7 @@ export class Work extends Model.Class<Work>("Work")({
   updated_at: Model.DateTimeUpdate
 }) {}
 
+export type WorkEncoded = Schema.Schema.Encoded<typeof Work>
 export class Area extends Model.Class<Area>("Area")({
   mb_id: MbAreaId,
   name: Schema.String,
@@ -116,6 +118,7 @@ export class Area extends Model.Class<Area>("Area")({
   updated_at: Model.DateTimeUpdate
 }) {}
 
+export type AreaEncoded = Schema.Schema.Encoded<typeof Area>
 export class Recording extends Model.Class<Recording>("Recording")({
   mb_id: MbRecordingId,
   name: Schema.String,
@@ -128,6 +131,7 @@ export class Recording extends Model.Class<Recording>("Recording")({
   updated_at: Model.DateTimeUpdate
 }) {}
 
+export type RecordingEncoded = Schema.Schema.Encoded<typeof Recording>
 export class Release extends Model.Class<Release>("Release")({
   mb_id: MbReleaseId,
   name: Schema.String,
@@ -151,6 +155,7 @@ export class ReleaseGroup extends Model.Class<ReleaseGroup>("ReleaseGroup")({
   updated_at: Model.DateTimeUpdate
 }) {}
 
+export type ReleaseGroupEncoded = Schema.Schema.Encoded<typeof ReleaseGroup>
 export class Artist extends Model.Class<Artist>("Artist")({
   mb_id: MbArtistId,
   name: Schema.String,
@@ -158,6 +163,7 @@ export class Artist extends Model.Class<Artist>("Artist")({
   created_at: Model.DateTimeInsert,
   updated_at: Model.DateTimeUpdate
 }) {}
+export type ArtistEncoded = Schema.Schema.Encoded<typeof Artist>
 
 export class Label extends Model.Class<Label>("Label")({
   mb_id: MbLabelId,
@@ -168,6 +174,7 @@ export class Label extends Model.Class<Label>("Label")({
   created_at: Model.DateTimeInsert,
   updated_at: Model.DateTimeUpdate
 }) {}
+export type LabelEncoded = Schema.Schema.Encoded<typeof Label>
 
 export class ArtistMBEntityMaster extends Model.Class<ArtistMBEntityMaster>("ArtistMBEntityMaster")({
   artist_mb_id: MbArtistId,
@@ -192,6 +199,7 @@ export class ArtistMBEntityMaster extends Model.Class<ArtistMBEntityMaster>("Art
   created_at: Model.DateTimeWithNow,
   updated_at: Model.DateTimeUpdate
 }) {}
+export type ArtistMBEntityMasterEncoded = Schema.Schema.Encoded<typeof ArtistMBEntityMaster>
 
 export class ArtistEntity extends Schema.Class<ArtistEntity>("ArtistEntity")({
   artist_mb_id: MbArtistId,
@@ -205,3 +213,4 @@ export class ArtistEntity extends Schema.Class<ArtistEntity>("ArtistEntity")({
   attribute_type: Schema.NullOr(Schema.String),
   entity_metadata: Schema.NullOr(Schema.String)
 }) {}
+export type ArtistEntityEncoded = Schema.Schema.Encoded<typeof ArtistEntity>

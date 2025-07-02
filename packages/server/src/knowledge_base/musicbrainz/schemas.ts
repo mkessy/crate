@@ -1,6 +1,7 @@
 import { Model } from "@effect/sql"
 import { Schema } from "effect"
 
+export type MBArtistFromApiEncoded = Schema.Schema.Encoded<typeof MBArtistFromApi>
 export type MBArtistFromApi = Schema.Schema.Type<typeof MBArtistFromApi>
 export const MBArtistFromApi = Schema.Struct({
   id: Schema.String,
@@ -91,6 +92,7 @@ export const MBArtistFromApi = Schema.Struct({
   }))
 })
 
+export type UnresolvedMBArtistEncoded = Schema.Schema.Encoded<typeof UnresolvedMBArtist>
 export class UnresolvedMBArtist extends Model.Class<UnresolvedMBArtist>("UnresolvedMBArtist")({
   id: Model.Generated(Schema.Number),
   artist_mb_id: Schema.String,
@@ -102,5 +104,6 @@ export class UnresolvedMBArtist extends Model.Class<UnresolvedMBArtist>("Unresol
   updated_at: Model.DateTimeUpdate
 }) {}
 
+export type MBArtistResponseEncoded = Schema.Schema.Encoded<typeof MBArtistResponse>
 export const MBArtistResponse = MBArtistFromApi
 export type MBArtistResponse = Schema.Schema.Type<typeof MBArtistResponse>

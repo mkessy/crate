@@ -1,7 +1,6 @@
 import { Model } from "@effect/sql"
 import { Equal, Hash, Schema } from "effect"
 
-// Predicate types from the database
 export const PredicateType = Schema.Literal(
   "adapter",
   "animation",
@@ -118,9 +117,7 @@ export const PredicateType = Schema.Literal(
   "has_release", // play → release
   "has_label" // play → label
 )
-export type PredicateType = Schema.Schema.Type<typeof PredicateType>
 
-// Entity types from the database
 export const EntityType = Schema.Literal(
   "area",
   "artist",
@@ -133,8 +130,6 @@ export const EntityType = Schema.Literal(
   // KEXP entity
   "play" // KEXP play instance
 )
-export type EntityType = Schema.Schema.Type<typeof EntityType>
-
 export class Relationship extends Model.Class<Relationship>("Relationship")({
   subject_id: Schema.String,
   subject_type: EntityType,
@@ -169,3 +164,12 @@ export class Relationship extends Model.Class<Relationship>("Relationship")({
     })
   }
 }
+
+export type PredicateTypeEncoded = Schema.Schema.Encoded<typeof PredicateType>
+export type PredicateType = Schema.Schema.Type<typeof PredicateType>
+
+export type EntityTypeEncoded = Schema.Schema.Encoded<typeof EntityType>
+
+export type EntityType = Schema.Schema.Type<typeof EntityType>
+
+export type RelationshipEncoded = Schema.Schema.Encoded<typeof Relationship>

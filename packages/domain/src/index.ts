@@ -4,6 +4,9 @@ export * from "./csv/parseLines.js"
 // KEXP types and schemas
 export * as Kexp from "./kexp/schemas.js"
 
+// Knowledge base types
+export * as KnowledgeBase from "./knowledge-base/index.js"
+
 // Entity resolution
 export * as EntityResolution from "./entity-resolution/index.js"
 

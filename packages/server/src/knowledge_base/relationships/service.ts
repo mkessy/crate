@@ -1,6 +1,6 @@
-import { MusicKBSqlLive } from "../../sql/Sql.js"
 import { SqlClient, SqlSchema } from "@effect/sql"
 import { Data, Duration, Effect, Layer, Request, RequestResolver, Schema } from "effect"
+import { MusicKBSqlLive } from "../../sql/Sql.js"
 import { EntityType, PredicateType, Relationship } from "./schemas.js"
 
 // Forward query: Find objects related to a subject via a predicate
