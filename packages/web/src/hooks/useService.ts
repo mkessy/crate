@@ -1,16 +1,20 @@
 // packages/web/src/hooks/useService.ts
-import type { Context, ManagedRuntime } from "effect"
-import { Effect } from "effect"
+import type { Context, Effect, ManagedRuntime } from "effect"
 import { useMemo } from "react"
 import { AppRuntime } from "../services/AppRuntime.js"
 
-// Hook to access a service from the runtime
-export function useService<I, S>(tag: Context.Tag<I, S>): S {
-  const runtime: ManagedRuntime.ManagedRuntime<I, S> = AppRuntime.useRuntime()
+// First, let's get the type of services available in our runtime
+type AppServices = Parameters<typeof AppRuntime.useRuntime> extends ManagedRuntime.ManagedRuntime<infer R, any> ? R :
+  never
+
+// Now create a properly typed hook
+export function useService<T extends AppServices>(
+  tag: T extends Context.Tag<any, any> ? T : never
+): T extends Context.Tag<any, infer S> ? S : never {
+  const runtime = AppRuntime.useRuntime()
 
   return useMemo(() => {
-    // To extract a service from ManagedRuntime, we need to run an effect
-    // that accesses the service through the tag
-    return runtime.runSync(Effect.flatMap(tag, (service) => Effect.succeed(service)))
+    // Use runSync to execute an effect that extracts the service
+    return runtime.runSync(tag as Effect.Effect<any, never, any>)
   }, [runtime, tag])
 }

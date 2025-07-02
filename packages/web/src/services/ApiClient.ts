@@ -1,19 +1,17 @@
-// packages/web/src/services/ApiClient.ts
-import { FactPlays } from "@crate/domain/src/index.js"
 import type { HttpClientError } from "@effect/platform"
 import { FetchHttpClient, HttpClient, HttpClientRequest, HttpClientResponse } from "@effect/platform"
 import { Context, Effect, Layer, Schema } from "effect"
 import type { ParseError } from "effect/ParseResult"
 
 // API response schemas
-const PlaysResponse = Schema.Array(FactPlays.FactPlay)
+const PlaysResponse = Schema.Array(FactPlay)
 
 // Service interface
 export interface ApiClient {
   readonly getRecentPlays: (params?: {
     limit?: number
     offset?: number
-  }) => Effect.Effect<ReadonlyArray<FactPlays.FactPlay>, ParseError | HttpClientError.HttpClientError>
+  }) => Effect.Effect<ReadonlyArray<FactPlay>, ParseError | HttpClientError.HttpClientError>
 }
 
 // Service tag
@@ -32,8 +30,8 @@ export const ApiClientLive = Layer.effect(
       getRecentPlays: (params) =>
         client.get("/api/plays", {
           urlParams: new URLSearchParams({
-            limit: String(params?.limit),
-            offset: String(params?.offset)
+            limit: String(params?.limit ?? 50),
+            offset: String(params?.offset ?? 0)
           })
         }).pipe(
           Effect.flatMap(HttpClientResponse.schemaBodyJson(PlaysResponse))
@@ -41,9 +39,6 @@ export const ApiClientLive = Layer.effect(
     })
   })
 )
-/* HttpClientRequest.get("/api/plays", {
-            urlParams: params
-          })) */
 
 // Default layer composition
 export const ApiClientDefault = ApiClientLive.pipe(

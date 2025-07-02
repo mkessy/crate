@@ -1,8 +1,5 @@
-// packages/web/src/components/plays/PlayItem.tsx
-import type { FactPlays } from "@crate/domain/src/index.js"
-
 interface PlayItemProps {
-  play: FactPlays.FactPlay
+  play: FactPlay
 }
 
 export function PlayItem({ play }: PlayItemProps) {

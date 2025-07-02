@@ -1,5 +1,4 @@
 // packages/web/src/components/plays/RecentPlays.tsx
-import type { FactPlays } from "@crate/domain/src/index.js"
 import { Effect } from "effect"
 import { ApiClient } from "../../services/ApiClient.js"
 import { useAppEffect } from "../../services/AppRuntime.js"
@@ -38,7 +37,7 @@ export function RecentPlays() {
     <section className="recent-plays">
       <h2>Recent KEXP Plays</h2>
       <div className="plays-list">
-        {plays.map((play: FactPlays.FactPlay) => <PlayItem key={play.id} play={play} />)}
+        {plays.map((play: FactPlay) => <PlayItem key={play.id} play={play} />)}
       </div>
     </section>
   )
