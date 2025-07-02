@@ -7,8 +7,24 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": resolve(__dirname, "./src"),
-      "@crate/domain": resolve(__dirname, "../domain/src")
+      "@crate/domain": resolve(__dirname, "../domain/build/esm"),
+      // Redirect platform-specific imports to browser-compatible versions
+      "@effect/platform-node-shared": "@effect/platform-browser",
+      "@effect/platform-bun": "@effect/platform-browser"
     }
+  },
+  build: {
+    rollupOptions: {
+      external: [
+        "bun:sqlite",
+        "@effect/sql-sqlite-bun"
+      ]
+    }
+  },
+  optimizeDeps: {
+    exclude: [
+      "@effect/platform-node-shared"
+    ]
   },
   server: {
     port: 3001,

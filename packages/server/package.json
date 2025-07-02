@@ -23,11 +23,12 @@
     "coverage": "vitest --coverage"
   },
   "dependencies": {
+    "@crate/domain": "workspace:^",
     "@effect/platform": "latest",
     "@effect/platform-node": "latest",
-    "@crate/domain": "workspace:^",
-    "effect": "latest",
-    "package.json": "^2.0.1"
+    "@effect/sql": "^0.40.2",
+    "@effect/sql-sqlite-bun": "^0.41.2",
+    "effect": "latest"
   },
   "effect": {
     "generateExports": {

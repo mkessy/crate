@@ -10,8 +10,10 @@
         "directory": "packages/web"
     },
     "scripts": {
+        "codegen": "build-utils prepare-v2",
         "dev": "vite",
-        "build": "tsc -b tsconfig.build.json && vite build",
+        "build": "pnpm build-esm && vite build",
+        "build-esm": "tsc -b tsconfig.build.json",
         "preview": "vite preview",
         "check": "tsc -b tsconfig.json",
         "test": "vitest",
@@ -19,10 +21,8 @@
     },
     "dependencies": {
         "@crate/domain": "workspace:^",
-        "@crate/server": "workspace:^",
         "@effect/platform": "latest",
-        "@effect/platform-browser": "latest",
-        "@effect/schema": "latest",
+        "@effect/platform-browser": "^0.67.2",
         "effect": "latest",
         "react": "^18.3.1",
         "react-dom": "^18.3.1"
@@ -32,6 +32,14 @@
         "@types/react-dom": "^18.3.0",
         "@vitejs/plugin-react": "^4.3.1",
         "vite": "^5.3.1",
-        "vitest": "^2.0.0"
+        "vitest": "latest"
+    },
+    "effect": {
+        "generateExports": {
+            "include": [
+                "**/*.ts",
+                "**/*.tsx"
+            ]
+        }
     }
 }
