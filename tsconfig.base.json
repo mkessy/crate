@@ -52,15 +52,18 @@
       }
     ],
     "paths": {
-      "@crate/cli": ["./packages/cli/src/index.js"],
-      "@crate/cli/*": ["./packages/cli/src/*.js"],
-      "@crate/cli/test/*": ["./packages/cli/test/*.js"],
-      "@crate/domain": ["./packages/domain/src/index.js"],
-      "@crate/domain/*": ["./packages/domain/src/*.js"],
-      "@crate/domain/test/*": ["./packages/domain/test/*.js"],
-      "@crate/server": ["./packages/server/src/index.js"],
-      "@crate/server/*": ["./packages/server/src/*.js"],
-      "@crate/server/test/*": ["./packages/server/test/*.js"]
+      "@crate/cli": ["./packages/cli/src/index.ts"],
+      "@crate/cli/*": ["./packages/cli/src/*"],
+      "@crate/cli/test/*": ["./packages/cli/test/*"],
+      "@crate/domain": ["./packages/domain/src/index.ts"],
+      "@crate/domain/*": ["./packages/domain/src/*"],
+      "@crate/domain/test/*": ["./packages/domain/test/*"],
+      "@crate/server": ["./packages/server/src/index.ts"],
+      "@crate/server/*": ["./packages/server/src/*"],
+      "@crate/server/test/*": ["./packages/server/test/*"],
+      "@crate/web": ["./packages/web/src/index.ts"],
+      "@crate/web/*": ["./packages/web/src/*"],
+      "@crate/web/test/*": ["./packages/web/test/*"]
     }
   }
 }
