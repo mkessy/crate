@@ -414,7 +414,8 @@ export const metaSummary = Match.type<Metadata>().pipe(
     }
 
     return parts.join(" ")
-  })
+  }),
+  Match.exhaustive
 )
 
 export const hasMinScore = (threshold: number) => (c: Candidate): boolean => c.score >= threshold
