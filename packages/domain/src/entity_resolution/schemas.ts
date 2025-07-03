@@ -1,8 +1,8 @@
 // Location: packages/domain/src/entity_resolution/schemas.ts
 
 import { Data, DateTime, Match, Order, Schema } from "effect"
-import type { EntityType } from "../index.js"
-import type {
+import {
+  EntityType,
   MbAreaId,
   MbArtistId,
   MbGenreId,
@@ -11,7 +11,33 @@ import type {
   MbReleaseGroupId,
   MbReleaseId,
   MbWorkId
-} from "../knowledge-base/index.js"
+} from "../knowledge_base/index.js"
+
+export const EntityUriPrefix = Schema.Literal("crate://")
+export type EntityUriPrefix = Schema.Schema.Type<typeof EntityUriPrefix>
+
+// --- Entity URI Template Literal Parser ---
+export const EntityUriParser = Schema.TemplateLiteralParser(
+  EntityUriPrefix,
+  EntityType,
+  Schema.Literal("/"),
+  Schema.Union(
+    MbArtistId,
+    MbRecordingId,
+    MbReleaseId,
+    MbGenreId,
+    MbReleaseGroupId,
+    MbWorkId,
+    MbLabelId,
+    MbAreaId,
+    Schema.String
+  )
+)
+export type EntityUriParser = Schema.Schema.Type<typeof EntityUriParser>
+
+// Helper functions to create entity URIs using the parser
+export const createEntityUri = (entityType: EntityType, id: string): string =>
+  Schema.encodeSync(EntityUriParser)(["crate://", entityType, "/", id] as const)
 
 // --- Branded Primitives ---
 export type EntityUri = Schema.Schema.Type<typeof EntityUri>
@@ -388,7 +414,8 @@ export const metaSummary = Match.type<Metadata>().pipe(
     }
 
     return parts.join(" ")
-  })
+  }),
+  Match.exhaustive
 )
 
 export const hasMinScore = (threshold: number) => (c: Candidate): boolean => c.score >= threshold

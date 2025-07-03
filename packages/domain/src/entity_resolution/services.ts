@@ -1,5 +1,7 @@
-import type { Option } from "effect"
+import type { Option, Stream } from "effect"
 import { Context } from "effect"
+
+import type { Candidate, Mention, Method } from "./schemas.js"
 
 // =============================================
 // Service Interfaces (contracts only, no implementation)
@@ -71,3 +73,8 @@ export class StringMatcher extends Context.Tag("StringMatcher")<
     readonly matchTrackTitle: (query: string, candidate: string) => number
   }
 >() {}
+// Location: packages/domain/src/services/CandidateFinder.ts
+export interface CandidateFinder {
+  readonly method: Method // "fts", "trie", "proxy", etc.
+  readonly find: (mention: Mention) => Stream.Stream<Candidate>
+}
