@@ -48,7 +48,7 @@ export const MentionId = Schema.String.pipe(Schema.brand("MentionId"))
 
 // --- Core Enums ---
 export type Method = Schema.Schema.Type<typeof Method>
-export const Method = Schema.Literal("fts", "semantic", "fuzzy", "llm")
+export const Method = Schema.Literal("fts", "semantic", "fuzzy", "llm", "trie")
 
 // --- Span for text position tracking ---
 // For non-generic TaggedEnum, pass union directly

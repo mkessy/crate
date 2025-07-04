@@ -6,9 +6,11 @@
  * and can be used in both server and web contexts.
  */
 
-export * from "./hydration_payload.js"
-export * from "./resolution_cache.js"
+export * from "./HydrationPayload.js"
+export * from "./Method.js"
+export * from "./ResolutionCache.js"
 export * from "./schemas.js"
 export * from "./services.js"
 export * from "./transformations.js"
+export * from "./TrieCandidateFinder.js"
 export * from "./utils.js"
