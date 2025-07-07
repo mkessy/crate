@@ -10,7 +10,7 @@ import {
   _internal_suggestWithRanking,
   type CandidatesMap,
   type EntityTrie
-} from "../src/entity_resolution/resolution_cache.js"
+} from "../src/entity_resolution/ResolutionCache.js"
 import type { EntityUri, MentionId } from "../src/entity_resolution/schemas.js"
 import { Candidate, createEntityUri, Metadata } from "../src/entity_resolution/schemas.js"
 import type { MbArtistId, MbRecordingId } from "../src/knowledge_base/index.js"

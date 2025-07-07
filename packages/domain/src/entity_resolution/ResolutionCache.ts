@@ -1,5 +1,6 @@
 import { Array, Effect, HashMap, Option, pipe, Trie } from "effect"
-import type { Candidate, EntityUri } from "./schemas.js"
+import type { Candidate, Score } from "./Candidate.js"
+import type { EntityUri } from "./schemas.js"
 import { normalize, normalizeAndGenerateNGrams } from "./utils.js"
 
 /**
@@ -12,7 +13,7 @@ export type EntityTrie = Trie.Trie<ReadonlyArray<EntityUri>>
  * Type alias for the candidates HashMap used in the resolution cache.
  * Maps EntityUris to their full Candidate metadata.
  */
-export type CandidatesMap = HashMap.HashMap<EntityUri, Candidate>
+export type CandidatesMap = HashMap.HashMap<EntityUri, Candidate<Score>>
 
 /**
  * ResolutionCache service interface.
@@ -31,14 +32,14 @@ export class ResolutionCache extends Effect.Tag("EntityResolution/ResolutionCach
      */
     readonly lookupExact: (
       term: string
-    ) => Option.Option<ReadonlyArray<Candidate>>
+    ) => Option.Option<ReadonlyArray<Candidate<Score>>>
 
     /**
      * The primary search function for finding all potential candidates for a raw query string.
      * It handles normalization and n-gram generation internally.
      * @returns A `ReadonlyArray<Candidate>` containing a deduplicated list of all candidates found for any n-gram in the query.
      */
-    readonly search: (query: string) => ReadonlyArray<Candidate>
+    readonly search: (query: string) => ReadonlyArray<Candidate<Score>>
 
     /**
      * Provides auto-complete suggestions for a given search prefix.
@@ -47,13 +48,13 @@ export class ResolutionCache extends Effect.Tag("EntityResolution/ResolutionCach
     readonly suggest: (
       prefix: string,
       limit?: number
-    ) => ReadonlyArray<Candidate>
+    ) => ReadonlyArray<Candidate<Score>>
 
     /**
      * Retrieves a single, full Candidate object directly by its URI.
      * @returns An `Option<Candidate>` if the URI exists in the cache.
      */
-    readonly get: (uri: EntityUri) => Option.Option<Candidate>
+    readonly get: (uri: EntityUri) => Option.Option<Candidate<Score>>
 
     /**
      * Get statistics about the cache contents.
@@ -69,7 +70,7 @@ export class ResolutionCache extends Effect.Tag("EntityResolution/ResolutionCach
      * Find all candidates for a specific entity type.
      * Useful for filtering results by type (e.g., only artists or only recordings).
      */
-    readonly findByType: (type: string) => ReadonlyArray<Candidate>
+    readonly findByType: (type: string) => ReadonlyArray<Candidate<Score>>
   }
 >() {}
 
@@ -87,7 +88,7 @@ export const _internal_lookupExact = (
   trie: EntityTrie,
   candidates: CandidatesMap,
   term: string
-): Option.Option<ReadonlyArray<Candidate>> =>
+): Option.Option<ReadonlyArray<Candidate<Score>>> =>
   pipe(
     // Look up the term in the Trie to get entity URIs
     Trie.get(trie, term),
@@ -116,7 +117,7 @@ export const _internal_search = (
   trie: EntityTrie,
   candidates: CandidatesMap,
   query: string
-): ReadonlyArray<Candidate> =>
+): ReadonlyArray<Candidate<Score>> =>
   pipe(
     // Generate all n-grams from the normalized query
     normalizeAndGenerateNGrams(query),
@@ -125,7 +126,7 @@ export const _internal_search = (
       pipe(
         _internal_lookupExact(trie, candidates, ngram),
         // Convert Option<ReadonlyArray<Candidate>> to ReadonlyArray<Candidate>
-        Option.getOrElse(() => [] as ReadonlyArray<Candidate>)
+        Option.getOrElse(() => [] as ReadonlyArray<Candidate<Score>>)
       )
     ),
     // Remove duplicates based on structural equality (via Data.case)
@@ -146,7 +147,7 @@ export const _internal_suggest = (
   candidates: CandidatesMap,
   prefix: string,
   limit: number = 10
-): ReadonlyArray<Candidate> => {
+): ReadonlyArray<Candidate<Score>> => {
   const normalizedPrefix = normalize(prefix)
 
   // Get all values with the given prefix
@@ -181,7 +182,7 @@ export const _internal_suggest = (
 export const _internal_get = (
   candidates: CandidatesMap,
   uri: EntityUri
-): Option.Option<Candidate> => HashMap.get(candidates, uri)
+): Option.Option<Candidate<Score>> => HashMap.get(candidates, uri)
 
 /**
  * Enhanced suggestion function that returns candidates sorted by relevance.
@@ -198,15 +199,15 @@ export const _internal_suggestWithRanking = (
   candidates: CandidatesMap,
   prefix: string,
   limit: number = 10
-): ReadonlyArray<Candidate> => {
+): ReadonlyArray<Candidate<Score>> => {
   const normalizedPrefix = normalize(prefix)
 
   // Get all entries (key-value pairs) with the given prefix
   const entriesIterator = Trie.entriesWithPrefix(trie, normalizedPrefix)
 
   // Separate exact matches from prefix matches
-  const exactMatches: Array<Candidate> = []
-  const prefixMatches: Array<Candidate> = []
+  const exactMatches: Array<Candidate<Score>> = []
+  const prefixMatches: Array<Candidate<Score>> = []
 
   for (const [key, uriArray] of entriesIterator) {
     const isExactMatch = key === normalizedPrefix
@@ -272,9 +273,9 @@ export const _internal_getStats = (
 export const _internal_findByType = (
   candidates: CandidatesMap,
   type: string
-): ReadonlyArray<Candidate> =>
+): ReadonlyArray<Candidate<Score>> =>
   pipe(
     HashMap.values(candidates),
     Array.fromIterable,
-    Array.filter((candidate) => candidate.type === type)
+    Array.filter((candidate) => candidate.entityType === type)
   )
