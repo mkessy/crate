@@ -25,7 +25,9 @@
         "@effect/platform-browser": "^0.67.2",
         "effect": "latest",
         "react": "^18.3.1",
-        "react-dom": "^18.3.1"
+        "react-dom": "^18.3.1",
+        "wink-eng-lite-web-model": "^1.8.1",
+        "wink-nlp": "^2.4.0"
     },
     "devDependencies": {
         "@types/react": "^18.3.3",
