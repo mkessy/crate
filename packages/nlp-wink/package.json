@@ -1,46 +1,41 @@
 {
-    "name": "@crate/web",
+    "name": "@crate/nlp-wink",
     "version": "0.0.0",
     "type": "module",
     "license": "MIT",
-    "description": "The web interface for Crate",
+    "description": "Wink.js implementation for the Crate NlpService",
     "repository": {
         "type": "git",
         "url": "https://github.com/mkessy/crate",
-        "directory": "packages/web"
+        "directory": "packages/nlp-wink"
+    },
+    "publishConfig": {
+        "access": "public",
+        "directory": "dist"
     },
     "scripts": {
         "codegen": "build-utils prepare-v2",
-        "dev": "vite",
-        "build": "pnpm build-esm && vite build",
+        "build": "pnpm build-esm && pnpm build-annotate && pnpm build-cjs && build-utils pack-v2",
         "build-esm": "tsc -b tsconfig.build.json",
-        "preview": "vite preview",
+        "build-cjs": "babel build/esm --plugins @babel/transform-export-namespace-from --plugins @babel/transform-modules-commonjs --out-dir build/cjs --source-maps",
+        "build-annotate": "babel build/esm --plugins annotate-pure-calls --out-dir build/esm --source-maps",
         "check": "tsc -b tsconfig.json",
         "test": "vitest",
         "coverage": "vitest --coverage"
     },
     "dependencies": {
         "@crate/domain": "workspace:^",
-        "@effect/platform": "latest",
-        "@effect/platform-browser": "^0.67.2",
         "effect": "latest",
-        "react": "^18.3.1",
-        "react-dom": "^18.3.1",
         "wink-eng-lite-web-model": "^1.8.1",
         "wink-nlp": "^2.4.0"
     },
     "devDependencies": {
-        "@types/react": "^18.3.3",
-        "@types/react-dom": "^18.3.0",
-        "@vitejs/plugin-react": "^4.3.1",
-        "vite": "^5.3.1",
-        "vitest": "latest"
+        "effect": "latest"
     },
     "effect": {
         "generateExports": {
             "include": [
-                "**/*.ts",
-                "**/*.tsx"
+                "**/*.ts"
             ]
         }
     }

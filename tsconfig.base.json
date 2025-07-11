@@ -63,7 +63,10 @@
       "@crate/server/test/*": ["./packages/server/test/*"],
       "@crate/web": ["./packages/web/src/index.ts"],
       "@crate/web/*": ["./packages/web/src/*"],
-      "@crate/web/test/*": ["./packages/web/test/*"]
+      "@crate/web/test/*": ["./packages/web/test/*"],
+      "@crate/nlp-wink": ["./packages/nlp-wink/src/index.ts"],
+      "@crate/nlp-wink/*": ["./packages/nlp-wink/src/*"],
+      "@crate/nlp-wink/test/*": ["./packages/nlp-wink/test/*"]
     }
   }
 }
