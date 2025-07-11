@@ -10,4 +10,5 @@ export * as KnowledgeBase from "./knowledge_base/index.js"
 // Entity resolution
 export * as EntityResolution from "./entity_resolution/index.js"
 
-// Re-export specific commonly used types for convenience
+// NLP
+export * as Nlp from "./nlp/index.js"

@@ -1,5 +1,5 @@
 import { Data, Schema } from "effect"
-import type { EntityType } from "../knowledge_base/index.js"
+import type { EntityType } from "../../knowledge_base/index.js"
 
 export type MentionId = Schema.Schema.Type<typeof MentionId>
 export const MentionId = Schema.String.pipe(Schema.brand("MentionId"))
@@ -31,3 +31,18 @@ export const spanLength = $matchSpan({
   Point: () => 1,
   Range: ({ end, start }) => end - start
 })
+
+/**
+ * A type brand for the source of a mention, ensuring we track its origin.
+ */
+
+/**
+ * A RawMention is a transient, intermediate representation of a potential
+ * entity mention before it is finalized into a full `Mention` object.
+ */
+export class RawMention extends Data.Class<{
+  readonly text: string
+  readonly span: Span
+  readonly source: "quoted" | "proper-noun" | "pattern"
+  readonly hint?: EntityType
+}> {}

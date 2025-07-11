@@ -1,4 +1,4 @@
-import type { HashMap } from "effect"
+import type { Chunk, Effect, HashMap } from "effect"
 import { Data, Schema } from "effect"
 import type { SortedSet } from "effect/SortedSet"
 import type {
@@ -12,7 +12,7 @@ import type {
   MbReleaseId,
   MbWorkId
 } from "../knowledge_base/types.js"
-import type { EntityUri, MentionId } from "./index.js"
+import type { EntityUri, Mention, MentionId } from "./index.js"
 
 export type Method = Schema.Schema.Type<typeof Method>
 export const Method = Schema.Literal("trie", "bm25", "semantic", "fuzzy", "llm")
@@ -68,6 +68,14 @@ export class Hits<S extends MethodScore> extends Data.Class<{
   readonly queryTime: number // milliseconds
   readonly metadata?: HashMap.HashMap<string, unknown>
 }> {
+}
+
+export interface Finder<S extends Score> {
+  readonly method: string
+
+  readonly find: (
+    mentions: Chunk.Chunk<Mention>
+  ) => Effect.Effect<Hits<S>>
 }
 
 export const Metadata = Data.taggedEnum<

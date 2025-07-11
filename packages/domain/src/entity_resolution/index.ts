@@ -7,10 +7,10 @@
  */
 
 export * from "./Candidate.js"
-export * from "./Mention.js"
+export * from "./mention/Mention.js"
 export * from "./ResolutionCache.js"
 export * from "./ResolutionScope.js"
 export * from "./schemas.js"
 export * from "./services.js"
-export * from "./TrieCandidateFinder.js"
+export * from "./TrieFinder.js"
 export * from "./utils.js"

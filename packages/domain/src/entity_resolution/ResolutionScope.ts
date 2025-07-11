@@ -2,7 +2,7 @@ import type { HashSet } from "effect"
 import { Data, DateTime, HashMap } from "effect"
 import type { EntityType } from "../knowledge_base/types.js"
 import type { Hits, Score } from "./Candidate.js"
-import type { Mention, MentionId } from "./Mention.js"
+import type { Mention, MentionId } from "./mention/Mention.js"
 import type { EntityUri } from "./schemas.js"
 
 export type Constraints = HashMap.HashMap<EntityType, HashSet.HashSet<EntityUri>>
