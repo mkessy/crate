@@ -44,5 +44,6 @@ export class RawMention extends Data.Class<{
   readonly text: string
   readonly span: Span
   readonly source: "quoted" | "proper-noun" | "pattern"
+  readonly pattern?: string
   readonly hint?: EntityType
 }> {}
