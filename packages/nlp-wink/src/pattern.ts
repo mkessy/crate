@@ -459,7 +459,7 @@ export const getWinkPatterns = () => {
       processedPatterns.unshift({
         name: pattern.name,
         patterns: stringPatterns
-      })
+      } as any)
     }
 
     return processedPatterns

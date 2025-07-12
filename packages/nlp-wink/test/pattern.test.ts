@@ -89,7 +89,6 @@ describe("Corrected Patterns V2 - Final Verification", () => {
 
     it.skip("should correctly match punctuated attributions", () =>
       Effect.gen(function*() {
-        const entities = yield* testPatterns("A song feat. Drake")
         // wink-nlp returns original text "feat.", not tokenized "feat ."
       }).pipe(Effect.runPromise))
   })
@@ -183,13 +182,12 @@ describe("Corrected Patterns V2 - Final Verification", () => {
         const text = "That was a hip-hop track produced by Dr. Dre featuring Eminem from their debut album"
         const entities = yield* testPatterns(text)
 
-        expect(entities.length).toBeGreaterThan(0)
+        expect(entities.length).toBeGreaterThan(4)
+        console.log("entities kexp", entities)
 
         // Check we found the key entities
         const genres = entities.filter((e) => e.pattern === "GENRE")
-        const attributions = entities.filter((e) => e.pattern === "ATTRIBUTION")
         const recordings = entities.filter((e) => e.pattern === "RECORDING")
-        const artists = entities.filter((e) => e.pattern === "ARTIST")
 
         expect(genres.length).toBeGreaterThan(0)
         // Attribution phrases might be consumed by ARTIST_FROM_ATTR patterns
