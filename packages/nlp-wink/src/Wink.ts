@@ -37,9 +37,9 @@ export const Make = (config: WinkConfig = DefaultConfig): Layer.Layer<Nlp.Nlp> =
       if (config.includeCustomEntities) {
         // Use composed patterns built with string substitution
         nlp.learnCustomEntities(config.customEntities, {
-          matchValue: true, // Enable matching of literal words
+          matchValue: true, // Enable matching of literal words for our vocabularies
           usePOS: true, // Enable POS tag matching (we use [PROPN], [DET], etc.)
-          useEntity: true // Enable entity matching (we might use CARDINAL, etc.)
+          useEntity: true // Enable entity matching (we use CARDINAL, etc.)
         })
       }
 
