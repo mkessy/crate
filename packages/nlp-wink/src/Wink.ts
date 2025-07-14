@@ -2,6 +2,7 @@ import { EntityResolution, Nlp } from "@crate/domain"
 import { Effect, Layer } from "effect"
 import model from "wink-eng-lite-web-model"
 import winkNLP, { type CustomEntityExample, type Document as WinkDocument } from "wink-nlp"
+import { COMPOSED_PATTERNS } from "./pattern.js"
 
 /**
  * Configuration schema for the NlpService.
@@ -14,9 +15,7 @@ interface WinkConfig {
 
 const DefaultConfig: WinkConfig = {
   includeCustomEntities: true,
-  customEntities: [
-    { name: "ARTIST_CANDIDATE", patterns: ["PROPN", "[PROPN]?", "[PROPN]?"] }
-  ]
+  customEntities: COMPOSED_PATTERNS as unknown as Array<CustomEntityExample>
 }
 
 /**
@@ -36,7 +35,12 @@ export const Make = (config: WinkConfig = DefaultConfig): Layer.Layer<Nlp.Nlp> =
 
       // Conditionally add our custom entity patterns.
       if (config.includeCustomEntities) {
-        nlp.learnCustomEntities(config.customEntities)
+        // Use composed patterns built with string substitution
+        nlp.learnCustomEntities(config.customEntities, {
+          matchValue: true, // Enable matching of literal words for our vocabularies
+          usePOS: true, // Enable POS tag matching (we use [PROPN], [DET], etc.)
+          useEntity: true // Enable entity matching (we use CARDINAL, etc.)
+        })
       }
 
       // --- 2. Internal Helper Functions ---
@@ -115,7 +119,8 @@ export const Make = (config: WinkConfig = DefaultConfig): Layer.Layer<Nlp.Nlp> =
             new EntityResolution.RawMention({
               text: entityText.value,
               span: EntityResolution.Range({ start: span[0], end: span[1] }),
-              source: "pattern"
+              source: "pattern",
+              pattern: entity.out(its.type)
             })
           )
         })
@@ -131,7 +136,8 @@ export const Make = (config: WinkConfig = DefaultConfig): Layer.Layer<Nlp.Nlp> =
               new EntityResolution.RawMention({
                 text: entityText.value,
                 span: EntityResolution.Range({ start: span[0], end: span[1] }),
-                source: "pattern"
+                source: "pattern",
+                pattern: entity.out(its.type)
               })
             )
           })

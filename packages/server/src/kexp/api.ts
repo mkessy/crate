@@ -6,7 +6,7 @@ import * as AuditService from "../audit/service.js"
 import { MusicKBSqlLive } from "../sql/Sql.js"
 import * as KEXP from "./schemas.js"
 
-const KEXP_API_URL = "https://api.kexp.org/v2"
+export const KEXP_API_URL = "https://api.kexp.org/v2"
 
 interface PaginationOptions {
   limit: number
@@ -93,6 +93,22 @@ export class KEXPApi extends Effect.Service<KEXPApi>()("KEXPAPI", {
         Effect.flatMap(HttpClientResponse.schemaBodyJson(KEXP.KexpPlaysResponse))
       )
 
+    const fetchPlaysPage = (options: PaginationOptions = defaultPaginationOptions) =>
+      client.get("/plays", {
+        urlParams: {
+          ...options
+        }
+      }).pipe(
+        withAudit,
+        Effect.flatMap(HttpClientResponse.schemaBodyJson(KEXP.KexpPlaysResponse))
+      )
+
+    const fetchPlaysFromUrl = (url: string) =>
+      client.get(url.replace(KEXP_API_URL, "")).pipe(
+        withAudit,
+        Effect.flatMap(HttpClientResponse.schemaBodyJson(KEXP.KexpPlaysResponse))
+      )
+
     const fetchHosts = (options: PaginationOptions = defaultPaginationOptions) =>
       client.get("/hosts", {
         urlParams: {
@@ -120,8 +136,10 @@ export class KEXPApi extends Effect.Service<KEXPApi>()("KEXPAPI", {
     return {
       fetchPrograms,
       fetchShows,
+      fetchPlaysPage,
       fetchTimeslots,
       fetchPlays,
+      fetchPlaysFromUrl,
       fetchHosts,
       fetchPaginated
     }

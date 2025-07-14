@@ -1,4 +1,4 @@
-import { Effect } from "effect"
+import { DateTime, Effect } from "effect"
 import * as FactPlaysService from "../../../server/src/knowledge_base/fact_plays/service.js"
 
 const updatePlays = Effect.scoped(
@@ -6,7 +6,7 @@ const updatePlays = Effect.scoped(
     const fp = yield* FactPlaysService.FactPlaysService
 
     yield* Effect.log("Updating plays")
-    yield* fp.updatePlays
+    yield* fp.updatePlaysUntilDate(DateTime.unsafeMake(new Date("2025-06-22")))
 
     yield* Effect.log("plays updated")
   }).pipe(
