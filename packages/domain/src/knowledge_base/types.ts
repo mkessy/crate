@@ -314,33 +314,3 @@ export type Relationship = Schema.Schema.Type<typeof Relationship>
 
 // =============================================
 // Search and Normalization
-// =============================================
-
-export const NormalizedText = Schema.Struct({
-  entity_id: Schema.String,
-  entity_type: EntityType,
-  field_name: Schema.String, // "name", "alias", etc.
-  original_text: Schema.String,
-  normalized_text: Schema.String,
-  phonetic_text: Schema.optional(Schema.String),
-  text_embedding: Schema.optional(Schema.Array(Schema.Number))
-})
-export type NormalizedText = Schema.Schema.Type<typeof NormalizedText>
-
-// =============================================
-// Unresolved entities tracking
-// =============================================
-
-export const UnresolvedEntity = Schema.Struct({
-  id: Schema.Number,
-  source_text: Schema.String,
-  entity_type: EntityType,
-  source: Schema.Literal("musicbrainz", "kexp", "user", "import"),
-  source_id: Schema.optional(Schema.String), // e.g., kexp_play_id
-  attempts: Schema.Number,
-  last_attempt: Schema.optional(Schema.DateTimeUtc),
-  status: Schema.Literal("pending", "processing", "failed", "resolved"),
-  created_at: Schema.DateTimeUtc,
-  updated_at: Schema.DateTimeUtc
-})
-export type UnresolvedEntity = Schema.Schema.Type<typeof UnresolvedEntity>

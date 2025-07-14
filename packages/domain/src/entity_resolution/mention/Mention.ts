@@ -10,7 +10,7 @@ export const MentionId = Schema.String.pipe(Schema.brand("MentionId"))
 export type ResolutionStatus = Data.TaggedEnum<{
   Pending: { readonly method: Method }
   Resolved: { readonly entity: EntityUri; readonly score: Score }
-  Failed: { readonly reason: "not-found" | "too-ambiguous" } // Represents both "not found" and "too ambiguous" for now
+  Failed: { readonly reason: "not-found" | "ambiguous" } // Represents both "not found" and "too ambiguous" for now
 }>
 
 export const ResolutionStatus = Data.taggedEnum<ResolutionStatus>()

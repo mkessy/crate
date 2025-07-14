@@ -58,22 +58,6 @@ export type AltName =
   | ReturnType<typeof AltName.Nickname>
   | ReturnType<typeof AltName.Spelling>
 
-// --- Metadata variants for different entity types ---
-
-// --- Resolution status for tracking progress ---
-export const Status = Data.taggedEnum<
-  | { readonly _tag: "Pending" }
-  | { readonly _tag: "Resolved"; readonly uri: EntityUri; readonly confidence: number }
-  | { readonly _tag: "Ambiguous"; readonly candidates: ReadonlyArray<EntityUri> }
-  | { readonly _tag: "NotFound"; readonly reason?: string }
->()
-
-export type Status =
-  | ReturnType<typeof Status.Pending>
-  | ReturnType<typeof Status.Resolved>
-  | ReturnType<typeof Status.Ambiguous>
-  | ReturnType<typeof Status.NotFound>
-
 export const metaSummary = Match.type<EntityMetadata>().pipe(
   Match.tag("Artist", (m) => {
     const parts: Array<string> = []
