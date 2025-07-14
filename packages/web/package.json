@@ -21,6 +21,7 @@
     },
     "dependencies": {
         "@crate/domain": "workspace:^",
+        "@crate/nlp-wink": "workspace:^",
         "@effect/platform": "latest",
         "@effect/platform-browser": "^0.67.2",
         "effect": "latest",

@@ -208,7 +208,7 @@ const seq = (...parts: Array<string>): string => parts.join(" ")
 // === COMPOSED PATTERNS ===
 
 const buildPatterns = () => {
-  const EVENT_BRACKET = bracket(EVENT_VERBS)
+  const _EVENT_BRACKET = bracket(EVENT_VERBS)
   const ROLE_BRACKET = bracket(ROLE_SINGLE_TOKENS)
   const TYPE_BRACKET = bracket(RELEASE_TYPE_SINGLE_TOKENS)
   const STATUS_BRACKET = bracket(STATUS_SINGLE_TOKENS)
@@ -219,20 +219,6 @@ const buildPatterns = () => {
   return {
     // Basic vocabulary patterns
 
-    EVENT: {
-      name: "EVENT",
-      patterns: [
-        // Live Performance: "playing The Paramount", "on tour in Seattle"
-        seq(EVENT_BRACKET, "[DET]?", "[PROPN]"),
-        seq(EVENT_BRACKET, "in", "[PROPN]"),
-        // Live Session: "Live on KEXP", "Live in the studio"
-        seq("Live on", bracket(MEDIA_PLATFORMS)),
-        seq("Live in the", "[PROPN]?", "studio"),
-        // Album Release: "set to release their new album", "out on Sub Pop"
-        seq(bracket(RELEASE_VERBS), "[DET]?", "[ADJ]?", "RELEASE_TYPE"),
-        seq(bracket(RELEASE_VERBS), "[PROPN]", "Records")
-      ]
-    },
     // In buildPatterns()
     LOCATION: {
       name: "LOCATION",
@@ -292,7 +278,7 @@ const buildPatterns = () => {
       name: "ATTRIBUTION",
       patterns: [
         // Single tokens
-        ...ATTRIBUTION_SINGLE_TOKENS,
+        // ...ATTRIBUTION_SINGLE_TOKENS,
         // Multi-token phrases
         ...ATTRIBUTION_MULTI_TOKENS,
         // With punctuation variants
@@ -318,6 +304,7 @@ const buildPatterns = () => {
         // For quoted titles, we'll need a different approach
         // For now, focusing on non-quoted patterns
         // Possessive patterns
+        seq("[PUNCT]", "[PROPN]", "[PROPN]", "[PROPN]", "[PUNCT]"),
         seq("[PROPN]", "'s", STATUS_BRACKET, TYPE_BRACKET),
         seq("[PROPN]", "[PROPN]", "'s", STATUS_BRACKET, TYPE_BRACKET),
         // The + type patterns
@@ -412,6 +399,18 @@ const buildPatterns = () => {
 
 const patterns = buildPatterns()
 
+export type PATTERN_ENTITY =
+  | "LOCATION"
+  | "GENRE"
+  | "GENRE_MODIFIED"
+  | "ROLE"
+  | "RELEASE_TYPE"
+  | "STATUS"
+  | "RECORDING"
+  | "ATTRIBUTION"
+  | "ARTIST_FROM_ATTR"
+  | "ARTIST"
+
 /**
  * Get patterns in wink-nlp format
  * Order matters! More specific patterns should come before more general ones.
@@ -419,7 +418,6 @@ const patterns = buildPatterns()
 export const getWinkPatterns = () => {
   // Define explicit order to ensure specific patterns match before general ones
   const orderedKeys = [
-    "EVENT",
     "LOCATION",
     "GENRE", // Match genres before they could be consumed by ARTIST
     "GENRE_MODIFIED", // Modified genres before basic genres
