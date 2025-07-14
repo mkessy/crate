@@ -15,7 +15,7 @@ import type {
 import type { EntityUri, Mention, MentionId } from "./index.js"
 
 export type Method = Schema.Schema.Type<typeof Method>
-export const Method = Schema.Literal("trie", "bm25", "semantic", "fuzzy", "llm")
+export const Method = Schema.Literal("search", "trie", "bm25", "semantic", "fuzzy", "llm")
 
 interface TrieScore {
   readonly exactMatch: boolean

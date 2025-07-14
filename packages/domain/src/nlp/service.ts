@@ -1,7 +1,6 @@
 import type { Brand, Effect } from "effect"
 import { Context } from "effect"
-import type { RawMention } from "../entity_resolution/mention/Mention.js"
-import type { Token } from "./nlp.js"
+import type { AnalyzedText } from "./nlp.js"
 
 // THIS IS THE CORRECTION:
 // WinkDoc is now a branded `unknown`, making it a truly opaque type.
@@ -15,13 +14,12 @@ export type WinkDoc = Brand.Branded<unknown, "WinkDoc">
 export class Nlp extends Context.Tag("NLP")<
   Nlp,
   {
-    /** Processes raw text into an opaque, annotated document. */
-    readonly processText: (text: string) => Effect.Effect<WinkDoc>
-
+    /** Processes raw text into sentences, tokens, and mentions */
+    readonly processText: (text: string) => Effect.Effect<AnalyzedText>
     /** Extracts `Token` objects from the opaque document. */
-    readonly extractTokens: (doc: WinkDoc) => Effect.Effect<ReadonlyArray<Token>>
+    // readonly extractTokens: (doc: WinkDoc) => Effect.Effect<ReadonlyArray<Token>>
 
-    /** Extracts `RawMention` objects from the opaque document's entity recognition. */
-    readonly extractEntities: (doc: WinkDoc) => Effect.Effect<ReadonlyArray<RawMention>>
+    /** Extracts `Mention` objects from the opaque document's entity recognition. */
+    // readonly extractEntities: (doc: WinkDoc) => Effect.Effect<ReadonlyArray<Mention>>
   }
 >() {}

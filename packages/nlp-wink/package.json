@@ -27,7 +27,8 @@
         "@crate/domain": "workspace:^",
         "effect": "latest",
         "wink-eng-lite-web-model": "^1.8.1",
-        "wink-nlp": "^2.4.0"
+        "wink-nlp": "^2.4.0",
+        "wink-nlp-utils": "^2.1.0"
     },
     "devDependencies": {
         "effect": "latest"

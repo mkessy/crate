@@ -1,7 +1,8 @@
 import { EntityResolution, Nlp } from "@crate/domain"
 import { Effect, Layer } from "effect"
+import * as Crypto from "node:crypto"
 import model from "wink-eng-lite-web-model"
-import winkNLP, { type CustomEntityExample, type Document as WinkDocument } from "wink-nlp"
+import winkNLP, { type CustomEntityExample } from "wink-nlp"
 import { COMPOSED_PATTERNS } from "./pattern.js"
 
 /**
@@ -35,125 +36,121 @@ export const Make = (config: WinkConfig = DefaultConfig): Layer.Layer<Nlp.Nlp> =
 
       // Conditionally add our custom entity patterns.
       if (config.includeCustomEntities) {
-        // Use composed patterns built with string substitution
         nlp.learnCustomEntities(config.customEntities, {
-          matchValue: true, // Enable matching of literal words for our vocabularies
-          usePOS: true, // Enable POS tag matching (we use [PROPN], [DET], etc.)
-          useEntity: true // Enable entity matching (we use CARDINAL, etc.)
+          matchValue: true,
+          usePOS: true,
+          useEntity: true
         })
       }
 
-      // --- 2. Internal Helper Functions ---
+      // --- 2. Core Implementation ---
 
       /**
-       * Calculate character positions for tokens by reconstructing from sentence boundaries
+       * Process text and produce complete AnalyzedText
+       * Following the exact algorithm provided in the documentation
        */
-      const calculateTokenPositions = (doc: WinkDocument) => {
-        const originalText = doc.out()
-        const tokenPositions: Array<{ start: number; end: number }> = []
-        let currentOffset = 0
+      const _processText = (text: string): Nlp.AnalyzedText => {
+        const doc = nlp.readDoc(text)
+        const sentences: Array<Nlp.Sentence> = []
+        const allMentions: Array<EntityResolution.Mention> = []
 
-        doc.sentences().each((sentence: any) => {
-          const sentenceText = sentence.out()
-          const sentenceStartInDoc = originalText.indexOf(sentenceText, currentOffset)
+        // Step 1: Process the document sentence by sentence
+        doc.sentences().each((sentenceItem: any, sentenceIndex: number) => {
+          // Step 3: Get sentence span and text
+          const sentenceSpan = sentenceItem.out(its.span) // [start, end] tuple
+          const sentenceText = sentenceItem.out() // raw text of sentence
+          const sentenceTokens: Array<Nlp.Token> = []
 
-          let tokenOffsetInSentence = 0
-          sentence.tokens().each((token: any) => {
-            const tokenText = token.out()
-            const tokenStartInSentence = sentenceText.indexOf(tokenText, tokenOffsetInSentence)
+          // Step 6: Track position within the sentence
+          let currentSentenceOffset = 0
 
-            const absoluteStart = sentenceStartInDoc + tokenStartInSentence
+          // Step 5: Iterate through tokens within the sentence
+          sentenceItem.tokens().each((tokenItem: any, _tokenIdx: number) => {
+            // Step 7a: Get token text
+            const tokenText = tokenItem.out()
+
+            // Step 7b: Find token position within sentence text
+            const tokenStartInSentence = sentenceText.indexOf(
+              tokenText,
+              currentSentenceOffset
+            )
+
+            // Step 7c-d: Calculate absolute positions
+            const absoluteStart = sentenceSpan[0] + tokenStartInSentence
             const absoluteEnd = absoluteStart + tokenText.length
 
-            tokenPositions.push({ start: absoluteStart, end: absoluteEnd })
-            tokenOffsetInSentence = tokenStartInSentence + tokenText.length
+            // Step 8: Construct Token with span
+            const domainToken = new Nlp.Token({
+              text: tokenText,
+              span: Nlp.Span(absoluteStart, absoluteEnd),
+              sentenceIndex
+            })
+            sentenceTokens.push(domainToken)
+
+            // Step 7f: Update cursor for next token
+            currentSentenceOffset = tokenStartInSentence + tokenText.length
           })
 
-          currentOffset = sentenceStartInDoc + sentenceText.length
-        })
-
-        return tokenPositions
-      }
-
-      /**
-       * Extracts domain `Token` objects from a processed `WinkDoc`.
-       */
-      const _getTokens = (doc: WinkDocument): ReadonlyArray<Nlp.Token> => {
-        const allTokens: Array<Nlp.Token> = []
-        const positions = calculateTokenPositions(doc)
-        let tokenIndex = 0
-
-        doc.sentences().each((sentence, sentenceIndex) => {
-          let isFirstTokenInSentence = true
-          sentence.tokens().each((token: any) => {
-            const position = positions[tokenIndex]
-            allTokens.push(
-              new Nlp.Token({
-                text: token.out(),
-                start: position.start,
-                end: position.end,
-                sentence: sentenceIndex,
-                isSentenceStart: isFirstTokenInSentence
-              })
-            )
-            tokenIndex++
-            isFirstTokenInSentence = false
+          // Create Sentence object with its tokens
+          const domainSentence = new Nlp.Sentence({
+            text: sentenceText,
+            span: Nlp.Span(sentenceSpan[0], sentenceSpan[1]),
+            tokens: sentenceTokens,
+            index: sentenceIndex
           })
+          sentences.push(domainSentence)
         })
-        return allTokens
-      }
 
-      /**
-       * Extracts all entities (default and custom) and returns them as RawMentions.
-       */
-      const _getEntities = (doc: WinkDocument): ReadonlyArray<EntityResolution.RawMention> => {
-        const allEntities: Array<EntityResolution.RawMention> = []
-
-        // Get default entities with their spans
+        // Extract entities as Mentions
         doc.entities().each((entity: any) => {
-          const entityText = entity.out(its.detail)
-          const span = entity.out(its.span)
-          // Find the position in the original text
+          const entityDetail = entity.out(its.detail)
+          const entitySpan = entity.out(its.span)
 
-          allEntities.push(
-            new EntityResolution.RawMention({
-              text: entityText.value,
-              span: EntityResolution.Range({ start: span[0], end: span[1] }),
-              source: "pattern",
-              pattern: entity.out(its.type)
+          allMentions.push(
+            new EntityResolution.Mention({
+              id: EntityResolution.MentionId.make(Crypto.randomUUID()),
+              text: entityDetail.value,
+              span: Nlp.Span(entitySpan[0], entitySpan[1]),
+              status: EntityResolution.ResolutionStatus.Pending({ method: "search" })
             })
           )
         })
 
-        // Get custom entities with their spans
+        // Extract custom entities if enabled
         if (config.includeCustomEntities) {
           doc.customEntities().each((entity: any) => {
-            const entityText = entity.out(its.detail)
-            // Find the position in the original text
-            const span = entity.out(its.span)
+            const entityDetail = entity.out(its.detail)
+            const entitySpan = entity.out(its.span)
 
-            allEntities.push(
-              new EntityResolution.RawMention({
-                text: entityText.value,
-                span: EntityResolution.Range({ start: span[0], end: span[1] }),
-                source: "pattern",
-                pattern: entity.out(its.type)
+            allMentions.push(
+              new EntityResolution.Mention({
+                id: EntityResolution.MentionId.make(Crypto.randomUUID()),
+                text: entityDetail.value,
+                span: Nlp.Span(entitySpan[0], entitySpan[1]),
+                status: EntityResolution.ResolutionStatus.Pending({ method: "search" })
               })
             )
           })
         }
 
-        return allEntities
+        // Generate deterministic ID from text hash
+        const id = Crypto.createHash("sha256")
+          .update(text)
+          .digest("hex")
+          .substring(0, 12)
+
+        return new Nlp.AnalyzedText({
+          id,
+          rawText: text,
+          sentences,
+          mentions: allMentions
+        })
       }
 
       // --- 3. Public Service Interface Implementation ---
 
       return Nlp.Nlp.of({
-        processText: (text: string) => Effect.sync(() => nlp.readDoc(text) as unknown as Nlp.WinkDoc),
-
-        extractTokens: (doc: Nlp.WinkDoc) => Effect.sync(() => _getTokens(doc as unknown as WinkDocument)),
-
-        extractEntities: (doc: Nlp.WinkDoc) => Effect.sync(() => _getEntities(doc as unknown as WinkDocument))
+        processText: (text: string) => Effect.sync(() => _processText(text))
       })
     }
   )

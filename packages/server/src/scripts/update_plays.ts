@@ -16,6 +16,4 @@ const updatePlays = Effect.scoped(
 
 const runUpdatePlays = () => updatePlays.pipe(Effect.runPromise)
 
-runUpdatePlays().then(() => {
-  console.log("Done updating plays")
-})
+runUpdatePlays()
