@@ -1,6 +1,7 @@
 // Location: packages/domain/src/entity_resolution/schemas.ts
 
 import { Data, Match, Schema } from "effect"
+import type { Relationship } from "../knowledge_base/index.js"
 import {
   EntityType,
   MbAreaId,
@@ -10,7 +11,8 @@ import {
   MbRecordingId,
   MbReleaseGroupId,
   MbReleaseId,
-  MbWorkId
+  MbWorkId,
+  PredicateType
 } from "../knowledge_base/index.js"
 import type { EntityMetadata } from "./Candidate.js"
 
@@ -35,6 +37,61 @@ export const EntityUriParser = Schema.TemplateLiteralParser(
   )
 )
 export type EntityUriParser = Schema.Schema.Type<typeof EntityUriParser>
+
+// crate://rel//artist_id/predicate/object_type/object_id
+export const RelationsUriParser = Schema.TemplateLiteralParser(
+  EntityUriPrefix,
+  Schema.Literal("rel"),
+  Schema.Literal("/"),
+  EntityType,
+  Schema.Literal("/"),
+  Schema.Union(
+    MbArtistId,
+    MbRecordingId,
+    MbReleaseId,
+    MbGenreId,
+    MbReleaseGroupId,
+    MbWorkId,
+    MbLabelId,
+    MbAreaId,
+    Schema.String
+  ),
+  Schema.Literal("/"),
+  PredicateType,
+  Schema.Literal("/"),
+  EntityType,
+  Schema.Literal("/"),
+  Schema.Union(
+    MbArtistId,
+    MbRecordingId,
+    MbReleaseId,
+    MbGenreId,
+    MbReleaseGroupId,
+    MbWorkId,
+    MbLabelId,
+    MbAreaId,
+    Schema.String
+  )
+)
+export type RelationsUriParser = Schema.Schema.Type<typeof RelationsUriParser>
+
+export const createRelationsUri = (relation: Relationship): string =>
+  Schema.encodeSync(RelationsUriParser)(
+    [
+      "crate://",
+      "rel",
+      "/",
+      relation.subject_type,
+      "/",
+      relation.subject_id,
+      "/",
+      relation.predicate,
+      "/",
+      relation.object_type,
+      "/",
+      relation.object_id
+    ] as const
+  )
 
 // Helper functions to create entity URIs using the parser
 export const createEntityUri = (entityType: EntityType, id: string): string =>

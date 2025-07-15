@@ -1,21 +1,7 @@
+import { KnowledgeBase } from "@crate/domain"
 import { KexpTrackPlay } from "@crate/server/kexp/schemas.js"
 import { Model } from "@effect/sql"
 import { Equal, Hash, pipe, Schema, String } from "effect"
-
-export type EntityType = Schema.Schema.Type<typeof EntityType>
-export const EntityType = Schema.Literal(
-  "recording",
-  "work",
-  "area",
-  "artist",
-  "release",
-  "genre",
-  "label",
-  "release_group"
-)
-
-export type RelationType = Schema.Schema.Type<typeof RelationType>
-export const RelationType = Schema.String
 
 const normalizeText = (text: string) => {
   pipe(
@@ -78,27 +64,8 @@ export class KexPlay extends Model.Class<KexPlay>("KexPlay")({
   }
 }
 
-export const MbRecordingId = Schema.String.pipe(Schema.brand("mb_recording_id"))
-export type MbRecordingId = Schema.Schema.Type<typeof MbRecordingId>
-export const MbReleaseId = Schema.String.pipe(Schema.brand("mb_release_id"))
-export type MbReleaseId = Schema.Schema.Type<typeof MbReleaseId>
-export const MbReleaseGroupId = Schema.String.pipe(Schema.brand("mb_release_group_id"))
-export type MbReleaseGroupId = Schema.Schema.Type<typeof MbReleaseGroupId>
-export const MbLabelId = Schema.String.pipe(Schema.brand("mb_label_id"))
-export type MbLabelId = Schema.Schema.Type<typeof MbLabelId>
-export const MbArtistId = Schema.String.pipe(Schema.brand("mb_artist_id"))
-export type MbArtistId = Schema.Schema.Type<typeof MbArtistId>
-
-export const MbAreaId = Schema.String.pipe(Schema.brand("mb_area_id"))
-export type MbAreaId = Schema.Schema.Type<typeof MbAreaId>
-export const MbGenreId = Schema.String.pipe(Schema.brand("mb_genre_id"))
-export type MbGenreId = Schema.Schema.Type<typeof MbGenreId>
-export const MbWorkId = Schema.String.pipe(Schema.brand("mb_work_id"))
-export type MbWorkId = Schema.Schema.Type<typeof MbWorkId>
-
-export type MbWorkIdEncoded = Schema.Schema.Encoded<typeof MbWorkId>
 export class Work extends Model.Class<Work>("Work")({
-  mb_id: MbWorkId,
+  mb_id: KnowledgeBase.MbWorkId,
   name: Schema.String,
   disambiguation: Schema.NullOr(Schema.String),
   type: Schema.Literal("work"),
@@ -109,7 +76,7 @@ export class Work extends Model.Class<Work>("Work")({
 
 export type WorkEncoded = Schema.Schema.Encoded<typeof Work>
 export class Area extends Model.Class<Area>("Area")({
-  mb_id: MbAreaId,
+  mb_id: KnowledgeBase.MbAreaId,
   name: Schema.String,
   type: Schema.Literal("area"),
   disambiguation: Schema.NullOr(Schema.String),
@@ -120,7 +87,7 @@ export class Area extends Model.Class<Area>("Area")({
 
 export type AreaEncoded = Schema.Schema.Encoded<typeof Area>
 export class Recording extends Model.Class<Recording>("Recording")({
-  mb_id: MbRecordingId,
+  mb_id: KnowledgeBase.MbRecordingId,
   name: Schema.String,
   type: Schema.Literal("recording"),
   disambiguation: Schema.NullOr(Schema.String),
@@ -133,7 +100,7 @@ export class Recording extends Model.Class<Recording>("Recording")({
 
 export type RecordingEncoded = Schema.Schema.Encoded<typeof Recording>
 export class Release extends Model.Class<Release>("Release")({
-  mb_id: MbReleaseId,
+  mb_id: KnowledgeBase.MbReleaseId,
   name: Schema.String,
   type: Schema.Literal("release"),
   disambiguation: Schema.NullOr(Schema.String),
@@ -147,7 +114,7 @@ export class Release extends Model.Class<Release>("Release")({
 }) {}
 
 export class ReleaseGroup extends Model.Class<ReleaseGroup>("ReleaseGroup")({
-  mb_id: MbReleaseGroupId,
+  mb_id: KnowledgeBase.MbReleaseGroupId,
   name: Schema.String,
   type: Schema.Literal("release_group"),
   disambiguation: Schema.NullOr(Schema.String),
@@ -157,7 +124,7 @@ export class ReleaseGroup extends Model.Class<ReleaseGroup>("ReleaseGroup")({
 
 export type ReleaseGroupEncoded = Schema.Schema.Encoded<typeof ReleaseGroup>
 export class Artist extends Model.Class<Artist>("Artist")({
-  mb_id: MbArtistId,
+  mb_id: KnowledgeBase.MbArtistId,
   name: Schema.String,
   disambiguation: Schema.String,
   created_at: Model.DateTimeInsert,
@@ -166,7 +133,7 @@ export class Artist extends Model.Class<Artist>("Artist")({
 export type ArtistEncoded = Schema.Schema.Encoded<typeof Artist>
 
 export class Label extends Model.Class<Label>("Label")({
-  mb_id: MbLabelId,
+  mb_id: KnowledgeBase.MbLabelId,
   name: Schema.String,
   type: Schema.Literal("label"),
   disambiguation: Schema.NullOr(Schema.String),
@@ -177,7 +144,7 @@ export class Label extends Model.Class<Label>("Label")({
 export type LabelEncoded = Schema.Schema.Encoded<typeof Label>
 
 export class ArtistMBEntityMaster extends Model.Class<ArtistMBEntityMaster>("ArtistMBEntityMaster")({
-  artist_mb_id: MbArtistId,
+  artist_mb_id: KnowledgeBase.MbArtistId,
   artist_name: Schema.String,
   artist_disambiguation: Schema.NullOr(Schema.String),
   artist_type: Schema.NullishOr(Schema.String),
@@ -186,7 +153,7 @@ export class ArtistMBEntityMaster extends Model.Class<ArtistMBEntityMaster>("Art
   artist_life_begin: Schema.NullOr(Schema.String),
   artist_life_end: Schema.NullOr(Schema.String),
   artist_life_ended: Model.BooleanFromNumber,
-  entity_type: EntityType,
+  entity_type: KnowledgeBase.EntityType,
   entity_mb_id: Schema.String,
   relation_type: Schema.String,
   direction: Schema.Literal("forward", "backward"),
@@ -202,10 +169,10 @@ export class ArtistMBEntityMaster extends Model.Class<ArtistMBEntityMaster>("Art
 export type ArtistMBEntityMasterEncoded = Schema.Schema.Encoded<typeof ArtistMBEntityMaster>
 
 export class ArtistEntity extends Schema.Class<ArtistEntity>("ArtistEntity")({
-  artist_mb_id: MbArtistId,
+  artist_mb_id: KnowledgeBase.MbArtistId,
   artist_name: Schema.String,
   artist_disambiguation: Schema.NullOr(Schema.String),
-  entity_type: EntityType,
+  entity_type: KnowledgeBase.EntityType,
   entity_mb_id: Schema.String,
   entity_name: Schema.String,
   relation_type: Schema.String,
