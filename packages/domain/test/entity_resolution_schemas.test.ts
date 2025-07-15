@@ -1,26 +1,19 @@
 import { assert, describe, it } from "@effect/vitest"
-import { DateTime, Effect, Equal, Schema } from "effect"
+import { DateTime, Effect, Equal, HashMap, Schema } from "effect"
+import { Candidate, Metadata, Normalized } from "../src/entity_resolution/index.js"
+import { makeMentionId, Mention, MentionId, ResolutionStatus } from "../src/entity_resolution/mention/Mention.js"
 import {
   AltName,
-  Candidate,
   createEntityUri,
   EntityUri,
   EntityUriParser,
-  Event,
   getMbId,
   hasMbId,
-  Mention,
-  MentionId,
-  Metadata,
-  metaSummary,
-  Point,
-  Range,
-  spanLength,
-  spanText,
-  Status
+  metaSummary
 } from "../src/entity_resolution/schemas.js"
 import type { MbArtistId, MbRecordingId } from "../src/knowledge_base/index.js"
 import { EntityType } from "../src/knowledge_base/index.js"
+import { Span } from "../src/nlp/nlp.js"
 
 describe("Entity Resolution Schemas", () => {
   describe("EntityUriParser", () => {
@@ -79,33 +72,10 @@ describe("Entity Resolution Schemas", () => {
   })
 
   describe("Span data types", () => {
-    it("should create Point spans", () => {
-      const point = Point({ offset: 10 })
-      assert.strictEqual(point._tag, "Point")
-      assert.strictEqual(point.offset, 10)
-    })
-
     it("should create Range spans", () => {
-      const range = Range({ start: 5, end: 15 })
-      assert.strictEqual(range._tag, "Range")
-      assert.strictEqual(range.start, 5)
-      assert.strictEqual(range.end, 15)
-    })
-
-    it("should calculate span lengths correctly", () => {
-      const point = Point({ offset: 10 })
-      const range = Range({ start: 5, end: 15 })
-
-      assert.strictEqual(spanLength(point), 1)
-      assert.strictEqual(spanLength(range), 10)
-    })
-
-    it("should format span text correctly", () => {
-      const point = Point({ offset: 10 })
-      const range = Range({ start: 5, end: 15 })
-
-      assert.strictEqual(spanText(point), "@10")
-      assert.strictEqual(spanText(range), "[5:15]")
+      const range = Span(5, 15)
+      assert.strictEqual(range[0], 5)
+      assert.strictEqual(range[1], 15)
     })
   })
 
@@ -180,93 +150,31 @@ describe("Entity Resolution Schemas", () => {
     })
   })
 
-  describe("Status variants", () => {
-    it("should create all Status types", () => {
-      const pending = Status.Pending()
-      assert.strictEqual(pending._tag, "Pending")
-
-      const resolved = Status.Resolved({
-        uri: "crate://artist/test" as EntityUri,
-        confidence: 0.95
-      })
-      assert.strictEqual(resolved._tag, "Resolved")
-      assert.strictEqual(resolved.confidence, 0.95)
-
-      const ambiguous = Status.Ambiguous({
-        candidates: ["crate://artist/1" as EntityUri, "crate://artist/2" as EntityUri]
-      })
-      assert.strictEqual(ambiguous._tag, "Ambiguous")
-      assert.strictEqual(ambiguous.candidates.length, 2)
-
-      const notFound = Status.NotFound({ reason: "No matches found" })
-      assert.strictEqual(notFound._tag, "NotFound")
-      assert.strictEqual(notFound.reason, "No matches found")
-    })
-  })
-
   describe("Core data structures", () => {
     it("should create Mention objects", () => {
-      const mention = Mention({
+      const mention = new Mention({
         id: "mention-1" as MentionId,
         text: "Nirvana",
-        norm: "nirvana",
-        span: Point({ offset: 10 }),
-        src: "Check out Nirvana's latest album",
-        hint: "artist" as EntityType,
-        status: Status.Pending()
+        span: Span(10, 15),
+        status: ResolutionStatus.Pending({ method: "search" })
       })
 
       assert.strictEqual(mention.text, "Nirvana")
-      assert.strictEqual(mention.norm, "nirvana")
-      assert.strictEqual(mention.hint, "artist")
     })
 
-    it.effect("should create Candidate objects with timestamps", () =>
-      Effect.gen(function*() {
-        const now = yield* DateTime.now
-
-        const candidate = Candidate({
-          uri: "crate://artist/nirvana" as EntityUri,
-          name: "Nirvana",
-          type: "artist" as EntityType,
-          score: 0.95,
-          method: "semantic",
-          mentionId: "mention-1" as MentionId,
-          meta: Metadata.Artist({
-            mbId: "nirvana-mbid" as MbArtistId,
-            type: "Group"
-          }),
-          alts: [AltName.Official({ name: "Nirvana" })],
-          ts: now
-        })
-
-        assert.strictEqual(candidate.name, "Nirvana")
-        assert.strictEqual(candidate.score, 0.95)
-        assert.strictEqual(candidate.method, "semantic")
-        assert.isTrue(DateTime.lessThanOrEqualTo(candidate.ts, now))
-      }))
-  })
-
-  describe("Event types", () => {
-    it("should create different Event types", () => {
-      const mention = Mention({
-        id: "m1" as MentionId,
-        text: "test",
-        norm: "test",
-        span: Point({ offset: 0 }),
-        src: "test source",
-        status: Status.Pending()
+    it("should create Candidate objects with timestamps", () => {
+      const candidate = new Candidate({
+        entityUri: "crate://artist/nirvana" as EntityUri,
+        entityType: "artist" as EntityType,
+        displayName: "Nirvana",
+        score: Normalized({ score: 0.95 }),
+        method: "semantic",
+        mentionId: makeMentionId("Nirvana", Span(10, 15)),
+        metadata: HashMap.empty()
       })
 
-      const mentionsFound = Event.MentionsFound({ mentions: [mention] })
-      assert.strictEqual(mentionsFound._tag, "MentionsFound")
-      assert.strictEqual(mentionsFound.mentions.length, 1)
-
-      const noMatch = Event.NoMatch({ mention })
-      assert.strictEqual(noMatch._tag, "NoMatch")
-
-      const error = Event.Error({ mention, error: new Error("test error") })
-      assert.strictEqual(error._tag, "Error")
+      assert.strictEqual(candidate.displayName, "Nirvana")
+      assert.strictEqual(candidate.method, "semantic")
     })
   })
 
@@ -391,7 +299,6 @@ describe("Entity Resolution Schemas", () => {
           text: Schema.String,
           norm: Schema.String,
           span: Schema.Union(
-            Schema.Struct({ _tag: Schema.Literal("Point"), offset: Schema.Number }),
             Schema.Struct({ _tag: Schema.Literal("Range"), start: Schema.Number, end: Schema.Number })
           ),
           src: Schema.String,
@@ -434,7 +341,6 @@ describe("Entity Resolution Schemas", () => {
         text: Schema.String.pipe(Schema.minLength(1)),
         norm: Schema.String,
         span: Schema.Union(
-          Schema.Struct({ _tag: Schema.Literal("Point"), offset: Schema.Number }),
           Schema.Struct({ _tag: Schema.Literal("Range"), start: Schema.Number, end: Schema.Number })
         ),
         src: Schema.String,

@@ -1,5 +1,6 @@
 import { assert, describe, it } from "@effect/vitest"
-import { DateTime, HashMap, Option, Trie } from "effect"
+import { HashMap, Option, Trie } from "effect"
+import { Candidate, makeMentionId, Normalized } from "../src/entity_resolution/index.js"
 import {
   _internal_findByType,
   _internal_get,
@@ -11,9 +12,9 @@ import {
   type CandidatesMap,
   type EntityTrie
 } from "../src/entity_resolution/ResolutionCache.js"
-import type { EntityUri, MentionId } from "../src/entity_resolution/schemas.js"
-import { Candidate, createEntityUri, Metadata } from "../src/entity_resolution/schemas.js"
-import type { MbArtistId, MbRecordingId } from "../src/knowledge_base/index.js"
+import { createEntityUri } from "../src/entity_resolution/schemas.js"
+import type { EntityUri } from "../src/entity_resolution/schemas.js"
+import { Span } from "../src/nlp/nlp.js"
 
 describe("Resolution Cache Internal Functions", () => {
   // Create reusable test data
@@ -25,53 +26,34 @@ describe("Resolution Cache Internal Functions", () => {
     const soundgardenUri = createEntityUri("artist", "soundgarden-mbid") as EntityUri
 
     // Create test candidates using Data constructors
-    const nirvanaBandCandidate = Candidate({
-      uri: nirvanaBandUri,
-      name: "Nirvana",
-      type: "artist",
-      score: 0.95,
+    const nirvanaBandCandidate = new Candidate({
+      entityUri: nirvanaBandUri,
+      entityType: "artist",
+      score: Normalized({ score: 0.95 }),
       method: "semantic",
-      mentionId: "mention-1" as MentionId,
-      meta: Metadata.Artist({
-        mbId: "nirvana-mbid" as MbArtistId,
-        type: "Group",
-        country: "US",
-        lifeSpan: { begin: "1987", end: "1994", ended: true }
-      }),
-      alts: [],
-      ts: DateTime.unsafeNow()
+      mentionId: makeMentionId("Nirvana", Span(0, 6)),
+      displayName: "Nirvana",
+      metadata: HashMap.empty()
     })
 
-    const teenSpiritCandidate = Candidate({
-      uri: teenSpiritUri,
-      name: "Smells Like Teen Spirit",
-      type: "recording",
-      score: 0.98,
-      method: "fts",
-      mentionId: "mention-2" as MentionId,
-      meta: Metadata.Recording({
-        mbId: "teen-spirit-mbid" as MbRecordingId,
-        length: 301000,
-        disambiguation: "album version"
-      }),
-      alts: [],
-      ts: DateTime.unsafeNow()
+    const teenSpiritCandidate = new Candidate({
+      entityUri: teenSpiritUri,
+      entityType: "recording",
+      displayName: "Smells Like Teen Spirit",
+      score: Normalized({ score: 0.98 }),
+      method: "semantic",
+      mentionId: makeMentionId("Smells Like Teen Spirit", Span(0, 6)),
+      metadata: HashMap.empty()
     })
 
-    const soundgardenCandidate = Candidate({
-      uri: soundgardenUri,
-      name: "Soundgarden",
-      type: "artist",
-      score: 0.92,
+    const soundgardenCandidate = new Candidate({
+      entityUri: soundgardenUri,
+      entityType: "artist",
+      displayName: "Soundgarden",
+      score: Normalized({ score: 0.92 }),
       method: "semantic",
-      mentionId: "mention-3" as MentionId,
-      meta: Metadata.Artist({
-        mbId: "soundgarden-mbid" as MbArtistId,
-        type: "Group",
-        country: "US"
-      }),
-      alts: [],
-      ts: DateTime.unsafeNow()
+      mentionId: makeMentionId("Soundgarden", Span(0, 6)),
+      metadata: HashMap.empty()
     })
 
     // Build EntityTrie with normalized terms
@@ -122,8 +104,8 @@ describe("Resolution Cache Internal Functions", () => {
 
       const candidates_found = Option.getOrThrow(result)
       assert.strictEqual(candidates_found.length, 1)
-      assert.strictEqual(candidates_found[0].name, "Nirvana")
-      assert.strictEqual(candidates_found[0].type, "artist")
+      assert.strictEqual(candidates_found[0].displayName, "Nirvana")
+      assert.strictEqual(candidates_found[0].entityType, "artist")
     })
 
     it("should return multiple candidates for shared terms", () => {
@@ -135,7 +117,7 @@ describe("Resolution Cache Internal Functions", () => {
       const candidates_found = Option.getOrThrow(result)
       assert.strictEqual(candidates_found.length, 2)
 
-      const names = candidates_found.map((c) => c.name).sort()
+      const names = candidates_found.map((c) => c.displayName).sort()
       assert.deepEqual(names, ["Nirvana", "Soundgarden"])
     })
 
@@ -155,9 +137,9 @@ describe("Resolution Cache Internal Functions", () => {
       const results = _internal_search(trie, candidates, "teen spirit")
 
       assert.isTrue(results.length > 0)
-      const teenSpiritResult = results.find((c) => c.name === "Smells Like Teen Spirit")
+      const teenSpiritResult = results.find((c) => c.displayName === "Smells Like Teen Spirit")
       assert.isDefined(teenSpiritResult)
-      assert.strictEqual(teenSpiritResult!.type, "recording")
+      assert.strictEqual(teenSpiritResult!.entityType, "recording")
     })
 
     it("should deduplicate results from multiple n-grams", () => {
@@ -167,7 +149,7 @@ describe("Resolution Cache Internal Functions", () => {
       const results = _internal_search(trie, candidates, "smells like teen spirit")
 
       // Should find the recording but not duplicate it
-      const teenSpiritResults = results.filter((c) => c.name === "Smells Like Teen Spirit")
+      const teenSpiritResults = results.filter((c) => c.displayName === "Smells Like Teen Spirit")
       assert.strictEqual(teenSpiritResults.length, 1)
     })
 
@@ -186,7 +168,7 @@ describe("Resolution Cache Internal Functions", () => {
       const results = _internal_suggest(trie, candidates, "nir")
       assert.isTrue(results.length > 0)
 
-      const nirvanaResult = results.find((c) => c.name === "Nirvana")
+      const nirvanaResult = results.find((c) => c.displayName === "Nirvana")
       assert.isDefined(nirvanaResult)
     })
 
@@ -237,8 +219,8 @@ describe("Resolution Cache Internal Functions", () => {
       assert.isTrue(Option.isSome(result))
 
       const candidate = Option.getOrThrow(result)
-      assert.strictEqual(candidate.name, "Nirvana")
-      assert.strictEqual(candidate.type, "artist")
+      assert.strictEqual(candidate.displayName, "Nirvana")
+      assert.strictEqual(candidate.entityType, "artist")
     })
 
     it("should return none for non-existent URI", () => {
@@ -269,12 +251,12 @@ describe("Resolution Cache Internal Functions", () => {
       const artistResults = _internal_findByType(candidates, "artist")
       assert.strictEqual(artistResults.length, 2) // Nirvana and Soundgarden
 
-      const artistNames = artistResults.map((c) => c.name).sort()
+      const artistNames = artistResults.map((c) => c.displayName).sort()
       assert.deepEqual(artistNames, ["Nirvana", "Soundgarden"])
 
       const recordingResults = _internal_findByType(candidates, "recording")
       assert.strictEqual(recordingResults.length, 1) // Teen Spirit
-      assert.strictEqual(recordingResults[0].name, "Smells Like Teen Spirit")
+      assert.strictEqual(recordingResults[0].displayName, "Smells Like Teen Spirit")
     })
 
     it("should return empty array for non-existent types", () => {
