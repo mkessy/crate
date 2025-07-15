@@ -27,6 +27,7 @@ export interface EntityStore extends KeyValueStore.KeyValueStore {
   readonly hydrate: (
     staticData: StaticData
   ) => Effect.Effect<void, PlatformError>
+
   readonly getArtistWithDetails: (
     artistUri: string,
     relations: ReadonlyArray<Relationship>

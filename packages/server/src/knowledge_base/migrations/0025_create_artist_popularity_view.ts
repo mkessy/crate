@@ -10,7 +10,6 @@ export default Effect.gen(function*() {
   yield* sql`CREATE VIEW IF NOT EXISTS artist_popularity AS
     SELECT 
       artist_id,
-      'crate://artist/' || artist_id as entity_uri,
       COUNT(*) as total_plays,
       SUM(CASE WHEN date(airdate) >= date('now', '-30 days') THEN 1 ELSE 0 END) as recent_plays,
       MAX(airdate) as last_played,

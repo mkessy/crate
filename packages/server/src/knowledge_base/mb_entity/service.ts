@@ -1,31 +1,32 @@
+import { KnowledgeBase } from "@crate/domain"
 import { SqlClient, SqlSchema } from "@effect/sql"
 import { Data, Duration, Effect, Layer, Request, RequestResolver, Schema } from "effect"
 import { MusicKBSqlLive } from "../../sql/Sql.js"
-import { ArtistEntity, ArtistMBEntityMaster, EntityType, MbArtistId, RelationType } from "./schemas.js"
+import { ArtistEntity, ArtistMBEntityMaster } from "./schemas.js"
 
 export const ArtistEntityQuerySchema = Schema.TemplateLiteralParser(
   "artist:",
-  MbArtistId,
+  KnowledgeBase.MbArtistId,
   " entity:",
-  EntityType
+  KnowledgeBase.EntityType
 )
 export type ArtistEntityQuery = Schema.Schema.Encoded<typeof ArtistEntityQuerySchema>
 
 export const ArtistRelationQuerySchema = Schema.TemplateLiteralParser(
   "artist:",
-  MbArtistId,
+  KnowledgeBase.MbArtistId,
   " relation:",
-  RelationType
+  KnowledgeBase.RelationType
 )
 export type ArtistRelationQuery = Schema.Schema.Encoded<typeof ArtistRelationQuerySchema>
 
 export const ArtistEntityRelationQuerySchema = Schema.TemplateLiteralParser(
   "artist:",
-  MbArtistId,
+  KnowledgeBase.MbArtistId,
   " entity:",
-  EntityType,
+  KnowledgeBase.EntityType,
   " relation:",
-  RelationType
+  KnowledgeBase.RelationType
 )
 export type ArtistEntityRelationQuery = Schema.Schema.Encoded<typeof ArtistEntityRelationQuerySchema>
 
@@ -33,7 +34,7 @@ export const EntityDiscoveryQuerySchema = Schema.TemplateLiteralParser(
   "entity:",
   Schema.String,
   " type:",
-  EntityType
+  KnowledgeBase.EntityType
 )
 export type EntityDiscoveryQuery = Schema.Schema.Encoded<typeof EntityDiscoveryQuerySchema>
 
@@ -78,9 +79,9 @@ interface ArtistEntityInsertRequest extends Request.Request<ArtistMBEntityMaster
 
 const ArtistEntityInsertRequest = Request.tagged<ArtistEntityInsertRequest>("ArtistEntityInsertRequest")
 
-interface DeleteUnresolvedMBArtistsRequest extends Request.Request<MbArtistId, MBQueryError> {
+interface DeleteUnresolvedMBArtistsRequest extends Request.Request<KnowledgeBase.MbArtistId, MBQueryError> {
   readonly _tag: "DeleteUnresolvedMBArtistsRequest"
-  readonly artist_mb_id: MbArtistId
+  readonly artist_mb_id: KnowledgeBase.MbArtistId
 }
 const DeleteUnresolvedMBArtistsRequest = Request.tagged<DeleteUnresolvedMBArtistsRequest>(
   "DeleteUnresolvedMBArtistsRequest"
@@ -105,7 +106,7 @@ export class MBDataService extends Effect.Service<MBDataService>()("MBDataServic
           const [, artistId, , entityType] = yield* Schema.decodeUnknown(ArtistEntityQuerySchema)(request.queryString)
 
           const query = SqlSchema.findAll({
-            Request: Schema.Struct({ artist_mb_id: MbArtistId, entity_type: EntityType }),
+            Request: Schema.Struct({ artist_mb_id: KnowledgeBase.MbArtistId, entity_type: KnowledgeBase.EntityType }),
             Result: ArtistEntity,
             execute: (params) =>
               sql`
@@ -147,7 +148,10 @@ export class MBDataService extends Effect.Service<MBDataService>()("MBDataServic
           )
 
           const query = SqlSchema.findAll({
-            Request: Schema.Struct({ artist_mb_id: MbArtistId, relation_type: RelationType }),
+            Request: Schema.Struct({
+              artist_mb_id: KnowledgeBase.MbArtistId,
+              relation_type: KnowledgeBase.RelationType
+            }),
             Result: ArtistEntity,
             execute: (params) =>
               sql`
@@ -185,8 +189,8 @@ export class MBDataService extends Effect.Service<MBDataService>()("MBDataServic
         Effect.gen(function*() {
           yield* Effect.logInfo(`Deleting unresolved MB artist: ${JSON.stringify(request)}`)
           const query = SqlSchema.single({
-            Request: MbArtistId,
-            Result: Schema.Struct({ artist_mb_id: MbArtistId }),
+            Request: KnowledgeBase.MbArtistId,
+            Result: Schema.Struct({ artist_mb_id: KnowledgeBase.MbArtistId }),
             execute: (params) =>
               sql`DELETE FROM mb_artist_unresolved WHERE mb_artist_unresolved.artist_mb_id = ${
                 sql(params)
@@ -194,12 +198,12 @@ export class MBDataService extends Effect.Service<MBDataService>()("MBDataServic
           })
 
           const { artist_mb_id } = yield* query(request.artist_mb_id)
-          return MbArtistId.make(artist_mb_id)
+          return KnowledgeBase.MbArtistId.make(artist_mb_id)
         }).pipe(
           Effect.catchTags({
             NoSuchElementException: () =>
               Effect.logError(`No such element: ${request.artist_mb_id}`).pipe(
-                Effect.flatMap(() => Effect.succeed(MbArtistId.make(request.artist_mb_id)))
+                Effect.flatMap(() => Effect.succeed(KnowledgeBase.MbArtistId.make(request.artist_mb_id)))
               )
           }),
           Effect.catchAll((error) =>
@@ -249,7 +253,11 @@ export class MBDataService extends Effect.Service<MBDataService>()("MBDataServic
           )(request.queryString)
 
           const query = SqlSchema.findAll({
-            Request: Schema.Struct({ artist_mb_id: MbArtistId, entity_type: EntityType, relation_type: RelationType }),
+            Request: Schema.Struct({
+              artist_mb_id: KnowledgeBase.MbArtistId,
+              entity_type: KnowledgeBase.EntityType,
+              relation_type: KnowledgeBase.RelationType
+            }),
             Result: ArtistEntity,
             execute: (params) =>
               sql`
@@ -292,7 +300,7 @@ export class MBDataService extends Effect.Service<MBDataService>()("MBDataServic
           )
 
           const query = SqlSchema.findAll({
-            Request: Schema.Struct({ entity_mb_id: Schema.String, entity_type: EntityType }),
+            Request: Schema.Struct({ entity_mb_id: Schema.String, entity_type: KnowledgeBase.EntityType }),
             Result: ArtistEntity,
             execute: (params) =>
               sql`
@@ -349,7 +357,7 @@ export class MBDataService extends Effect.Service<MBDataService>()("MBDataServic
     const insertArtistEntity = (data: Schema.Schema.Type<typeof ArtistMBEntityMaster.insert>) =>
       Effect.request(ArtistEntityInsertRequest({ data }), ArtistEntityInsertResolver)
 
-    const deleteUnresolvedMBArtists = (artist_mb_id: MbArtistId) =>
+    const deleteUnresolvedMBArtists = (artist_mb_id: KnowledgeBase.MbArtistId) =>
       Effect.request(
         DeleteUnresolvedMBArtistsRequest({ artist_mb_id }),
         DeleteUnresolvedMBArtistsResolver

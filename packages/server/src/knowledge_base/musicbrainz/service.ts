@@ -1,3 +1,4 @@
+import { KnowledgeBase } from "@crate/domain"
 import { FetchHttpClient, HttpClient, HttpClientRequest, HttpClientResponse } from "@effect/platform"
 import type { RequestError, ResponseError } from "@effect/platform/HttpClientError"
 import { SqlClient, SqlSchema } from "@effect/sql"
@@ -20,6 +21,7 @@ export class MusicBrainzService extends Effect.Service<MusicBrainzService>()("Mu
     const mbData = yield* MBDataService.MBDataService
     const relationshipService = yield* RelationshipService.RelationshipService
     const audit = yield* AuditService.AuditService
+    const mbUrlBase = "https://musicbrainz.org/ws/2"
 
     const MBRElationshipParams = {
       "area": "area-rels",
@@ -42,7 +44,7 @@ export class MusicBrainzService extends Effect.Service<MusicBrainzService>()("Mu
     > =>
       Effect.gen(function*() {
         const inclString = Object.entries(MBRElationshipParams).map(([_key, value]) => `${value}`).join("+")
-        const mbUrl = `https://musicbrainz.org/ws/2/artist/${artistId}?inc=${inclString}&fmt=json`
+        const mbUrl = `${mbUrlBase}/artist/${artistId}?inc=${inclString}&fmt=json`
 
         const client = (yield* HttpClient.HttpClient).pipe(
           HttpClient.mapRequest(HttpClientRequest.setHeaders({
@@ -76,7 +78,7 @@ export class MusicBrainzService extends Effect.Service<MusicBrainzService>()("Mu
                     status: error.response.status
                   })
                 }))
-                yield* mbData.deleteUnresolvedMBArtists(MBEntities.MbArtistId.make(artistId))
+                yield* mbData.deleteUnresolvedMBArtists(KnowledgeBase.MbArtistId.make(artistId))
               }
               return yield* Effect.fail(error)
             }))),
@@ -105,7 +107,7 @@ export class MusicBrainzService extends Effect.Service<MusicBrainzService>()("Mu
         const { relations, ...artist } = yield* fetchArtist(artistId, kexpPlayId, userAgent)
 
         const artistInsert = yield* Schema.decode(MBEntities.ArtistMBEntityMaster.insert)({
-          artist_mb_id: MBEntities.MbArtistId.make(artist.id),
+          artist_mb_id: KnowledgeBase.MbArtistId.make(artist.id),
           artist_name: artist.name,
           artist_disambiguation: artist.disambiguation ?? null,
           artist_type: artist.type ?? null,
@@ -142,7 +144,10 @@ export class MusicBrainzService extends Effect.Service<MusicBrainzService>()("Mu
       SqlSchema.findAll({
         Request: Schema.Void,
         Result: MBSchemas.UnresolvedMBArtist,
-        execute: (_) => sql`SELECT * FROM mb_artist_unresolved LIMIT ${limit}`
+        execute: (_) =>
+          sql`SELECT * FROM ${sql.safe("mb_artist_unresolved")} ORDER BY latest_play DESC LIMIT ${
+            sql(limit.toString())
+          }`
       })
 
     const processUnresolvedMBArtists: (config?: {
@@ -180,7 +185,7 @@ export class MusicBrainzService extends Effect.Service<MusicBrainzService>()("Mu
                 const entity = yield* mbData.insertArtistEntity(artistInsert)
 
                 // Delete unresolved artist
-                yield* mbData.deleteUnresolvedMBArtists(MBEntities.MbArtistId.make(unresolved.artist_mb_id))
+                yield* mbData.deleteUnresolvedMBArtists(KnowledgeBase.MbArtistId.make(unresolved.artist_mb_id))
 
                 // Insert relationships if any exist
                 yield* Effect.when(() => validRelationships.length > 0)(
