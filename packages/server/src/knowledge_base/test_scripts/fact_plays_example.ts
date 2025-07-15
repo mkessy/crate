@@ -1,5 +1,5 @@
 import { Console, Effect, Layer, Option } from "effect"
-import { FactPlaysService } from "./fact_plays/index.js"
+import { FactPlaysService } from "../fact_plays/index.js"
 
 // Example usage of the FactPlaysService
 const program = Effect.gen(function*() {

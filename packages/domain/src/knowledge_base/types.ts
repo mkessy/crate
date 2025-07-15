@@ -1,4 +1,5 @@
 import { Schema } from "effect"
+import { KexpTrackPlay } from "../kexp/schemas.js"
 
 export const EntityType = Schema.Literal(
   "recording",
@@ -69,7 +70,7 @@ export const Artist = Schema.Struct({
   updated_at: Schema.DateTimeUtc
 })
 export type Artist = Schema.Schema.Type<typeof Artist>
-
+export const isArtist = Schema.is(Artist)
 // Recording entity
 export const Recording = Schema.Struct({
   mb_id: Schema.String,
@@ -82,7 +83,7 @@ export const Recording = Schema.Struct({
   updated_at: Schema.DateTimeUtc
 })
 export type Recording = Schema.Schema.Type<typeof Recording>
-
+export const isRecording = Schema.is(Recording)
 // Release entity
 export const Release = Schema.Struct({
   mb_id: Schema.String,
@@ -97,7 +98,7 @@ export const Release = Schema.Struct({
   updated_at: Schema.DateTimeUtc
 })
 export type Release = Schema.Schema.Type<typeof Release>
-
+export const isRelease = Schema.is(Release)
 // Release Group entity
 export const ReleaseGroup = Schema.Struct({
   mb_id: Schema.String,
@@ -109,7 +110,7 @@ export const ReleaseGroup = Schema.Struct({
   updated_at: Schema.DateTimeUtc
 })
 export type ReleaseGroup = Schema.Schema.Type<typeof ReleaseGroup>
-
+export const isReleaseGroup = Schema.is(ReleaseGroup)
 // Work entity
 export const Work = Schema.Struct({
   mb_id: Schema.String,
@@ -122,7 +123,7 @@ export const Work = Schema.Struct({
   updated_at: Schema.DateTimeUtc
 })
 export type Work = Schema.Schema.Type<typeof Work>
-
+export const isWork = Schema.is(Work)
 // Label entity
 export const Label = Schema.Struct({
   mb_id: Schema.String,
@@ -135,7 +136,7 @@ export const Label = Schema.Struct({
   updated_at: Schema.DateTimeUtc
 })
 export type Label = Schema.Schema.Type<typeof Label>
-
+export const isLabel = Schema.is(Label)
 // Area entity
 export const Area = Schema.Struct({
   mb_id: Schema.String,
@@ -147,6 +148,12 @@ export const Area = Schema.Struct({
   updated_at: Schema.DateTimeUtc
 })
 export type Area = Schema.Schema.Type<typeof Area>
+export const isArea = Schema.is(Area)
+
+export const Play = KexpTrackPlay.pipe(Schema.omit("play_type"))
+// Play entity
+export const isPlay = Schema.is(Play)
+export type Play = Schema.Schema.Type<typeof Play>
 
 // Genre entity
 export const Genre = Schema.Struct({
@@ -157,6 +164,7 @@ export const Genre = Schema.Struct({
   created_at: Schema.DateTimeUtc,
   updated_at: Schema.DateTimeUtc
 })
+export const isGenre = Schema.is(Genre)
 export type Genre = Schema.Schema.Type<typeof Genre>
 
 // Union type for any entity
@@ -306,7 +314,7 @@ export const Relationship = Schema.Struct({
   object_name: Schema.optional(Schema.String),
   attribute_type: Schema.optional(Schema.String),
   source: Schema.Literal("musicbrainz", "kexp", "user", "inferred"),
-  confidence: Schema.optional(Schema.Number.pipe(Schema.between(0, 1))),
+  kexp_play_id: Schema.optional(Schema.String),
   created_at: Schema.DateTimeUtc,
   updated_at: Schema.DateTimeUtc
 })

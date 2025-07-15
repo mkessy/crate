@@ -1,5 +1,5 @@
 import { Effect, Layer } from "effect"
-import { RelationshipService } from "./relationships/service.js"
+import { RelationshipService } from "../relationships/service.js"
 
 // Example usage of the RelationshipService with type-safe predicates and entity types
 
