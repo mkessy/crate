@@ -1,8 +1,8 @@
 import { SqlClient, SqlSchema } from "@effect/sql"
 import { Console, Effect, Layer, Option, Schema } from "effect"
-import { MusicKBSqlLive } from "../sql/Sql.js"
-import { FactPlaysService } from "./fact_plays/index.js"
-import { FactPlay } from "./fact_plays/schemas.js"
+import { MusicKBSqlLive } from "../../sql/Sql.js"
+import { FactPlaysService } from "../fact_plays/index.js"
+import { FactPlay } from "../fact_plays/schemas.js"
 
 // =============================================================================
 // TEST FACT PLAYS SERVICE
