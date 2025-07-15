@@ -16,7 +16,7 @@ const normalizeText = (text: string) => {
   )
 }
 
-export class KexPlay extends Model.Class<KexPlay>("KexPlay")({
+export class KexpPlay extends Model.Class<KexpPlay>("KexpPlay")({
   play_id: Schema.Number,
   airdate: Schema.String,
   show_id: Schema.Number,
@@ -41,7 +41,7 @@ export class KexPlay extends Model.Class<KexPlay>("KexPlay")({
   updated_at: Model.DateTimeUpdate
 }) implements Equal.Equal {
   [Equal.symbol](that: Equal.Equal): boolean {
-    if (that instanceof KexPlay) {
+    if (that instanceof KexpPlay) {
       return this.play_id === that.play_id
     }
     return false
@@ -63,74 +63,6 @@ export class KexPlay extends Model.Class<KexPlay>("KexPlay")({
     return Hash.hash(this.normalizedText())
   }
 }
-
-export class Work extends Model.Class<Work>("Work")({
-  mb_id: KnowledgeBase.MbWorkId,
-  name: Schema.String,
-  disambiguation: Schema.NullOr(Schema.String),
-  type: Schema.Literal("work"),
-  comment: Schema.String,
-  created_at: Model.DateTimeInsert,
-  updated_at: Model.DateTimeUpdate
-}) {}
-
-export type WorkEncoded = Schema.Schema.Encoded<typeof Work>
-export class Area extends Model.Class<Area>("Area")({
-  mb_id: KnowledgeBase.MbAreaId,
-  name: Schema.String,
-  type: Schema.Literal("area"),
-  disambiguation: Schema.NullOr(Schema.String),
-  entity_metadata: Model.FieldOption(Model.JsonFromString(Schema.Unknown)),
-  created_at: Model.DateTimeInsert,
-  updated_at: Model.DateTimeUpdate
-}) {}
-
-export type AreaEncoded = Schema.Schema.Encoded<typeof Area>
-export class Recording extends Model.Class<Recording>("Recording")({
-  mb_id: KnowledgeBase.MbRecordingId,
-  name: Schema.String,
-  type: Schema.Literal("recording"),
-  disambiguation: Schema.NullOr(Schema.String),
-  begin_date: Schema.String,
-  end_date: Schema.String,
-  recording_length: Schema.NullOr(Schema.Number),
-  created_at: Model.DateTimeInsert,
-  updated_at: Model.DateTimeUpdate
-}) {}
-
-export type RecordingEncoded = Schema.Schema.Encoded<typeof Recording>
-export class Release extends Model.Class<Release>("Release")({
-  mb_id: KnowledgeBase.MbReleaseId,
-  name: Schema.String,
-  type: Schema.Literal("release"),
-  disambiguation: Schema.NullOr(Schema.String),
-  begin_date: Schema.String,
-  end_date: Schema.String,
-  barcode: Schema.NullOr(Schema.String),
-  country: Schema.NullOr(Schema.String),
-  release_date: Schema.NullOr(Schema.String),
-  created_at: Model.DateTimeInsert,
-  updated_at: Model.DateTimeUpdate
-}) {}
-
-export class ReleaseGroup extends Model.Class<ReleaseGroup>("ReleaseGroup")({
-  mb_id: KnowledgeBase.MbReleaseGroupId,
-  name: Schema.String,
-  type: Schema.Literal("release_group"),
-  disambiguation: Schema.NullOr(Schema.String),
-  created_at: Model.DateTimeInsert,
-  updated_at: Model.DateTimeUpdate
-}) {}
-
-export type ReleaseGroupEncoded = Schema.Schema.Encoded<typeof ReleaseGroup>
-export class Artist extends Model.Class<Artist>("Artist")({
-  mb_id: KnowledgeBase.MbArtistId,
-  name: Schema.String,
-  disambiguation: Schema.String,
-  created_at: Model.DateTimeInsert,
-  updated_at: Model.DateTimeUpdate
-}) {}
-export type ArtistEncoded = Schema.Schema.Encoded<typeof Artist>
 
 export class Label extends Model.Class<Label>("Label")({
   mb_id: KnowledgeBase.MbLabelId,

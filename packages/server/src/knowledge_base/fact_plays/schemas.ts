@@ -16,14 +16,6 @@ export const PlayType = Schema.Literal("trackplay", "nontrackplay")
 export type PlayType = Schema.Schema.Type<typeof PlayType>
 
 // MB IDs for joining
-export const MBArtistId = Schema.String.pipe(Schema.brand("mb_artist_id"))
-export type MBArtistId = Schema.Schema.Type<typeof MBArtistId>
-
-export const MBRecordingId = Schema.String.pipe(Schema.brand("mb_recording_id"))
-export type MBRecordingId = Schema.Schema.Type<typeof MBRecordingId>
-
-export const MBReleaseId = Schema.String.pipe(Schema.brand("mb_release_id"))
-export type MBReleaseId = Schema.Schema.Type<typeof MBReleaseId>
 
 // Main FactPlay model matching the database schema
 export class FactPlay extends Model.Class<FactPlay>("FactPlay")({

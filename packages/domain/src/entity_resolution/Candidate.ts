@@ -11,7 +11,7 @@ import type {
   MbReleaseGroupId,
   MbReleaseId,
   MbWorkId
-} from "../knowledge_base/types.js"
+} from "../knowledge_base/index.js"
 import type { EntityUri, Mention, MentionId } from "./index.js"
 
 export type Method = Schema.Schema.Type<typeof Method>
