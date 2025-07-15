@@ -11,7 +11,6 @@ import { MusicKBSqlLive } from "../../sql/Sql.js"
 import * as MBEntities from "../entity_persistence/schemas.js"
 import * as MBDataService from "../entity_persistence/service.js"
 import * as RelationshipService from "../relationships/service.js"
-import { relationsFromMBArtist } from "./api.js"
 import * as MBSchemas from "./schemas.js"
 
 export class MusicBrainzService extends Effect.Service<MusicBrainzService>()("MusicBrainzService", {
@@ -132,7 +131,7 @@ export class MusicBrainzService extends Effect.Service<MusicBrainzService>()("Mu
         })
 
         // Process all relationships from all artists
-        const allRelationships = yield* relationsFromMBArtist({ ...artist, relations }, kexpPlayId)
+        const allRelationships = yield* MBSchemas.relationsFromMBArtist({ ...artist, relations }, kexpPlayId)
 
         return {
           artistInsert,

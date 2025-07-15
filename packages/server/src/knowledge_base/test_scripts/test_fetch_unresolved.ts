@@ -1,6 +1,6 @@
 import { BunRuntime } from "@effect/platform-bun"
 import { Chunk, Console, Effect, Layer, Stream } from "effect"
-import * as MusicBrainzService from "../musicbrainz/service.js"
+import * as MusicBrainzService from "../musicbrainz_api/service.js"
 
 const program = Effect.gen(function*() {
   const mb = yield* MusicBrainzService.MusicBrainzService
