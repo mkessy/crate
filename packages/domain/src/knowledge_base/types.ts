@@ -186,121 +186,138 @@ export type Entity = Schema.Schema.Type<typeof Entity>
 
 // Predicate types from MusicBrainz relationships
 export const PredicateType = Schema.Literal(
-  "adapter",
-  "animation",
-  "area",
-  "arranger",
-  "art direction",
-  "artist rename",
-  "artist-genre",
-  "artistic director",
-  "artists and repertoire",
-  "artists and repertoire position at",
-  "artwork",
-  "audio",
-  "audio director",
-  "balance",
-  "begin-area",
-  "booking",
-  "booklet editor",
-  "choreographer",
-  "chorus master",
-  "cinematographer",
-  "collaboration",
-  "commissioned",
-  "compiler",
+  // Primary Creative (Artist -> Work)
   "composer",
-  "composer-in-residence",
-  "concertmaster",
+  "lyricist",
+  "writer",
+  "librettist",
+  "scriptwriter",
+  "adapter",
+  "translator",
+  "revised by",
+  "reconstructed by",
+  "previous attribution",
+  // Performance (Artist -> Recording/Release)
+  "performer",
+  "instrument",
+  "vocal",
+  "performing orchestra",
   "conductor",
-  "conductor position",
-  "copyright",
-  "creative direction",
-  "creative position at",
-  "dedicated to",
-  "dedication",
-  "design",
-  "design/illustration",
-  "editor",
-  "end-area",
+  "chorus master",
+  "concertmaster",
+  "audio director",
+  // Arrangement & Orchestration
+  "arranger",
+  "instrument arranger",
+  "vocal arranger",
+  "orchestrator",
+  // Production & Engineering (Artist -> Recording/Release)
+  "producer",
   "engineer",
-  "engineer position at",
-  "executive position at",
+  "audio",
+  "mastering",
+  "sound",
+  "mix",
+  "recording",
   "field recordist",
-  "founder",
+  "programming",
+  "editor",
+  "balance",
+  "sound effects",
+  "lacquer cut",
+  // Remixing & Compilation
+  "remixer",
+  "mix-DJ",
+  "compiler",
+  "samples from artist",
+  // Visual & Video
+  "video director",
+  "cinematographer",
+  "animation",
+  "choreographer",
+  "video appearance",
+  // Design & Visual Arts
+  "artwork",
+  "design",
   "graphic design",
   "illustration",
-  "instrument",
-  "instrument arranger",
-  "instrument technician",
-  "instrumental supporting musician",
-  "involved with",
-  "is person",
-  "label founder",
-  "lacquer cut",
-  "legal representation",
-  "librettist",
-  "licensor",
+  "design/illustration",
+  "photography",
+  "art direction",
+  "creative direction",
+  "booklet editor",
   "liner notes",
-  "lyricist",
-  "married",
-  "mastering",
+  // Organizational (Artist -> Artist)
   "member of band",
+  "subgroup",
+  "collaboration",
+  "tribute",
+  "artist rename",
+  "founder",
+  "supporting musician",
+  "vocal supporting musician",
+  "instrumental supporting musician",
+  "is person",
+  "voice actor",
+  // Leadership & Positions
+  "artistic director",
+  "conductor position",
+  "composer-in-residence",
+  "teacher",
+  // Personal Relationships (Artist -> Artist)
+  "parent",
+  "sibling",
+  "married",
+  "involved with",
+  // Business & Legal (Artist -> Label)
+  "recording contract",
+  "label founder",
+  "owner",
+  "personal label",
+  "producer position at",
+  "engineer position at",
+  "executive position at",
+  "creative position at",
+  "artists and repertoire",
+  "artists and repertoire position at",
+  "position at",
+  // Rights & Legal
+  "copyright",
+  "phonographic copyright",
+  "video copyright",
+  "publishing",
+  "personal publisher",
+  "licensor",
+  "legal representation",
+  // Geographic (Artist -> Area)
+  "area",
+  "begin-area",
+  "end-area",
+  // Miscellaneous Credits
   "misc",
-  "mix",
-  "mix-DJ",
+  "booking",
+  "production coordinator",
+  "instrument technician",
+  "commissioned",
+  "dedication",
+  "dedicated to",
+  "premiere",
+  "transfer",
+  // Named After Relationships
   "named after artist",
   "named after label",
   "named after release group",
   "named after work",
-  "orchestrator",
-  "owner",
-  "parent",
-  "performer",
-  "performing orchestra",
-  "personal label",
-  "personal publisher",
-  "phonographic copyright",
-  "photography",
-  "position at",
-  "premiere",
-  "previous attribution",
-  "producer",
-  "producer position at",
-  "production coordinator",
-  "programming",
-  "publishing",
-  "reconstructed by",
-  "recording",
-  "recording contract",
-  "remixer",
-  "revised by",
-  "samples from artist",
-  "scriptwriter",
-  "sibling",
-  "sound",
-  "sound effects",
-  "subgroup",
-  "supporting musician",
-  "teacher",
-  "transfer",
-  "translator",
-  "tribute",
-  "video appearance",
-  "video copyright",
-  "video director",
-  "vocal",
-  "vocal arranger",
-  "vocal supporting musician",
-  "voice actor",
-  "writer",
+  // Genre Relationship
+  "artist-genre",
   // KEXP-specific predicates
-  "played_on", // artist → play (reverse relationship)
-  "has_recording", // play → recording
-  "has_artist", // play → artist
-  "has_release", // play → release
-  "has_label" // play → label
+  "played_on",
+  "has_recording",
+  "has_artist",
+  "has_release",
+  "has_label"
 )
+
 export type PredicateType = Schema.Schema.Type<typeof PredicateType>
 
 // Relationship between entities
@@ -334,3 +351,333 @@ export const ArtistCacheView = Schema.Struct({
   plays_this_year: Schema.Number,
   cache_score: Schema.Number
 })
+
+// =============================================
+// Predicate Groupings by Semantic Meaning
+// =============================================
+
+// Primary Creative Relationships (WHO created the work)
+export const CreativeAuthorshipPredicates = PredicateType.pipe(
+  Schema.pickLiteral(
+    "composer",
+    "lyricist",
+    "writer",
+    "librettist",
+    "scriptwriter"
+  )
+)
+
+// Performance Relationships (WHO performed it)
+export const PerformancePredicates = PredicateType.pipe(
+  Schema.pickLiteral(
+    "performer",
+    "instrument",
+    "vocal",
+    "performing orchestra",
+    "conductor",
+    "chorus master",
+    "concertmaster",
+    "audio director"
+  )
+)
+
+// Arrangement & Adaptation (HOW it was adapted)
+export const ArrangementPredicates = PredicateType.pipe(
+  Schema.pickLiteral(
+    "arranger",
+    "instrument arranger",
+    "vocal arranger",
+    "orchestrator",
+    "adapter",
+    "translator",
+    "revised by",
+    "reconstructed by"
+  )
+)
+
+// Production & Engineering (HOW it was recorded/produced)
+export const ProductionEngineeringPredicates = PredicateType.pipe(
+  Schema.pickLiteral(
+    "producer",
+    "engineer",
+    "audio",
+    "mastering",
+    "sound",
+    "mix",
+    "recording",
+    "field recordist",
+    "programming",
+    "editor",
+    "balance",
+    "sound effects",
+    "lacquer cut"
+  )
+)
+
+// Remixing & Derivative Works
+export const RemixCompilationPredicates = PredicateType.pipe(
+  Schema.pickLiteral(
+    "remixer",
+    "mix-DJ",
+    "compiler",
+    "samples from artist"
+  )
+)
+
+// Visual & Video Production
+export const VisualProductionPredicates = PredicateType.pipe(
+  Schema.pickLiteral(
+    "video director",
+    "cinematographer",
+    "animation",
+    "choreographer",
+    "video appearance"
+  )
+)
+
+// Design & Visual Arts
+export const DesignArtworkPredicates = PredicateType.pipe(
+  Schema.pickLiteral(
+    "artwork",
+    "design",
+    "graphic design",
+    "illustration",
+    "design/illustration",
+    "photography",
+    "art direction",
+    "creative direction",
+    "booklet editor",
+    "liner notes"
+  )
+)
+
+// Organizational Relationships (Artist -> Artist)
+export const OrganizationalPredicates = PredicateType.pipe(
+  Schema.pickLiteral(
+    "member of band",
+    "subgroup",
+    "collaboration",
+    "tribute",
+    "artist rename",
+    "founder",
+    "supporting musician",
+    "vocal supporting musician",
+    "instrumental supporting musician",
+    "is person",
+    "voice actor"
+  )
+)
+
+// Leadership & Educational Positions
+export const LeadershipEducationalPredicates = PredicateType.pipe(
+  Schema.pickLiteral(
+    "artistic director",
+    "conductor position",
+    "composer-in-residence",
+    "teacher"
+  )
+)
+
+// Personal Relationships (Artist -> Artist)
+export const PersonalRelationshipPredicates = PredicateType.pipe(
+  Schema.pickLiteral(
+    "parent",
+    "sibling",
+    "married",
+    "involved with"
+  )
+)
+
+// Business & Label Relationships (Artist -> Label)
+export const BusinessLabelPredicates = PredicateType.pipe(
+  Schema.pickLiteral(
+    "recording contract",
+    "label founder",
+    "owner",
+    "personal label",
+    "producer position at",
+    "engineer position at",
+    "executive position at",
+    "creative position at",
+    "artists and repertoire",
+    "artists and repertoire position at",
+    "position at"
+  )
+)
+
+// Rights & Legal Relationships
+export const RightsLegalPredicates = PredicateType.pipe(
+  Schema.pickLiteral(
+    "copyright",
+    "phonographic copyright",
+    "video copyright",
+    "publishing",
+    "personal publisher",
+    "licensor",
+    "legal representation"
+  )
+)
+
+// Geographic Relationships (Artist -> Area)
+export const GeographicPredicates = PredicateType.pipe(
+  Schema.pickLiteral(
+    "area",
+    "begin-area",
+    "end-area"
+  )
+)
+
+// Miscellaneous & Support Credits
+export const MiscellaneousPredicates = PredicateType.pipe(
+  Schema.pickLiteral(
+    "misc",
+    "booking",
+    "production coordinator",
+    "instrument technician",
+    "commissioned",
+    "dedication",
+    "dedicated to",
+    "premiere",
+    "transfer",
+    "previous attribution"
+  )
+)
+
+// Named After Relationships
+export const NamedAfterPredicates = PredicateType.pipe(
+  Schema.pickLiteral(
+    "named after artist",
+    "named after label",
+    "named after release group",
+    "named after work"
+  )
+)
+
+// Genre Relationships
+export const GenrePredicates = PredicateType.pipe(
+  Schema.pickLiteral(
+    "artist-genre"
+  )
+)
+
+// KEXP Play Tracking
+export const KexpPlayPredicates = PredicateType.pipe(
+  Schema.pickLiteral(
+    "played_on",
+    "has_recording",
+    "has_artist",
+    "has_release",
+    "has_label"
+  )
+)
+
+// =============================================
+// High-Level Predicate Categories
+// =============================================
+
+// All creative/authorship predicates
+export const AllCreativePredicates = Schema.Union(
+  CreativeAuthorshipPredicates,
+  ArrangementPredicates
+)
+
+// All performance-related predicates
+export const AllPerformancePredicates = Schema.Union(
+  PerformancePredicates,
+  ProductionEngineeringPredicates,
+  RemixCompilationPredicates
+)
+
+// All organizational/group predicates
+export const AllOrganizationalPredicates = Schema.Union(
+  OrganizationalPredicates,
+  LeadershipEducationalPredicates
+)
+
+// All business/commercial predicates
+export const AllBusinessPredicates = Schema.Union(
+  BusinessLabelPredicates,
+  RightsLegalPredicates
+)
+
+// All visual/design predicates
+export const AllVisualPredicates = Schema.Union(
+  VisualProductionPredicates,
+  DesignArtworkPredicates
+)
+
+// =============================================
+// Predicate Importance Levels
+// =============================================
+
+// Primary predicates (most important for understanding music relationships)
+export const PrimaryPredicates = Schema.Union(
+  CreativeAuthorshipPredicates,
+  PredicateType.pipe(Schema.pickLiteral("performer", "producer", "member of band"))
+)
+
+// Secondary predicates (important supporting information)
+export const SecondaryPredicates = Schema.Union(
+  PredicateType.pipe(
+    Schema.pickLiteral(
+      "instrument",
+      "vocal",
+      "conductor",
+      "engineer",
+      "mix",
+      "mastering",
+      "remixer",
+      "arranger",
+      "orchestrator"
+    )
+  )
+)
+
+// =============================================
+// Helper functions for predicate analysis
+// =============================================
+
+// Check if a predicate is about creative authorship
+export const isCreativeAuthorship = Schema.is(CreativeAuthorshipPredicates)
+
+// Check if a predicate is about performance
+export const isPerformance = Schema.is(PerformancePredicates)
+
+// Check if a predicate is about production/engineering
+export const isProductionEngineering = Schema.is(ProductionEngineeringPredicates)
+
+// Check if a predicate is organizational
+export const isOrganizational = Schema.is(OrganizationalPredicates)
+
+// Check if a predicate is primary (most important)
+export const isPrimaryPredicate = Schema.is(PrimaryPredicates)
+
+// Check if a predicate is secondary
+export const isSecondaryPredicate = Schema.is(SecondaryPredicates)
+
+// Get predicate category
+export const getPredicateCategory = (predicate: PredicateType): string => {
+  if (isCreativeAuthorship(predicate)) return "creative_authorship"
+  if (isPerformance(predicate)) return "performance"
+  if (isProductionEngineering(predicate)) return "production_engineering"
+  if (Schema.is(RemixCompilationPredicates)(predicate)) return "remix_compilation"
+  if (Schema.is(VisualProductionPredicates)(predicate)) return "visual_production"
+  if (Schema.is(DesignArtworkPredicates)(predicate)) return "design_artwork"
+  if (isOrganizational(predicate)) return "organizational"
+  if (Schema.is(LeadershipEducationalPredicates)(predicate)) return "leadership_educational"
+  if (Schema.is(PersonalRelationshipPredicates)(predicate)) return "personal_relationship"
+  if (Schema.is(BusinessLabelPredicates)(predicate)) return "business_label"
+  if (Schema.is(RightsLegalPredicates)(predicate)) return "rights_legal"
+  if (Schema.is(GeographicPredicates)(predicate)) return "geographic"
+  if (Schema.is(KexpPlayPredicates)(predicate)) return "kexp_play"
+  if (Schema.is(GenrePredicates)(predicate)) return "genre"
+  if (Schema.is(NamedAfterPredicates)(predicate)) return "named_after"
+  return "miscellaneous"
+}
+
+// Get predicate importance level
+export const getPredicateImportance = (predicate: PredicateType): "primary" | "secondary" | "tertiary" => {
+  if (isPrimaryPredicate(predicate)) return "primary"
+  if (isSecondaryPredicate(predicate)) return "secondary"
+  return "tertiary"
+}
