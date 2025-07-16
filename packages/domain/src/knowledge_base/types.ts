@@ -307,14 +307,14 @@ export type PredicateType = Schema.Schema.Type<typeof PredicateType>
 export const Relationship = Schema.Struct({
   subject_id: Schema.String,
   subject_type: EntityType,
-  subject_name: Schema.optional(Schema.String),
+  subject_name: Schema.NullOr(Schema.String),
   predicate: PredicateType,
   object_id: Schema.String,
   object_type: EntityType,
-  object_name: Schema.optional(Schema.String),
-  attribute_type: Schema.optional(Schema.String),
-  source: Schema.Literal("musicbrainz", "kexp", "user", "inferred"),
-  kexp_play_id: Schema.optional(Schema.String),
+  object_name: Schema.NullOr(Schema.String),
+  attribute_type: Schema.NullOr(Schema.String),
+  source: Schema.Literal("musicbrainz", "kexp"),
+  kexp_play_id: Schema.NullOr(Schema.String),
   created_at: Schema.DateTimeUtc,
   updated_at: Schema.DateTimeUtc
 })
@@ -322,3 +322,15 @@ export type Relationship = Schema.Schema.Type<typeof Relationship>
 
 // =============================================
 // Search and Normalization
+
+export type ArtistCacheView = Schema.Schema.Type<typeof ArtistCacheView>
+export const ArtistCacheView = Schema.Struct({
+  artist_id: Schema.String,
+  total_plays: Schema.Number,
+  recent_plays: Schema.Number,
+  last_played: Schema.String,
+  unique_albums: Schema.Number,
+  unique_releases: Schema.Number,
+  plays_this_year: Schema.Number,
+  cache_score: Schema.Number
+})

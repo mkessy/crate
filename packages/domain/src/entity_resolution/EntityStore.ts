@@ -2,12 +2,12 @@ import type { KeyValueStore } from "@effect/platform"
 import type { PlatformError } from "@effect/platform/Error"
 import type { Effect } from "effect"
 import { Schema } from "effect"
-import type { Area, Artist, Genre, Label, Play, Recording, ReleaseGroup } from "../knowledge_base/types.js"
-import { Entity, Relationship } from "../knowledge_base/types.js"
+import type { Area, Artist, Genre, Label, Play, Recording, ReleaseGroup } from "../knowledge_base/index.js"
+import { Entity, Relationship } from "../knowledge_base/index.js"
 
 export const StaticData = Schema.Struct({
-  entities: Schema.Array(Entity),
-  relations: Schema.Array(Relationship)
+  entities: Schema.NonEmptyArray(Entity),
+  relations: Schema.NonEmptyArray(Relationship)
 })
 export type StaticData = Schema.Schema.Type<typeof StaticData>
 

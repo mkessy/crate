@@ -12,3 +12,5 @@ export * as EntityResolution from "./entity_resolution/index.js"
 
 // NLP
 export * as Nlp from "./nlp/index.js"
+
+export * as EntityStore from "./entity_resolution/EntityStore.js"

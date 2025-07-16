@@ -75,6 +75,8 @@ export const RelationsUriParser = Schema.TemplateLiteralParser(
 )
 export type RelationsUriParser = Schema.Schema.Type<typeof RelationsUriParser>
 
+// === Artist Cache View ===
+
 export const createRelationsUri = (relation: Relationship): string =>
   Schema.encodeSync(RelationsUriParser)(
     [

@@ -132,19 +132,6 @@ export const KexpHost = Schema.Struct({
   location: Schema.Number
 })
 
-// === Artist Cache View ===
-
-export const ArtistPopularity = Schema.Struct({
-  artist_id: Schema.String,
-  total_plays: Schema.Number,
-  recent_plays: Schema.Number,
-  last_played: Schema.String,
-  unique_albums: Schema.Number,
-  unique_releases: Schema.Number,
-  plays_this_year: Schema.Number,
-  cache_score: Schema.Number
-})
-
 // === API Response Wrappers ===
 
 export const KexpPaginatedResponse = Schema.Struct({
@@ -188,4 +175,3 @@ export type KexpProgram = Schema.Schema.Type<typeof KexpProgram>
 export type KexpTimeslot = Schema.Schema.Type<typeof KexpTimeslot>
 export type KexpShow = Schema.Schema.Type<typeof KexpShow>
 export type KexpHost = Schema.Schema.Type<typeof KexpHost>
-export type ArtistPopularity = Schema.Schema.Type<typeof ArtistPopularity>
