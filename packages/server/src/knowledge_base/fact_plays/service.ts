@@ -1,6 +1,7 @@
 import { SqlClient, SqlSchema } from "@effect/sql"
 import {
   Array,
+  Chunk,
   Data,
   DateTime,
   Duration,
@@ -415,110 +416,33 @@ export class FactPlaysService extends Effect.Service<FactPlaysService>()("FactPl
 
     const insertPlays = (plays: InsertPlaysQuery) => Effect.request(InsertPlaysRequest({ plays }), InsertPlaysResolver)
 
-    const isFactPlaysUpToDate = Effect.gen(function*() {
-      const mostRecentPlay = yield* getRecentPlays(1).pipe(Effect.map(Array.head))
-      if (Option.isNone(mostRecentPlay)) {
-        return false
-      }
-
-      const mostRecentPlayDate = DateTime.unsafeMake(mostRecentPlay.value.airdate)
-      const currentTime = yield* DateTime.now
-      const timeSinceLastAirdate = DateTime.distanceDuration(mostRecentPlayDate, currentTime)
-
-      const isUpToDate = Duration.lessThan(timeSinceLastAirdate, Duration.minutes(5))
-
-      yield* Effect.logInfo(`Fact plays are up to date: ${isUpToDate}`)
-
-      return isUpToDate
-    })
-
-    const fetchAndInsertPlaysStream = Stream.paginateEffect(
-      `${KEXP_API_URL}/plays`,
-      (nextUrl) =>
-        Effect.gen(function*() {
-          const results = yield* kexp.fetchPlaysFromUrl(nextUrl)
-
-          const trackPlays = results.results.filter(KEXPSchemas.isTrackPlay)
-
-          if (trackPlays.length === 0) {
-            return [0 as const, Option.none<string>()] as const
-          }
-
-          const decodedPlays = yield* Schema.decode(Schema.Array(factPlayFromKexpPlay))(trackPlays)
-          const encodedPlays = yield* Schema.encode(Schema.Array(FactPlay.insert))(decodedPlays)
-          yield* insertPlays(encodedPlays)
-
-          const nextPageUrl = results.next ? Option.some(results.next) : Option.none<string>()
-
-          return [
-            trackPlays.length,
-            nextPageUrl
-          ] as const
-        })
-    )
-
-    const fetchAndInsertPlaysStreamUntilDate = (
-      untilDate: DateTime.Utc,
-      pagination: Pagination = { limit: 500, offset: 0 }
-    ) =>
+    const updatePlays = (until: DateTime.Utc) =>
       Stream.paginateEffect(
-        `${KEXP_API_URL}/plays?limit=${pagination.limit}&offset=${pagination.offset}`,
-        (nextUrl) =>
-          Effect.gen(function*() {
-            const results = yield* kexp.fetchPlaysFromUrl(nextUrl)
-
-            const trackPlays = results.results.filter(KEXPSchemas.isTrackPlay)
-
-            if (trackPlays.length === 0) {
-              return [0 as const, Option.none<string>()] as const
-            }
-
-            const lastFetchedPlayDate = DateTime.unsafeMake(Array.unsafeGet(trackPlays, trackPlays.length - 1).airdate)
-            if (DateTime.lessThan(lastFetchedPlayDate, untilDate)) {
-              return [0 as const, Option.none<string>()] as const
-            }
-
-            yield* Effect.log(`Fetching plays until ${lastFetchedPlayDate.toString()}`)
-
-            const decodedPlays = yield* Schema.decode(Schema.Array(factPlayFromKexpPlay))(trackPlays)
-            const encodedPlays = yield* Schema.encode(Schema.Array(FactPlay.insert))(decodedPlays)
-            yield* insertPlays(encodedPlays)
-
-            const nextPageUrl = results.next ? Option.some(results.next) : Option.none<string>()
-
-            return [
-              trackPlays.length,
-              nextPageUrl
-            ] as const
-          })
+        `${KEXP_API_URL}/plays?limit=100`,
+        (url) =>
+          kexp.fetchPlaysFromUrl(url).pipe(
+            Effect.map((response) => {
+              const plays = response.results.filter(KEXPSchemas.isTrackPlay)
+              return [Chunk.fromIterable(plays), Option.fromNullable(response.next)] as const
+            })
+          )
       )
-
-    const updatePlaysUntilDate = (untilDate: DateTime.Utc) =>
-      fetchAndInsertPlaysStreamUntilDate(untilDate).pipe(
-        Stream.throttle({
-          cost: () => 1,
-          units: 1,
-          duration: Duration.seconds(0.50)
-        }),
-        Stream.runCollect
-      )
-
-    const updatePlays = Effect.gen(function*() {
-      const upToDate = yield* isFactPlaysUpToDate
-      if (upToDate) {
-        yield* Effect.log("Fact plays are already up to date")
-        return 0
-      }
-
-      const totalUpdated = yield* fetchAndInsertPlaysStream.pipe(
-        Stream.takeUntilEffect((_) => isFactPlaysUpToDate),
-        Stream.runCollect,
-        Effect.map(Array.reduce(0, (acc: number, curr: number) => acc + curr))
-      )
-
-      yield* Effect.log(`Total plays processed: ${totalUpdated}`)
-      return totalUpdated
-    })
+        .pipe(
+          Stream.mapConcatChunk((plays) => plays),
+          Stream.takeWhile((play) => DateTime.greaterThan(DateTime.unsafeMake(play.airdate), until)),
+          Stream.grouped(100),
+          Stream.mapEffect((chunk) =>
+            Effect.gen(function*() {
+              const chunkArray = Chunk.toReadonlyArray(chunk)
+              const decodedPlays = yield* Schema.decodeUnknown(Schema.Array(factPlayFromKexpPlay))(chunkArray)
+              const encodedPlays = yield* Schema.encode(Schema.Array(FactPlay.insert))(decodedPlays)
+              yield* insertPlays(encodedPlays)
+              return chunk.length
+            })
+          ),
+          Stream.runCollect,
+          Effect.map(Chunk.reduce(0, (a, b) => a + b))
+        )
 
     const getPlayById = (playId: PlayId) =>
       Effect.request(PlayByIdRequest({ queryString: `play:${playId}` }), PlayByIdResolver).pipe(
@@ -622,7 +546,6 @@ export class FactPlaysService extends Effect.Service<FactPlaysService>()("FactPl
       getPlaysByShow,
       getPlaysByRotationStatus,
       getLocalPlays,
-      updatePlaysUntilDate,
 
       // Utility methods
       getRecentPlays,

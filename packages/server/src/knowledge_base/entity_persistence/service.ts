@@ -87,18 +87,48 @@ const DeleteUnresolvedMBArtistsRequest = Request.tagged<DeleteUnresolvedMBArtist
   "DeleteUnresolvedMBArtistsRequest"
 )
 
+interface ArtistCacheViewRequest extends Request.Request<ReadonlyArray<KnowledgeBase.ArtistCacheView>, MBQueryError> {
+  readonly _tag: "ArtistCacheViewRequest"
+  readonly limit: number
+}
+const ArtistCacheViewRequest = Request.tagged<ArtistCacheViewRequest>("ArtistCacheViewRequest")
+
 export type MBRequest =
   | ArtistEntityRequest
   | ArtistRelationRequest
   | ArtistEntityRelationRequest
   | EntityDiscoveryRequest
   | ArtistEntityInsertRequest
+  | ArtistCacheViewRequest
   | DeleteUnresolvedMBArtistsRequest
 
 export class MBDataService extends Effect.Service<MBDataService>()("MBDataService", {
   accessors: true,
   effect: Effect.gen(function*() {
     const sql = yield* SqlClient.SqlClient
+
+    const ArtistCacheViewResolver = RequestResolver.fromEffect(
+      (_request: ArtistCacheViewRequest) =>
+        Effect.gen(function*() {
+          const query = SqlSchema.findAll({
+            Request: Schema.Void,
+            Result: KnowledgeBase.ArtistCacheView,
+            execute: () => sql`SELECT * FROM artist_popularity ORDER BY cache_score DESC LIMIT 50000`
+          })
+
+          return yield* query(undefined)
+        }).pipe(
+          Effect.catchAll((error) =>
+            Effect.fail(
+              new MBQueryError({
+                cause: error,
+                message: `Failed to fetch artist cache view: ${error}`,
+                queryType: "ArtistCacheView"
+              })
+            )
+          )
+        )
+    )
 
     const ArtistEntityResolver = RequestResolver.fromEffect(
       (request: ArtistEntityRequest) =>
@@ -363,6 +393,10 @@ export class MBDataService extends Effect.Service<MBDataService>()("MBDataServic
         DeleteUnresolvedMBArtistsResolver
       )
 
+    const getArtistCacheView = Effect.request(ArtistCacheViewRequest({ limit: 50000 }), ArtistCacheViewResolver).pipe(
+      Effect.withRequestCaching(true)
+    )
+
     return {
       // Original DSL query methods (unchanged API)
 
@@ -370,12 +404,14 @@ export class MBDataService extends Effect.Service<MBDataService>()("MBDataServic
       getArtistEntity,
       getArtistRelation,
       getArtistEntityRelation,
+      getArtistCacheView,
       getEntityDiscovery,
       insertArtistEntity,
       deleteUnresolvedMBArtists,
 
       // Request constructors for external use
       ArtistEntityRequest,
+      ArtistCacheViewRequest,
       ArtistRelationRequest,
       ArtistEntityRelationRequest,
       EntityDiscoveryRequest,

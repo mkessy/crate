@@ -1,8 +1,9 @@
+import type { KnowledgeBase } from "@crate/domain"
 import { Model } from "@effect/sql"
 import type { Either } from "effect"
 import { Effect, Schema } from "effect"
 import type { ParseError } from "effect/ParseResult"
-import * as Relationships from "../relationships/schemas.js"
+import { Relationship } from "../relationships/schemas.js"
 import type * as MBSchemas from "./schemas.js"
 
 export type MBArtistFromApiEncoded = Schema.Schema.Encoded<typeof MBArtistFromApi>
@@ -116,7 +117,7 @@ export const relationsFromMBArtist = (
   artist: MBSchemas.MBArtistFromApi,
   kexpPlayId: number | null
 ): Effect.Effect<
-  ReadonlyArray<Either.Either<Schema.Schema.Type<typeof Relationships.Relationship.insert>, ParseError>>
+  ReadonlyArray<Either.Either<Schema.Schema.Type<typeof Relationship.insert>, ParseError>>
 > =>
   Effect.forEach(artist.relations, (relation) =>
     Effect.gen(function*() {
@@ -161,13 +162,13 @@ export const relationsFromMBArtist = (
 
       const result = yield* Effect.either(Effect.try({
         try: () =>
-          Relationships.Relationship.insert.make({
+          Relationship.insert.make({
             subject_id: artist.id,
             subject_type: "artist",
             subject_name: artist.name,
-            predicate: relation.type as Relationships.PredicateType,
+            predicate: relation.type as KnowledgeBase.PredicateType,
             object_id: objectId,
-            object_type: targetType === "release-group" ? "release_group" : targetType as Relationships.EntityType,
+            object_type: targetType === "release-group" ? "release_group" : targetType as KnowledgeBase.EntityType,
             object_name: objectName,
             attribute_type: attributeType, // Now consistent
             source: "musicbrainz",

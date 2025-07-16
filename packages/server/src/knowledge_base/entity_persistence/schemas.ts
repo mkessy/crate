@@ -64,17 +64,6 @@ export class KexpPlay extends Model.Class<KexpPlay>("KexpPlay")({
   }
 }
 
-export class Label extends Model.Class<Label>("Label")({
-  mb_id: KnowledgeBase.MbLabelId,
-  name: Schema.String,
-  type: Schema.Literal("label"),
-  disambiguation: Schema.NullOr(Schema.String),
-  ended: Schema.Boolean,
-  created_at: Model.DateTimeInsert,
-  updated_at: Model.DateTimeUpdate
-}) {}
-export type LabelEncoded = Schema.Schema.Encoded<typeof Label>
-
 export class ArtistMBEntityMaster extends Model.Class<ArtistMBEntityMaster>("ArtistMBEntityMaster")({
   artist_mb_id: KnowledgeBase.MbArtistId,
   artist_name: Schema.String,
