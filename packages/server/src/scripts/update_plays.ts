@@ -5,7 +5,7 @@ import { FactPlaysService } from "../../../server/src/knowledge_base/fact_plays/
 const updatePlays = Effect.gen(function*() {
   yield* Effect.logInfo("Starting plays update process")
 
-  const until = DateTime.subtract(DateTime.unsafeNow(), parts(Duration.hours(48)))
+  const until = DateTime.subtract(DateTime.unsafeNow(), parts(Duration.hours(1)))
   const totalUpdated = yield* FactPlaysService.updatePlays(until)
 
   yield* Effect.log(`Total plays processed: ${totalUpdated}`)
