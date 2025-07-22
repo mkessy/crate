@@ -1,8 +1,10 @@
 import type { Chunk, Effect, HashMap } from "effect"
 import { Data, Schema } from "effect"
 import type { SortedSet } from "effect/SortedSet"
+import type { Mention, MentionId } from "./mention/Mention.js"
 import type {
   EntityType,
+  EntityUri,
   MbAreaId,
   MbArtistId,
   MbGenreId,
@@ -11,8 +13,7 @@ import type {
   MbReleaseGroupId,
   MbReleaseId,
   MbWorkId
-} from "../knowledge_base/index.js"
-import type { EntityUri, Mention, MentionId } from "./index.js"
+} from "./schemas.js"
 
 export type Method = Schema.Schema.Type<typeof Method>
 export const Method = Schema.Literal("search", "trie", "bm25", "semantic", "fuzzy", "llm")

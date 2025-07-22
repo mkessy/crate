@@ -1,32 +1,51 @@
 import { KnowledgeBase } from "@crate/domain"
 import { Model } from "@effect/sql"
-import { Equal, Hash, Schema } from "effect"
+import { ParseResult, Schema } from "effect"
 
-export class Relationship extends Model.Class<Relationship>("Relationship")({
+export class PersistedRelationship extends Model.Class<PersistedRelationship>("PersistedRelationship")({
   ...KnowledgeBase.Relationship.fields,
   kexp_play_id: Schema.NullOr(Schema.Number),
   created_at: Model.DateTimeInsert,
   updated_at: Model.DateTimeUpdate
-}) implements Equal.Equal {
-  [Equal.symbol](that: Equal.Equal): boolean {
-    if (that instanceof Relationship) {
-      return (
-        this.subject_id === that.subject_id &&
-        this.predicate === that.predicate &&
-        this.object_id === that.object_id &&
-        this.attribute_type === that.attribute_type
-      )
-    }
-    return false
-  }
-  [Hash.symbol](): number {
-    return Hash.structure({
-      subject_id: this.subject_id,
-      predicate: this.predicate,
-      object_id: this.object_id,
-      attribute_type: this.attribute_type
-    })
-  }
-}
+}) {}
 
-export type RelationshipEncoded = Schema.Schema.Encoded<typeof Relationship>
+export class PersistedNonArtistRelationship
+  extends Model.Class<PersistedNonArtistRelationship>("PersistedNonArtistRelationship")({
+    ...KnowledgeBase.NonArtistRelationship.fields,
+    kexp_play_id: Schema.NullOr(Schema.Number),
+    created_at: Model.DateTimeInsert,
+    updated_at: Model.DateTimeUpdate
+  })
+{}
+
+export type NonArtistEntityFromPersistedRel = Schema.Schema.Type<typeof NonArtistEntityFromPersistedRel>
+export const NonArtistEntityFromPersistedRel = Schema.transformOrFail(
+  Schema.asSchema(PersistedNonArtistRelationship),
+  KnowledgeBase.EntityFromNonArtistRelationship,
+  {
+    strict: true,
+    decode: (persisted) =>
+      ParseResult.succeed(
+        KnowledgeBase.NonArtistRelationship.make({
+          subject_id: persisted.subject_id,
+          subject_type: persisted.subject_type,
+          subject_name: persisted.subject_name,
+          predicate: persisted.predicate,
+          object_id: persisted.object_id,
+          object_type: persisted.object_type,
+          object_name: persisted.object_name,
+          attribute_type: persisted.attribute_type,
+          source: persisted.source,
+          kexp_play_id: persisted.kexp_play_id
+        })
+      ),
+    encode: (domain, _, ast) =>
+      ParseResult.fail(
+        new ParseResult.Forbidden(
+          ast,
+          domain,
+          "Cannot encode persisted relationship from domain"
+        )
+      )
+  }
+)

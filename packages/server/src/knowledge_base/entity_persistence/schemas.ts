@@ -1,4 +1,4 @@
-import { KnowledgeBase } from "@crate/domain"
+import { EntityResolution } from "@crate/domain"
 import { KexpTrackPlay } from "@crate/server/kexp/schemas.js"
 import { Model } from "@effect/sql"
 import { Equal, Hash, pipe, Schema, String } from "effect"
@@ -65,16 +65,17 @@ export class KexpPlay extends Model.Class<KexpPlay>("KexpPlay")({
 }
 
 export class ArtistMBEntityMaster extends Model.Class<ArtistMBEntityMaster>("ArtistMBEntityMaster")({
-  artist_mb_id: KnowledgeBase.MbArtistId,
+  artist_mb_id: EntityResolution.MbArtistId,
   artist_name: Schema.String,
   artist_disambiguation: Schema.NullOr(Schema.String),
   artist_type: Schema.NullishOr(Schema.String),
+  artist_aliases: Model.JsonFromString(Schema.Array(Schema.String)),
   artist_gender: Schema.NullOr(Schema.String),
   artist_country: Schema.NullOr(Schema.String),
   artist_life_begin: Schema.NullOr(Schema.String),
   artist_life_end: Schema.NullOr(Schema.String),
   artist_life_ended: Model.BooleanFromNumber,
-  entity_type: KnowledgeBase.EntityType,
+  entity_type: EntityResolution.EntityType,
   entity_mb_id: Schema.String,
   relation_type: Schema.String,
   direction: Schema.Literal("forward", "backward"),
@@ -90,10 +91,10 @@ export class ArtistMBEntityMaster extends Model.Class<ArtistMBEntityMaster>("Art
 export type ArtistMBEntityMasterEncoded = Schema.Schema.Encoded<typeof ArtistMBEntityMaster>
 
 export class ArtistEntity extends Schema.Class<ArtistEntity>("ArtistEntity")({
-  artist_mb_id: KnowledgeBase.MbArtistId,
+  artist_mb_id: EntityResolution.MbArtistId,
   artist_name: Schema.String,
   artist_disambiguation: Schema.NullOr(Schema.String),
-  entity_type: KnowledgeBase.EntityType,
+  entity_type: EntityResolution.EntityType,
   entity_mb_id: Schema.String,
   entity_name: Schema.String,
   relation_type: Schema.String,
