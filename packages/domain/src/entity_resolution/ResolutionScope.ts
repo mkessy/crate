@@ -1,9 +1,8 @@
 import type { HashSet } from "effect"
 import { Data, HashMap } from "effect"
-import type { EntityType } from "../knowledge_base/types.js"
 import type { AnalyzedText } from "../nlp/nlp.js"
 import type { Mention, MentionId } from "./mention/Mention.js"
-import type { EntityUri } from "./schemas.js"
+import type { EntityType, EntityUri } from "./schemas.js"
 
 export type Constraints = HashMap.HashMap<EntityType, HashSet.HashSet<EntityUri>>
 

@@ -1,16 +1,15 @@
-import { KnowledgeBase } from "@crate/domain"
-import { EntityType } from "@crate/domain/src/knowledge_base/index.js"
+import { EntityResolution } from "@crate/domain"
 import { SqlClient, SqlSchema } from "@effect/sql"
 import { Data, Duration, Effect, Layer, Request, RequestResolver, Schema } from "effect"
 import { MusicKBSqlLive } from "../../sql/Sql.js"
-import { Relationship } from "./schemas.js"
+import { NonArtistEntityFromPersistedRel, PersistedRelationship } from "./schemas.js"
 
 // Forward query: Find objects related to a subject via a predicate
 export const SubjectPredicateQuerySchema = Schema.TemplateLiteralParser(
   "subject:",
   Schema.String,
   " predicate:",
-  KnowledgeBase.PredicateType
+  EntityResolution.PredicateType
 )
 export type SubjectPredicateQuery = Schema.Schema.Encoded<typeof SubjectPredicateQuerySchema>
 
@@ -19,7 +18,7 @@ export const ObjectPredicateQuerySchema = Schema.TemplateLiteralParser(
   "object:",
   Schema.String,
   " predicate:",
-  KnowledgeBase.PredicateType
+  EntityResolution.PredicateType
 )
 export type ObjectPredicateQuery = Schema.Schema.Encoded<typeof ObjectPredicateQuerySchema>
 
@@ -28,7 +27,7 @@ export const SubjectTypeQuerySchema = Schema.TemplateLiteralParser(
   "subject:",
   Schema.String,
   " type:",
-  KnowledgeBase.EntityType
+  EntityResolution.EntityType
 )
 export type SubjectTypeQuery = Schema.Schema.Encoded<typeof SubjectTypeQuerySchema>
 
@@ -40,21 +39,25 @@ export class RelationshipQueryError extends Data.TaggedError("RelationshipQueryE
 }> {}
 
 // Request types
-interface SubjectPredicateRequest extends Request.Request<ReadonlyArray<Relationship>, RelationshipQueryError> {
+interface SubjectPredicateRequest
+  extends Request.Request<ReadonlyArray<PersistedRelationship>, RelationshipQueryError>
+{
   readonly _tag: "SubjectPredicateRequest"
   readonly queryString: SubjectPredicateQuery
 }
 
 const SubjectPredicateRequest = Request.tagged<SubjectPredicateRequest>("SubjectPredicateRequest")
 
-interface ObjectPredicateRequest extends Request.Request<ReadonlyArray<Relationship>, RelationshipQueryError> {
+interface ObjectPredicateRequest extends Request.Request<ReadonlyArray<PersistedRelationship>, RelationshipQueryError> {
   readonly _tag: "ObjectPredicateRequest"
   readonly queryString: ObjectPredicateQuery
 }
 
 const ObjectPredicateRequest = Request.tagged<ObjectPredicateRequest>("ObjectPredicateRequest")
 
-interface SubjectTypeRequest extends Request.Request<ReadonlyArray<Relationship>, RelationshipQueryError> {
+interface SubjectTypeRequest
+  extends Request.Request<ReadonlyArray<NonArtistEntityFromPersistedRel>, RelationshipQueryError>
+{
   readonly _tag: "SubjectTypeRequest"
   readonly queryString: SubjectTypeQuery
 }
@@ -63,7 +66,7 @@ const SubjectTypeRequest = Request.tagged<SubjectTypeRequest>("SubjectTypeReques
 
 interface RelationshipInsertRequest extends Request.Request<void, RelationshipQueryError> {
   readonly _tag: "RelationshipInsertRequest"
-  readonly data: Array<Schema.Schema.Type<typeof Relationship.insert>>
+  readonly data: Array<Schema.Schema.Type<typeof PersistedRelationship.insert>>
 }
 
 const RelationshipInsertRequest = Request.tagged<RelationshipInsertRequest>("RelationshipInsertRequest")
@@ -83,7 +86,7 @@ export class RelationshipService extends Effect.Service<RelationshipService>()("
       (request: RelationshipInsertRequest) =>
         Effect.gen(function*() {
           const query = SqlSchema.void({
-            Request: Schema.Array(Relationship.insert),
+            Request: Schema.Array(PersistedRelationship.insert),
             execute: (params) => sql`INSERT OR IGNORE INTO master_relations ${sql.insert(params)}`
           })
 
@@ -110,8 +113,8 @@ export class RelationshipService extends Effect.Service<RelationshipService>()("
           )
 
           const query = SqlSchema.findAll({
-            Request: Schema.Struct({ subject_id: Schema.String, predicate: KnowledgeBase.PredicateType }),
-            Result: Relationship,
+            Request: Schema.Struct({ subject_id: Schema.String, predicate: EntityResolution.PredicateType }),
+            Result: PersistedRelationship,
             execute: (params) =>
               sql`
                 SELECT 
@@ -154,8 +157,8 @@ export class RelationshipService extends Effect.Service<RelationshipService>()("
           )
 
           const query = SqlSchema.findAll({
-            Request: Schema.Struct({ object_id: Schema.String, predicate: KnowledgeBase.PredicateType }),
-            Result: Relationship,
+            Request: Schema.Struct({ object_id: Schema.String, predicate: EntityResolution.PredicateType }),
+            Result: PersistedRelationship,
             execute: (params) =>
               sql`
                 SELECT 
@@ -198,8 +201,8 @@ export class RelationshipService extends Effect.Service<RelationshipService>()("
           )
 
           const query = SqlSchema.findAll({
-            Request: Schema.Struct({ subject_id: Schema.String, object_type: EntityType }),
-            Result: Relationship,
+            Request: Schema.Struct({ subject_id: Schema.String, object_type: EntityResolution.EntityType }),
+            Result: NonArtistEntityFromPersistedRel,
             execute: (params) =>
               sql`
                 SELECT 
@@ -249,7 +252,7 @@ export class RelationshipService extends Effect.Service<RelationshipService>()("
         Effect.withRequestCaching(true)
       )
 
-    const insertRelationships = (data: Array<Schema.Schema.Type<typeof Relationship.insert>>) =>
+    const insertRelationships = (data: Array<Schema.Schema.Type<typeof PersistedRelationship.insert>>) =>
       Effect.request(RelationshipInsertRequest({ data }), RelationshipInsertResolver)
 
     // Utility function to get all relationships for a subject
@@ -257,7 +260,7 @@ export class RelationshipService extends Effect.Service<RelationshipService>()("
       Effect.gen(function*() {
         const query = SqlSchema.findAll({
           Request: Schema.Struct({ subject_id: Schema.String }),
-          Result: Relationship,
+          Result: PersistedRelationship,
           execute: (params) =>
             sql`
               SELECT 
@@ -274,12 +277,41 @@ export class RelationshipService extends Effect.Service<RelationshipService>()("
         return yield* query({ subject_id: subjectId })
       })
 
+    const getArtistSubjectRelationships = (subjectId: string) =>
+      Effect.gen(function*() {
+        const query = SqlSchema.findAll({
+          Request: Schema.Struct({ subject_id: Schema.String }),
+          Result: NonArtistEntityFromPersistedRel,
+          execute: (params) =>
+            sql`
+              SELECT 
+                subject_id, subject_type, subject_name,
+                predicate,
+                object_id, object_type, object_name,
+                attribute_type, source, kexp_play_id,
+                created_at, updated_at
+              FROM master_relations mr 
+              WHERE ${
+              sql.and([
+                sql`mr.subject_id = ${sql(params.subject_id)}`,
+                sql`mr.subject_type = ${sql("artist")}`,
+                sql`mr.object_type in ${
+                  sql.in(["recording", "release", "release_group", "work", "label", "area", "genre"])
+                }`
+              ])
+            }
+              ORDER BY predicate, object_type, object_name
+            `
+        })
+        return yield* query({ subject_id: subjectId })
+      })
+
     // Utility function to get all relationships for an object
     const getObjectRelationships = (objectId: string) =>
       Effect.gen(function*() {
         const query = SqlSchema.findAll({
           Request: Schema.Struct({ object_id: Schema.String }),
-          Result: Relationship,
+          Result: PersistedRelationship,
           execute: (params) =>
             sql`
               SELECT 
@@ -305,6 +337,7 @@ export class RelationshipService extends Effect.Service<RelationshipService>()("
       // Utility methods
       getSubjectRelationships,
       getObjectRelationships,
+      getArtistSubjectRelationships,
       insertRelationships,
 
       // Request constructors for external use

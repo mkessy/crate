@@ -1,326 +1,103 @@
-import { Schema } from "effect"
-import { KexpTrackPlay } from "../kexp/schemas.js"
-
-export const EntityType = Schema.Literal(
-  "recording",
-  "work",
-  "area",
-  "artist",
-  "release",
-  "genre",
-  "label",
-  "release_group",
-  // KEXP play instance
-  "play"
-)
-export type EntityType = Schema.Schema.Type<typeof EntityType>
-
-export const RelationType = Schema.String
-export type RelationType = Schema.Schema.Type<typeof RelationType>
-
-// Branded IDs for type safety
-export const MbRecordingId = Schema.String.pipe(Schema.brand("mb_recording_id"))
-export type MbRecordingId = Schema.Schema.Type<typeof MbRecordingId>
-
-export const MbReleaseId = Schema.String.pipe(Schema.brand("mb_release_id"))
-export type MbReleaseId = Schema.Schema.Type<typeof MbReleaseId>
-
-export const MbReleaseGroupId = Schema.String.pipe(Schema.brand("mb_release_group_id"))
-export type MbReleaseGroupId = Schema.Schema.Type<typeof MbReleaseGroupId>
-
-export const MbLabelId = Schema.String.pipe(Schema.brand("mb_label_id"))
-export type MbLabelId = Schema.Schema.Type<typeof MbLabelId>
-
-export const MbArtistId = Schema.String.pipe(Schema.brand("mb_artist_id"))
-export type MbArtistId = Schema.Schema.Type<typeof MbArtistId>
-
-export const MbAreaId = Schema.String.pipe(Schema.brand("mb_area_id"))
-export type MbAreaId = Schema.Schema.Type<typeof MbAreaId>
-
-export const MbGenreId = Schema.String.pipe(Schema.brand("mb_genre_id"))
-export type MbGenreId = Schema.Schema.Type<typeof MbGenreId>
-
-export const MbWorkId = Schema.String.pipe(Schema.brand("mb_work_id"))
-export type MbWorkId = Schema.Schema.Type<typeof MbWorkId>
-
-// Base entity shape
-export const BaseEntity = Schema.Struct({
-  mb_id: Schema.String,
-  name: Schema.String,
-  type: EntityType,
-  disambiguation: Schema.optional(Schema.String),
-  created_at: Schema.DateTimeUtc,
-  updated_at: Schema.DateTimeUtc
-})
+import { ParseResult, Schema } from "effect"
+import { createEntityUri } from "../entity_resolution/index.js"
+import { PredicateType } from "../entity_resolution/predicate.js"
+import { EntityResolution } from "../index.js"
 
 // Artist entity
 export const Artist = Schema.Struct({
   mb_id: Schema.String,
   name: Schema.String,
   type: Schema.Literal("artist"),
-  disambiguation: Schema.optional(Schema.String),
-  sort_name: Schema.optional(Schema.String),
-  artist_type: Schema.optional(Schema.String),
-  gender: Schema.optional(Schema.String),
-  country: Schema.optional(Schema.String),
-  begin_date: Schema.optional(Schema.String),
-  end_date: Schema.optional(Schema.String),
-  ended: Schema.optional(Schema.Boolean),
+  disambiguation: Schema.NullOr(Schema.String),
+  sort_name: Schema.NullOr(Schema.String),
+  artist_type: Schema.NullOr(Schema.String),
+  gender: Schema.NullOr(Schema.String),
+  country: Schema.NullOr(Schema.String),
+  begin_date: Schema.NullOr(Schema.String),
+  end_date: Schema.NullOr(Schema.String),
+  ended: Schema.NullOr(Schema.Boolean),
   created_at: Schema.DateTimeUtc,
   updated_at: Schema.DateTimeUtc
 })
 export type Artist = Schema.Schema.Type<typeof Artist>
 export const isArtist = Schema.is(Artist)
-// Recording entity
-export const Recording = Schema.Struct({
-  mb_id: Schema.String,
-  name: Schema.String,
-  type: Schema.Literal("recording"),
-  disambiguation: Schema.optional(Schema.String),
-  recording_length: Schema.optional(Schema.Number), // in milliseconds
-  isrc: Schema.optional(Schema.String),
-  created_at: Schema.DateTimeUtc,
-  updated_at: Schema.DateTimeUtc
-})
-export type Recording = Schema.Schema.Type<typeof Recording>
-export const isRecording = Schema.is(Recording)
-// Release entity
-export const Release = Schema.Struct({
-  mb_id: Schema.String,
-  name: Schema.String,
-  type: Schema.Literal("release"),
-  disambiguation: Schema.optional(Schema.String),
-  barcode: Schema.optional(Schema.String),
-  country: Schema.optional(Schema.String),
-  release_date: Schema.optional(Schema.String),
-  status: Schema.optional(Schema.String),
-  created_at: Schema.DateTimeUtc,
-  updated_at: Schema.DateTimeUtc
-})
-export type Release = Schema.Schema.Type<typeof Release>
-export const isRelease = Schema.is(Release)
-// Release Group entity
-export const ReleaseGroup = Schema.Struct({
-  mb_id: Schema.String,
-  name: Schema.String,
-  type: Schema.Literal("release_group"),
-  disambiguation: Schema.optional(Schema.String),
-  release_type: Schema.optional(Schema.String),
-  created_at: Schema.DateTimeUtc,
-  updated_at: Schema.DateTimeUtc
-})
-export type ReleaseGroup = Schema.Schema.Type<typeof ReleaseGroup>
-export const isReleaseGroup = Schema.is(ReleaseGroup)
-// Work entity
-export const Work = Schema.Struct({
-  mb_id: Schema.String,
-  name: Schema.String,
-  type: Schema.Literal("work"),
-  disambiguation: Schema.optional(Schema.String),
-  work_type: Schema.optional(Schema.String),
-  iswc: Schema.optional(Schema.String),
-  created_at: Schema.DateTimeUtc,
-  updated_at: Schema.DateTimeUtc
-})
-export type Work = Schema.Schema.Type<typeof Work>
-export const isWork = Schema.is(Work)
-// Label entity
-export const Label = Schema.Struct({
-  mb_id: Schema.String,
-  name: Schema.String,
-  type: Schema.Literal("label"),
-  disambiguation: Schema.optional(Schema.String),
-  label_type: Schema.optional(Schema.String),
-  ended: Schema.optional(Schema.Boolean),
-  created_at: Schema.DateTimeUtc,
-  updated_at: Schema.DateTimeUtc
-})
-export type Label = Schema.Schema.Type<typeof Label>
-export const isLabel = Schema.is(Label)
-// Area entity
-export const Area = Schema.Struct({
-  mb_id: Schema.String,
-  name: Schema.String,
-  type: Schema.Literal("area"),
-  disambiguation: Schema.optional(Schema.String),
-  area_type: Schema.optional(Schema.String),
-  created_at: Schema.DateTimeUtc,
-  updated_at: Schema.DateTimeUtc
-})
-export type Area = Schema.Schema.Type<typeof Area>
-export const isArea = Schema.is(Area)
-
-export const Play = KexpTrackPlay.pipe(Schema.omit("play_type"))
-// Play entity
-export const isPlay = Schema.is(Play)
-export type Play = Schema.Schema.Type<typeof Play>
-
-// Genre entity
-export const Genre = Schema.Struct({
-  mb_id: Schema.String,
-  name: Schema.String,
-  type: Schema.Literal("genre"),
-  disambiguation: Schema.optional(Schema.String),
-  created_at: Schema.DateTimeUtc,
-  updated_at: Schema.DateTimeUtc
-})
-export const isGenre = Schema.is(Genre)
-export type Genre = Schema.Schema.Type<typeof Genre>
-
-// Union type for any entity
-export const Entity = Schema.Union(
-  Artist,
-  Recording,
-  Release,
-  ReleaseGroup,
-  Work,
-  Label,
-  Area,
-  Genre
-)
-export type Entity = Schema.Schema.Type<typeof Entity>
 
 // =============================================
 // Relationship Types
 // =============================================
 
 // Predicate types from MusicBrainz relationships
-export const PredicateType = Schema.Literal(
-  "adapter",
-  "animation",
-  "area",
-  "arranger",
-  "art direction",
-  "artist rename",
-  "artist-genre",
-  "artistic director",
-  "artists and repertoire",
-  "artists and repertoire position at",
-  "artwork",
-  "audio",
-  "audio director",
-  "balance",
-  "begin-area",
-  "booking",
-  "booklet editor",
-  "choreographer",
-  "chorus master",
-  "cinematographer",
-  "collaboration",
-  "commissioned",
-  "compiler",
-  "composer",
-  "composer-in-residence",
-  "concertmaster",
-  "conductor",
-  "conductor position",
-  "copyright",
-  "creative direction",
-  "creative position at",
-  "dedicated to",
-  "dedication",
-  "design",
-  "design/illustration",
-  "editor",
-  "end-area",
-  "engineer",
-  "engineer position at",
-  "executive position at",
-  "field recordist",
-  "founder",
-  "graphic design",
-  "illustration",
-  "instrument",
-  "instrument arranger",
-  "instrument technician",
-  "instrumental supporting musician",
-  "involved with",
-  "is person",
-  "label founder",
-  "lacquer cut",
-  "legal representation",
-  "librettist",
-  "licensor",
-  "liner notes",
-  "lyricist",
-  "married",
-  "mastering",
-  "member of band",
-  "misc",
-  "mix",
-  "mix-DJ",
-  "named after artist",
-  "named after label",
-  "named after release group",
-  "named after work",
-  "orchestrator",
-  "owner",
-  "parent",
-  "performer",
-  "performing orchestra",
-  "personal label",
-  "personal publisher",
-  "phonographic copyright",
-  "photography",
-  "position at",
-  "premiere",
-  "previous attribution",
-  "producer",
-  "producer position at",
-  "production coordinator",
-  "programming",
-  "publishing",
-  "reconstructed by",
-  "recording",
-  "recording contract",
-  "remixer",
-  "revised by",
-  "samples from artist",
-  "scriptwriter",
-  "sibling",
-  "sound",
-  "sound effects",
-  "subgroup",
-  "supporting musician",
-  "teacher",
-  "transfer",
-  "translator",
-  "tribute",
-  "video appearance",
-  "video copyright",
-  "video director",
-  "vocal",
-  "vocal arranger",
-  "vocal supporting musician",
-  "voice actor",
-  "writer",
-  // KEXP-specific predicates
-  "played_on", // artist → play (reverse relationship)
-  "has_recording", // play → recording
-  "has_artist", // play → artist
-  "has_release", // play → release
-  "has_label" // play → label
-)
-export type PredicateType = Schema.Schema.Type<typeof PredicateType>
 
 // Relationship between entities
 export const Relationship = Schema.Struct({
   subject_id: Schema.String,
-  subject_type: EntityType,
-  subject_name: Schema.NullOr(Schema.String),
+  subject_type: EntityResolution.EntityType,
+  subject_name: Schema.String,
   predicate: PredicateType,
   object_id: Schema.String,
-  object_type: EntityType,
-  object_name: Schema.NullOr(Schema.String),
+  object_type: EntityResolution.EntityType,
+  object_name: Schema.String,
   attribute_type: Schema.NullOr(Schema.String),
   source: Schema.Literal("musicbrainz", "kexp"),
-  kexp_play_id: Schema.NullOr(Schema.String),
-  created_at: Schema.DateTimeUtc,
-  updated_at: Schema.DateTimeUtc
+  kexp_play_id: Schema.NullOr(Schema.Number)
 })
 export type Relationship = Schema.Schema.Type<typeof Relationship>
 
-// =============================================
+export type NonArtistRelationship = Schema.Schema.Type<typeof NonArtistRelationship>
+export const NonArtistRelationship = Schema.Struct({
+  ...Relationship.fields,
+  object_type: EntityResolution.EntityType.pipe(
+    Schema.pickLiteral("recording", "release", "release_group", "work", "label", "area", "genre")
+  )
+})
+
+export const ArtistRelationship = Schema.Struct({
+  ...Relationship.fields,
+  subject_type: Schema.Literal("artist")
+}).pipe(Schema.brand("Relationship/Artist"))
+
+export const RecordingRelationship = Schema.Struct({
+  ...Relationship.fields,
+  object_type: Schema.Literal("recording")
+}).pipe(Schema.brand("Relationship/Recording"))
+
+export type ArtistRecordingRelationship = Schema.Schema.Type<typeof ArtistRecordingRelationship>
+export const ArtistRecordingRelationship = Schema.Struct({
+  ...Relationship.fields,
+  subject_type: Schema.Literal("artist"),
+  object_type: Schema.Literal("recording")
+}).pipe(Schema.brand("Relationship/ArtistRecording"))
+
+const { NonArtistEntity } = EntityResolution
+
+export const EntityFromNonArtistRelationship = Schema.transformOrFail(
+  NonArtistRelationship,
+  NonArtistEntity,
+  {
+    strict: true,
+    decode: (relationship) => {
+      const entity = Schema.decodeSync(NonArtistEntity)({
+        _tag: relationship.object_type,
+        entity_uri: createEntityUri(relationship.object_type, relationship.object_id),
+        name: relationship.object_name,
+        metadata: null,
+        release_date: null,
+        kexp_play_id: relationship.kexp_play_id
+      })
+      return ParseResult.succeed(entity)
+    },
+    encode: (domain, _, ast) => {
+      return ParseResult.fail(
+        new ParseResult.Forbidden(
+          ast,
+          domain,
+          "Cannot encode to persisted shape from domain shape"
+        )
+      )
+    }
+  }
+)
+
 // Search and Normalization
 
 export type ArtistCacheView = Schema.Schema.Type<typeof ArtistCacheView>

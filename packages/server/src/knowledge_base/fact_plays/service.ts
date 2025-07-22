@@ -416,9 +416,10 @@ export class FactPlaysService extends Effect.Service<FactPlaysService>()("FactPl
 
     const insertPlays = (plays: InsertPlaysQuery) => Effect.request(InsertPlaysRequest({ plays }), InsertPlaysResolver)
 
+    const UPDATE_PLAYS_LIMIT = 100
     const updatePlays = (until: DateTime.Utc) =>
       Stream.paginateEffect(
-        `${KEXP_API_URL}/plays?limit=100`,
+        `${KEXP_API_URL}/plays?limit=${UPDATE_PLAYS_LIMIT}`,
         (url) =>
           kexp.fetchPlaysFromUrl(url).pipe(
             Effect.map((response) => {
@@ -440,8 +441,7 @@ export class FactPlaysService extends Effect.Service<FactPlaysService>()("FactPl
               return chunk.length
             })
           ),
-          Stream.runCollect,
-          Effect.map(Chunk.reduce(0, (a, b) => a + b))
+          Stream.runCount
         )
 
     const getPlayById = (playId: PlayId) =>

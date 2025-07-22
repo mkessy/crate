@@ -1,9 +1,9 @@
-import type { KnowledgeBase } from "@crate/domain"
+import type { EntityResolution } from "@crate/domain"
 import { Model } from "@effect/sql"
 import type { Either } from "effect"
 import { Effect, Schema } from "effect"
 import type { ParseError } from "effect/ParseResult"
-import { Relationship } from "../relationships/schemas.js"
+import { PersistedRelationship } from "../relationships/schemas.js"
 import type * as MBSchemas from "./schemas.js"
 
 export type MBArtistFromApiEncoded = Schema.Schema.Encoded<typeof MBArtistFromApi>
@@ -117,7 +117,7 @@ export const relationsFromMBArtist = (
   artist: MBSchemas.MBArtistFromApi,
   kexpPlayId: number | null
 ): Effect.Effect<
-  ReadonlyArray<Either.Either<Schema.Schema.Type<typeof Relationship.insert>, ParseError>>
+  ReadonlyArray<Either.Either<Schema.Schema.Type<typeof PersistedRelationship.insert>, ParseError>>
 > =>
   Effect.forEach(artist.relations, (relation) =>
     Effect.gen(function*() {
@@ -162,13 +162,13 @@ export const relationsFromMBArtist = (
 
       const result = yield* Effect.either(Effect.try({
         try: () =>
-          Relationship.insert.make({
+          PersistedRelationship.insert.make({
             subject_id: artist.id,
             subject_type: "artist",
             subject_name: artist.name,
-            predicate: relation.type as KnowledgeBase.PredicateType,
+            predicate: relation.type as EntityResolution.PredicateType,
             object_id: objectId,
-            object_type: targetType === "release-group" ? "release_group" : targetType as KnowledgeBase.EntityType,
+            object_type: targetType === "release-group" ? "release_group" : targetType as EntityResolution.EntityType,
             object_name: objectName,
             attribute_type: attributeType, // Now consistent
             source: "musicbrainz",

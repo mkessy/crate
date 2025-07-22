@@ -6,7 +6,7 @@ const program = Effect.gen(function*() {
   const mb = yield* MusicBrainzService.MusicBrainzService
   const unresolved = Chunk.toArray(
     yield* mb.processUnresolvedMBArtists({
-      limit: 2000
+      limit: 4000
     }).pipe(Stream.runCollect)
   )
   yield* Console.log(unresolved)

@@ -7,8 +7,8 @@
  */
 
 export * from "./Candidate.js"
-export * as EntityStore from "./EntityStore.js"
 export * from "./mention/Mention.js"
+export * from "./predicate.js"
 export * from "./ResolutionCache.js"
 export * from "./ResolutionScope.js"
 export * from "./schemas.js"
