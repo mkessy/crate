@@ -83,12 +83,14 @@ export class TripleGraph<A> implements KnowledgeGraph<A> {
 
 // --- Constructors ---
 
+export const make = <A>(triples: Iterable<A>): TripleGraph<A> => new TripleGraph(Chunk.fromIterable(triples))
+
 export const empty = <A = Entity.Triple>(): TripleGraph<A> => new TripleGraph<A>(Chunk.empty())
+
+export const fromChunk = <A = Entity.Triple>(triples: Chunk.Chunk<A>): TripleGraph<A> => new TripleGraph(triples)
 
 export const fromArray = <A = Entity.Triple>(triples: ReadonlyArray<A>): TripleGraph<A> =>
   new TripleGraph(Chunk.fromIterable(triples))
-
-export const fromChunk = <A = Entity.Triple>(triples: Chunk.Chunk<A>): TripleGraph<A> => new TripleGraph(triples)
 
 export const of = <A = Entity.Triple>(triple: A): TripleGraph<A> => new TripleGraph(Chunk.of(triple))
 
@@ -185,11 +187,11 @@ export const validateCardinality = <A extends Entity.Triple>(
 ): Effect.Effect<KnowledgeGraph<A>, CardinalityViolation> => Effect.succeed(self)
 
 export const load = <R, E>(
-  loader: Effect.Effect<ReadonlyArray<Entity.Triple>, E, R>
+  loader: Effect.Effect<Chunk.Chunk<Entity.Triple>, E, R>
 ): Effect.Effect<KnowledgeGraph<Entity.Triple>, E, R> =>
   pipe(
     loader,
-    Effect.map(fromArray)
+    Effect.map(fromChunk)
   )
 
 export const loadFromChunk = <R, E>(
