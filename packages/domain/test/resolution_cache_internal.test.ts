@@ -1,5 +1,7 @@
 import { assert, describe, it } from "@effect/vitest"
 import { HashMap, Option, Trie } from "effect"
+import { createEntityUri } from "../src/entity_resolution/Entity.js"
+import type { EntityUri } from "../src/entity_resolution/Entity.js"
 import { Candidate, makeMentionId, Normalized } from "../src/entity_resolution/index.js"
 import {
   _internal_findByType,
@@ -12,8 +14,6 @@ import {
   type CandidatesMap,
   type EntityTrie
 } from "../src/entity_resolution/ResolutionCache.js"
-import { createEntityUri } from "../src/entity_resolution/schemas.js"
-import type { EntityUri } from "../src/entity_resolution/schemas.js"
 import { Span } from "../src/nlp/nlp.js"
 
 describe("Resolution Cache Internal Functions", () => {

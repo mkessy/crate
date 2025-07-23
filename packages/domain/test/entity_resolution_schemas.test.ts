@@ -1,7 +1,5 @@
 import { assert, describe, it } from "@effect/vitest"
 import { DateTime, Effect, Equal, HashMap, Schema } from "effect"
-import { Candidate, Metadata, Normalized } from "../src/entity_resolution/index.js"
-import { makeMentionId, Mention, MentionId, ResolutionStatus } from "../src/entity_resolution/mention/Mention.js"
 import {
   AltName,
   createEntityUri,
@@ -10,7 +8,9 @@ import {
   getMbId,
   hasMbId,
   metaSummary
-} from "../src/entity_resolution/schemas.js"
+} from "../src/entity_resolution/Entity.js"
+import { Candidate, Metadata, Normalized } from "../src/entity_resolution/index.js"
+import { makeMentionId, Mention, MentionId, ResolutionStatus } from "../src/entity_resolution/Mention.js"
 import type { MbArtistId, MbRecordingId } from "../src/knowledge_base/index.js"
 import { EntityType } from "../src/knowledge_base/index.js"
 import { Span } from "../src/nlp/nlp.js"

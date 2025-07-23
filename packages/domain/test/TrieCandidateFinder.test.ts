@@ -1,9 +1,9 @@
 import { describe, expect, it } from "@effect/vitest"
 import { Chunk, DateTime, Effect, Layer, Option, Stream } from "effect"
+import { Candidate, Mention } from "../src/entity_resolution/Entity.js"
 import { CandidateFinder } from "../src/entity_resolution/Method.js"
 import { ResolutionCache } from "../src/entity_resolution/ResolutionCache.js"
 import type { CandidatesMap, EntityTrie } from "../src/entity_resolution/ResolutionCache.js"
-import { Candidate, Mention } from "../src/entity_resolution/schemas.js"
 import { TrieCandidateFinderLive } from "../src/entity_resolution/TrieFinder.js"
 
 describe("TrieCandidateFinder", () => {
