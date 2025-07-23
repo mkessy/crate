@@ -1,7 +1,8 @@
 import type * as TApplicative from "@effect/typeclass/Applicative"
+import type * as TCovariant from "@effect/typeclass/Covariant"
 import type * as TFoldable from "@effect/typeclass/Foldable"
 import type * as TTraversable from "@effect/typeclass/Traversable"
-import { Array, Data, Effect, pipe } from "effect"
+import { Chunk, Data, Effect, pipe } from "effect"
 import { dual } from "effect/Function"
 import type { Kind, TypeLambda } from "effect/HKT"
 import type * as Entity from "./Entity.js"
@@ -24,9 +25,10 @@ export interface KnowledgeGraphTypeLambda extends TypeLambda {
  * @category models
  */
 export interface KnowledgeGraph<A> {
-  readonly triples: ReadonlyArray<A>
+  readonly triples: Chunk.Chunk<A>
 
   // Core typeclass methods
+  map<B>(f: (a: A) => B): KnowledgeGraph<B>
   reduce<B>(b: B, f: (b: B, a: A) => B): B
   traverse<F extends TypeLambda>(
     F: TApplicative.Applicative<F>
@@ -44,15 +46,20 @@ export interface KnowledgeGraph<A> {
  * @category models
  */
 export class TripleGraph<A> implements KnowledgeGraph<A> {
-  constructor(readonly triples: ReadonlyArray<A>) {}
+  constructor(readonly triples: Chunk.Chunk<A>) {}
 
   [Symbol.iterator](): Iterator<A> {
     return this.triples[Symbol.iterator]()
   }
 
+  // --- Functor implementation ---
+  map<B>(f: (a: A) => B): KnowledgeGraph<B> {
+    return new TripleGraph(Chunk.map(this.triples, f))
+  }
+
   // --- Foldable implementation ---
   reduce<B>(b: B, f: (b: B, a: A) => B): B {
-    return Array.reduce(this.triples, b, f)
+    return Chunk.reduce(this.triples, b, f)
   }
 
   // --- Traversable implementation ---
@@ -63,40 +70,51 @@ export class TripleGraph<A> implements KnowledgeGraph<A> {
   ) => Kind<F, R, O, E, KnowledgeGraph<B>> {
     return <R, O, E, B>(f: (a: A) => Kind<F, R, O, E, B>) =>
       pipe(
-        ArrayTraversable.Traversable.traverse(F)(this.triples, f),
-        F.map((newTriples) => new TripleGraph(newTriples) as KnowledgeGraph<B>)
+        ArrayTraversable.Traversable.traverse(F)(Chunk.toReadonlyArray(this.triples), f),
+        F.map((newTriples) => new TripleGraph(Chunk.fromIterable(newTriples)) as KnowledgeGraph<B>)
       )
   }
 
   // --- Graph-specific operations ---
   filter(f: (a: A) => boolean): TripleGraph<A> {
-    return new TripleGraph(Array.filter(this.triples, f))
+    return new TripleGraph(Chunk.filter(this.triples, f))
   }
 }
 
 // --- Constructors ---
 
-export const empty = <A = Entity.Triple>(): TripleGraph<A> => new TripleGraph<A>([])
+export const empty = <A = Entity.Triple>(): TripleGraph<A> => new TripleGraph<A>(Chunk.empty())
 
-export const fromArray = <A = Entity.Triple>(triples: ReadonlyArray<A>): TripleGraph<A> => new TripleGraph(triples)
+export const fromArray = <A = Entity.Triple>(triples: ReadonlyArray<A>): TripleGraph<A> =>
+  new TripleGraph(Chunk.fromIterable(triples))
 
-export const of = <A = Entity.Triple>(triple: A): TripleGraph<A> => new TripleGraph([triple])
+export const fromChunk = <A = Entity.Triple>(triples: Chunk.Chunk<A>): TripleGraph<A> => new TripleGraph(triples)
+
+export const of = <A = Entity.Triple>(triple: A): TripleGraph<A> => new TripleGraph(Chunk.of(triple))
 
 // --- Combinators ---
 
 export const combine = <A>(first: TripleGraph<A>, second: TripleGraph<A>): TripleGraph<A> =>
-  new TripleGraph([...first.triples, ...second.triples])
+  new TripleGraph(Chunk.appendAll(first.triples, second.triples))
 
 export const map = <A, B>(self: TripleGraph<A>, f: (a: A) => B): TripleGraph<B> =>
-  new TripleGraph(Array.map(self.triples, f))
+  new TripleGraph(Chunk.map(self.triples, f))
 
 export const flatMap = <A, B>(
   self: TripleGraph<A>,
   f: (a: A) => TripleGraph<B>
 ): TripleGraph<B> =>
   new TripleGraph(
-    Array.flatMap(self.triples, (a) => f(a).triples)
+    Chunk.flatMap(self.triples, (a) => f(a).triples)
   )
+
+// --- Covariant operations ---
+
+export const as = <A, B>(self: KnowledgeGraph<A>, b: B): KnowledgeGraph<B> => Covariant.map(self, () => b)
+
+export const asVoid = <A>(self: KnowledgeGraph<A>): KnowledgeGraph<void> => as(self, undefined)
+
+export const toArray = <A>(self: KnowledgeGraph<A>): ReadonlyArray<A> => Chunk.toReadonlyArray(self.triples)
 
 // --- Typeclass Instances ---
 
@@ -114,6 +132,29 @@ export const Traversable: TTraversable.Traversable<KnowledgeGraphTypeLambda> = {
         f: (a: A) => Kind<F, R, O, E, B>
       ): Kind<F, R, O, E, KnowledgeGraph<B>> => self.traverse(F)(f)
     )
+}
+
+/**
+ * Get the Covariant instance for KnowledgeGraph
+ * @since 1.0.0
+ * @category instances
+ */
+export const Covariant: TCovariant.Covariant<KnowledgeGraphTypeLambda> = {
+  map: dual(
+    2,
+    <A, B>(
+      self: KnowledgeGraph<A>,
+      f: (a: A) => B
+    ): KnowledgeGraph<B> => self.map(f)
+  ),
+  imap: dual(
+    3,
+    <A, B>(
+      self: KnowledgeGraph<A>,
+      to: (a: A) => B,
+      _from: (b: B) => A
+    ): KnowledgeGraph<B> => self.map(to)
+  )
 }
 
 /**
@@ -149,4 +190,12 @@ export const load = <R, E>(
   pipe(
     loader,
     Effect.map(fromArray)
+  )
+
+export const loadFromChunk = <R, E>(
+  loader: Effect.Effect<Chunk.Chunk<Entity.Triple>, E, R>
+): Effect.Effect<KnowledgeGraph<Entity.Triple>, E, R> =>
+  pipe(
+    loader,
+    Effect.map(fromChunk)
   )
