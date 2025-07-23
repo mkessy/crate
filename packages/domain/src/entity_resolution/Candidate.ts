@@ -1,6 +1,14 @@
-import type { Entity } from "./Entity.js"
+import { Schema } from "effect"
 
-export type Candidate = Pick<
-  Entity,
-  "entity_uri"
->
+const CandidateTypeId = Symbol.for("Candidate")
+export type CandidateTypeId = typeof CandidateTypeId
+
+export const CandidateId = Schema.String.pipe(Schema.brand("CandidateId"))
+
+export class Candidate extends Schema.Class<Candidate>("Candidate")({
+  id: CandidateId
+}, {
+  disableValidation: true
+}) {
+  readonly [CandidateTypeId]: CandidateTypeId = CandidateTypeId
+}

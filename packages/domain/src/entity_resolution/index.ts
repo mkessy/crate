@@ -6,13 +6,12 @@
  * and can be used in both server and web contexts.
  */
 import * as Candidate from "./Candidate.js"
-import * as Entity from "./Entity.js"
+import * as Entity from "./KnowledgeBaseSchema.js"
 import * as Mention from "./Mention.js"
 import * as Predicate from "./Predicate.js"
-import * as Relationship from "./Relationship.js"
 import * as ResolutionContext from "./ResolutionContext.js"
 
-export { Candidate, Entity, Mention, Predicate, Relationship, ResolutionContext }
+export { Candidate, Entity, Mention, Predicate, ResolutionContext }
 export * from "./ResolutionCache.js"
 export * from "./TrieFinder.js"
 export * from "./utils.js"

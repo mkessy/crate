@@ -68,6 +68,18 @@ export const Cardinality = Schema.Union(
  * @since 1.0.0
  * @category models
  */
+export const Many: ManyToMany = ManyToMany.make()
+
+/**
+ * @since 1.0.0
+ * @category models
+ */
+export const One: OneToOne = OneToOne.make()
+
+/**
+ * @since 1.0.0
+ * @category models
+ */
 export type Cardinality = Schema.Schema.Type<typeof Cardinality>
 
 /**

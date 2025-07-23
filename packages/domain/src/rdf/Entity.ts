@@ -10,14 +10,9 @@ import { Cardinality } from "./Cardinality.js"
  * @since 1.0.0
  * @category models
  */
-export const EntityURI = pipe(
-  Schema.String,
-  Schema.brand("EntityURI"),
-  Schema.annotations({
-    identifier: "EntityURI",
-    title: "Entity URI",
-    description: "A valid URI identifying an RDF entity"
-  })
+export const EntityURI = Schema.String.pipe(
+  Schema.trimmed(),
+  Schema.brand("EntityURI")
 )
 
 /**
@@ -28,6 +23,12 @@ export type EntityURI = Schema.Schema.Type<typeof EntityURI>
 
 const EntityTypeId: unique symbol = Symbol.for("RDF/Entity")
 export type EntityTypeId = typeof EntityTypeId
+
+// Helper type to extract entity type from Entity or WithMetadata
+export type ExtractEntityType<E> = E extends Entity | WithMetadata<any> ? E["type"]
+  : E extends (id: string, value: any) => infer R ? R extends WithMetadata<any> & { type: infer T } ? T
+    : never
+  : never
 
 export class Entity extends Schema.Class<Entity>("Entity")({
   id: EntityURI,
@@ -46,6 +47,12 @@ export class Entity extends Schema.Class<Entity>("Entity")({
 
   [Equal.symbol](that: unknown): boolean {
     return (that instanceof Entity) && this.id === that.id && this.type === that.type
+  }
+
+  static MakeClass(type: string): (id: string) => Entity {
+    return (id: string) => {
+      return Entity.make({ id: EntityURI.make(`crate://${type}/${id}`), type })
+    }
   }
 }
 
@@ -80,20 +87,30 @@ export class WithMetadata<A> extends Entity {
     return (that instanceof WithMetadata || that instanceof Entity) &&
       this.id === that.id && this.type === that.type
   }
+
+  static MakeWithMetadataClass<A, T extends string>(props: {
+    readonly type: T
+    readonly schema: Schema.Schema<A>
+  }): (id: string, value: A) => WithMetadata<A> & { type: T } {
+    return (id: string, value: A) => {
+      const val = Schema.decodeUnknownSync(props.schema)(value)
+      return WithMetadata.make({
+        id: EntityURI.make(`crate://${props.type}/${id}`),
+        type: props.type,
+        value: val as A
+      }) as WithMetadata<A> & { type: T }
+    }
+  }
 }
 
 /**
  * @since 1.0.0
  * @category models
  */
-export const PredicateURI = pipe(
-  Schema.String,
-  Schema.brand("PredicateURI"),
-  Schema.annotations({
-    identifier: "Predicate",
-    title: "Predicate URI",
-    description: "A valid URI identifying an RDF predicate"
-  })
+export type PredicateURI = Schema.Schema.Type<typeof PredicateURI>
+export const PredicateURI = Schema.String.pipe(
+  Schema.trimmed(),
+  Schema.brand("PredicateURI")
 )
 
 const PredicateTypeId: unique symbol = Symbol.for("RDF/Predicate")
@@ -103,7 +120,6 @@ export type PredicateTypeId = typeof PredicateTypeId
  * @since 1.0.0
  * @category models
  */
-export type PredicateURI = Schema.Schema.Type<typeof PredicateURI>
 
 export class Predicate extends Schema.Class<Predicate>("Predicate")({
   id: PredicateURI,
@@ -164,14 +180,6 @@ export class Attribute extends Schema.TaggedClass<Attribute>()("Attribute", {
   readonly [AttributeTypeId]: AttributeTypeId = AttributeTypeId
 }
 
-// ============================================================================
-// Triple Metadata
-// ============================================================================
-
-// ============================================================================
-// Triple
-// ============================================================================
-
 const TypeId: unique symbol = Symbol.for("RDF/Triple")
 
 /**
@@ -180,14 +188,16 @@ const TypeId: unique symbol = Symbol.for("RDF/Triple")
  */
 export type TypeId = typeof TypeId
 
-export type TripleURI = Schema.Schema.Type<typeof TripleURI>
+export type TripleURI = Schema.Schema.Encoded<typeof TripleURI>
 export const TripleURI = Schema.TemplateLiteralParser(
   EntityURI,
-  Schema.Literal("/"),
+  "/",
   PredicateURI,
-  Schema.Literal("/"),
+  "/",
   EntityURI
 )
+export const TripleURIMake = (subject: EntityURI, predicate: PredicateURI, object: EntityURI): TripleURI =>
+  Schema.encodeSync(TripleURI)([subject, "/", predicate, "/", object])
 
 export type Direction = Schema.Schema.Type<typeof Direction>
 export const Direction = Schema.Union(Schema.Literal("forward"), Schema.Literal("reverse"))
@@ -228,8 +238,8 @@ export class Triple extends Schema.TaggedClass<Triple>()("Triple", {
       this.direction === that.direction
   }
 
-  getId(): TripleURI {
-    return this.id
+  getId(): string {
+    return Schema.encodeSync(TripleURI)(this.id)
   }
 
   getSubject(): Entity | WithMetadata<Any> {
@@ -242,10 +252,6 @@ export class Triple extends Schema.TaggedClass<Triple>()("Triple", {
 
   getObject(): Entity | WithMetadata<Any> {
     return this.object
-  }
-
-  Id(): TripleURI {
-    return Schema.decodeUnknownSync(TripleURI)(`${this.subject.id}/${this.predicate.id}/${this.object.id}`)
   }
 
   static Make(params: {

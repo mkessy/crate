@@ -1,5 +1,6 @@
 import { ParseResult, Schema } from "effect"
 import { KexpTrackPlay } from "../kexp/schemas.js"
+import * as RDF from "../rdf/Entity.js"
 
 export const EntityType = Schema.Literal(
   "recording",
@@ -40,10 +41,11 @@ export type MbGenreId = Schema.Schema.Type<typeof MbGenreId>
 export const MbWorkId = Schema.String.pipe(Schema.brand("mb_work_id"))
 export type MbWorkId = Schema.Schema.Type<typeof MbWorkId>
 
+// Use RDF EntityURI instead of custom EntityUri
+export type EntityUri = RDF.EntityURI
+export const EntityUri = RDF.EntityURI
 export const EntityUriPrefix = Schema.Literal("crate://")
 export type EntityUriPrefix = Schema.Schema.Type<typeof EntityUriPrefix>
-export type EntityUri = Schema.Schema.Type<typeof EntityUri>
-export const EntityUri = Schema.String.pipe(Schema.brand("EntityUri"))
 
 // --- Entity URI Template Literal Parser ---
 export const EntityUriParser = Schema.TemplateLiteralParser(
@@ -68,11 +70,14 @@ export type EntityUriParser = Schema.Schema.Type<typeof EntityUriParser>
 
 // Helper functions to create entity URIs using the parser
 export const createEntityUri = (entityType: EntityType, id: string): EntityUri =>
-  EntityUri.make(Schema.encodeSync(EntityUriParser)(["crate://", entityType, "/", id] as const))
+  RDF.EntityURI.make(`crate://${entityType}/${id}`)
 
-// Base entity shape
+
+// Base entity shape extending RDF Entity
 export const BaseEntity = Schema.Struct({
-  entity_uri: EntityUri,
+  id: EntityUri, // Use RDF EntityURI as id
+  type: Schema.String, // Keep type from RDF Entity
+  entity_uri: EntityUri, // Our legacy field for compatibility
   name: Schema.String,
   metadata: Schema.NullOr(Schema.String),
   kexp_play_id: Schema.NullOr(Schema.Int)
@@ -80,59 +85,67 @@ export const BaseEntity = Schema.Struct({
 
 // --- Entity Schemas ---
 
-// RecordingEntity schema
+// RecordingEntity schema extending RDF Entity
 export const RecordingEntity = Schema.TaggedStruct("recording", {
   ...BaseEntity.fields,
+  type: Schema.Literal("recording"), // Override RDF Entity type
   release_date: Schema.NullOr(Schema.String)
 })
 export type RecordingEntity = Schema.Schema.Type<typeof RecordingEntity>
 export const isRecordingEntity = Schema.is(RecordingEntity)
 
-// ReleaseEntity schema
+// ReleaseEntity schema extending RDF Entity
 export const ReleaseEntity = Schema.TaggedStruct("release", {
-  ...BaseEntity.fields
+  ...BaseEntity.fields,
+  type: Schema.Literal("release") // Override RDF Entity type
 })
 export type ReleaseEntity = Schema.Schema.Type<typeof ReleaseEntity>
 export const isReleaseEntity = Schema.is(ReleaseEntity)
 
-// ReleaseGroupEntity schema
+// ReleaseGroupEntity schema extending RDF Entity
 export const ReleaseGroupEntity = Schema.TaggedStruct("release_group", {
-  ...BaseEntity.fields
+  ...BaseEntity.fields,
+  type: Schema.Literal("release_group") // Override RDF Entity type
 })
 export type ReleaseGroupEntity = Schema.Schema.Type<typeof ReleaseGroupEntity>
 export const isReleaseGroupEntity = Schema.is(ReleaseGroupEntity)
 
-// WorkEntity schema
-export type WorkEntity = Schema.Schema.Type<typeof WorkEntity>
+// WorkEntity schema extending RDF Entity
 export const WorkEntity = Schema.TaggedStruct("work", {
-  ...BaseEntity.fields
+  ...BaseEntity.fields,
+  type: Schema.Literal("work") // Override RDF Entity type
 })
+export type WorkEntity = Schema.Schema.Type<typeof WorkEntity>
 export const isWorkEntity = Schema.is(WorkEntity)
 
-// LabelEntity schema
-export type LabelEntity = Schema.Schema.Type<typeof LabelEntity>
+// LabelEntity schema extending RDF Entity
 export const LabelEntity = Schema.TaggedStruct("label", {
-  ...BaseEntity.fields
+  ...BaseEntity.fields,
+  type: Schema.Literal("label") // Override RDF Entity type
 })
+export type LabelEntity = Schema.Schema.Type<typeof LabelEntity>
 export const isLabelEntity = Schema.is(LabelEntity)
 
-// AreaEntity schema
-export type AreaEntity = Schema.Schema.Type<typeof AreaEntity>
+// AreaEntity schema extending RDF Entity
 export const AreaEntity = Schema.TaggedStruct("area", {
-  ...BaseEntity.fields
+  ...BaseEntity.fields,
+  type: Schema.Literal("area") // Override RDF Entity type
 }).pipe(Schema.omit("kexp_play_id"))
+export type AreaEntity = Schema.Schema.Type<typeof AreaEntity>
 export const isAreaEntity = Schema.is(AreaEntity)
 
-// GenreEntity schema
+// GenreEntity schema extending RDF Entity
 export const GenreEntity = Schema.TaggedStruct("genre", {
-  ...BaseEntity.fields
+  ...BaseEntity.fields,
+  type: Schema.Literal("genre") // Override RDF Entity type
 }).pipe(Schema.omit("kexp_play_id"))
 export type GenreEntity = Schema.Schema.Type<typeof GenreEntity>
 export const isGenreEntity = Schema.is(GenreEntity)
 
-// PlayEntity schema
+// PlayEntity schema extending RDF Entity
 export const PlayEntity = Schema.TaggedStruct("play", {
   ...BaseEntity.fields,
+  type: Schema.Literal("play"), // Override RDF Entity type
   airdate: Schema.String,
   release_date: Schema.NullOr(Schema.String),
   song: Schema.String,
@@ -145,10 +158,13 @@ export const PlayEntity = Schema.TaggedStruct("play", {
 })
 
 export const PlayEntityFromKexpPlay = Schema.transformOrFail(KexpTrackPlay, PlayEntity, {
-  decode: (play) =>
-    ParseResult.succeed(PlayEntity.make({
+  decode: (play) => {
+    const entityUri = createEntityUri("play", String(play.id))
+    return ParseResult.succeed(PlayEntity.make({
       _tag: "play",
-      entity_uri: createEntityUri("play", String(play.id)),
+      id: entityUri,
+      type: "play",
+      entity_uri: entityUri,
       name: play.song ?? "[Unknown]",
       metadata: null,
       airdate: play.airdate,
@@ -161,8 +177,9 @@ export const PlayEntityFromKexpPlay = Schema.transformOrFail(KexpTrackPlay, Play
       is_live: play.is_live,
       is_request: play.is_request,
       kexp_play_id: play.id
-    })),
-  encode: (play, ast, domain) => {
+    }))
+  },
+  encode: (_play, _ast, domain) => {
     return ParseResult.fail(
       new ParseResult.Forbidden(
         domain,
@@ -174,9 +191,10 @@ export const PlayEntityFromKexpPlay = Schema.transformOrFail(KexpTrackPlay, Play
 export type PlayEntity = Schema.Schema.Type<typeof PlayEntity>
 export const isPlayEntity = Schema.is(PlayEntity)
 
-// ArtistEntity schema
+// ArtistEntity schema extending RDF Entity
 export const ArtistEntity = Schema.TaggedStruct("artist", {
   ...BaseEntity.fields,
+  type: Schema.Literal("artist"), // Override RDF Entity type
   disambiguation: Schema.NullOr(Schema.String),
   aliases: Schema.Array(Schema.String),
   artist_type: Schema.Literal("person", "group", "orchestra", "choir", "character", "other"),
