@@ -1,6 +1,6 @@
 import { Array, Effect, HashMap, Option, pipe, Trie } from "effect"
-import type { Candidate, Score } from "./Candidate.js"
-import type { EntityUri } from "./schemas.js"
+import type { Candidate } from "./Candidate.js"
+import type { Entity, EntityUri } from "./Entity.js"
 import { normalize, normalizeAndGenerateNGrams } from "./utils.js"
 
 /**
@@ -13,7 +13,7 @@ export type EntityTrie = Trie.Trie<ReadonlyArray<EntityUri>>
  * Type alias for the candidates HashMap used in the resolution cache.
  * Maps EntityUris to their full Candidate metadata.
  */
-export type CandidatesMap = HashMap.HashMap<EntityUri, Candidate<Score>>
+export type EntityMap = HashMap.HashMap<EntityUri, Entity>
 
 /**
  * ResolutionCache service interface.
@@ -32,14 +32,14 @@ export class ResolutionCache extends Effect.Tag("EntityResolution/ResolutionCach
      */
     readonly lookupExact: (
       term: string
-    ) => Option.Option<ReadonlyArray<Candidate<Score>>>
+    ) => Option.Option<ReadonlyArray<Candidate>>
 
     /**
      * The primary search function for finding all potential candidates for a raw query string.
      * It handles normalization and n-gram generation internally.
      * @returns A `ReadonlyArray<Candidate>` containing a deduplicated list of all candidates found for any n-gram in the query.
      */
-    readonly search: (query: string) => ReadonlyArray<Candidate<Score>>
+    readonly search: (query: string) => ReadonlyArray<Candidate>
 
     /**
      * Provides auto-complete suggestions for a given search prefix.
@@ -48,13 +48,13 @@ export class ResolutionCache extends Effect.Tag("EntityResolution/ResolutionCach
     readonly suggest: (
       prefix: string,
       limit?: number
-    ) => ReadonlyArray<Candidate<Score>>
+    ) => ReadonlyArray<Candidate>
 
     /**
      * Retrieves a single, full Candidate object directly by its URI.
      * @returns An `Option<Candidate>` if the URI exists in the cache.
      */
-    readonly get: (uri: EntityUri) => Option.Option<Candidate<Score>>
+    readonly get: (uri: EntityUri) => Option.Option<Candidate>
 
     /**
      * Get statistics about the cache contents.
@@ -70,7 +70,7 @@ export class ResolutionCache extends Effect.Tag("EntityResolution/ResolutionCach
      * Find all candidates for a specific entity type.
      * Useful for filtering results by type (e.g., only artists or only recordings).
      */
-    readonly findByType: (type: string) => ReadonlyArray<Candidate<Score>>
+    readonly findByType: (type: string) => ReadonlyArray<Candidate>
   }
 >() {}
 
@@ -86,9 +86,9 @@ export class ResolutionCache extends Effect.Tag("EntityResolution/ResolutionCach
  */
 export const _internal_lookupExact = (
   trie: EntityTrie,
-  candidates: CandidatesMap,
+  candidates: EntityMap,
   term: string
-): Option.Option<ReadonlyArray<Candidate<Score>>> =>
+): Option.Option<ReadonlyArray<Candidate>> =>
   pipe(
     // Look up the term in the Trie to get entity URIs
     Trie.get(trie, term),
@@ -115,9 +115,9 @@ export const _internal_lookupExact = (
  */
 export const _internal_search = (
   trie: EntityTrie,
-  candidates: CandidatesMap,
+  candidates: EntityMap,
   query: string
-): ReadonlyArray<Candidate<Score>> =>
+): ReadonlyArray<Candidate> =>
   pipe(
     // Generate all n-grams from the normalized query
     normalizeAndGenerateNGrams(query),
@@ -126,7 +126,7 @@ export const _internal_search = (
       pipe(
         _internal_lookupExact(trie, candidates, ngram),
         // Convert Option<ReadonlyArray<Candidate>> to ReadonlyArray<Candidate>
-        Option.getOrElse(() => [] as ReadonlyArray<Candidate<Score>>)
+        Option.getOrElse(() => [] as ReadonlyArray<Candidate>)
       )
     ),
     // Remove duplicates based on structural equality (via Data.case)
@@ -144,10 +144,10 @@ export const _internal_search = (
  */
 export const _internal_suggest = (
   trie: EntityTrie,
-  candidates: CandidatesMap,
+  candidates: EntityMap,
   prefix: string,
   limit: number = 10
-): ReadonlyArray<Candidate<Score>> => {
+): ReadonlyArray<Candidate> => {
   const normalizedPrefix = normalize(prefix)
 
   // Get all values with the given prefix
@@ -180,9 +180,9 @@ export const _internal_suggest = (
  * @returns An Option containing the Candidate if found
  */
 export const _internal_get = (
-  candidates: CandidatesMap,
+  candidates: EntityMap,
   uri: EntityUri
-): Option.Option<Candidate<Score>> => HashMap.get(candidates, uri)
+): Option.Option<Candidate> => HashMap.get(candidates, uri)
 
 /**
  * Enhanced suggestion function that returns candidates sorted by relevance.
@@ -196,18 +196,18 @@ export const _internal_get = (
  */
 export const _internal_suggestWithRanking = (
   trie: EntityTrie,
-  candidates: CandidatesMap,
+  candidates: EntityMap,
   prefix: string,
   limit: number = 10
-): ReadonlyArray<Candidate<Score>> => {
+): ReadonlyArray<Candidate> => {
   const normalizedPrefix = normalize(prefix)
 
   // Get all entries (key-value pairs) with the given prefix
   const entriesIterator = Trie.entriesWithPrefix(trie, normalizedPrefix)
 
   // Separate exact matches from prefix matches
-  const exactMatches: Array<Candidate<Score>> = []
-  const prefixMatches: Array<Candidate<Score>> = []
+  const exactMatches: Array<Candidate> = []
+  const prefixMatches: Array<Candidate> = []
 
   for (const [key, uriArray] of entriesIterator) {
     const isExactMatch = key === normalizedPrefix
@@ -240,7 +240,7 @@ export const _internal_suggestWithRanking = (
  */
 export const _internal_getStats = (
   trie: EntityTrie,
-  candidates: CandidatesMap
+  candidates: EntityMap
 ): {
   readonly trieKeys: number
   readonly candidates: number
@@ -271,11 +271,11 @@ export const _internal_getStats = (
  * @returns An array of candidates of the specified type
  */
 export const _internal_findByType = (
-  candidates: CandidatesMap,
+  candidates: EntityMap,
   type: string
-): ReadonlyArray<Candidate<Score>> =>
+): ReadonlyArray<Candidate> =>
   pipe(
     HashMap.values(candidates),
     Array.fromIterable,
-    Array.filter((candidate) => candidate.entityType === type)
+    Array.filter((candidate) => candidate.entity_uri.startsWith(type)) // TODO: use EntityType
   )

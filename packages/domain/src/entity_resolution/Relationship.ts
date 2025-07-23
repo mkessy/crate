@@ -1,41 +1,67 @@
 import { ParseResult, Schema } from "effect"
-import { createEntityUri } from "../entity_resolution/index.js"
-import { PredicateType } from "../entity_resolution/predicate.js"
-import { EntityResolution } from "../index.js"
+import {
+  createEntityUri,
+  EntityType,
+  EntityUriPrefix,
+  MbAreaId,
+  MbArtistId,
+  MbGenreId,
+  MbLabelId,
+  MbRecordingId,
+  MbReleaseGroupId,
+  MbReleaseId,
+  MbWorkId,
+  NonArtistEntity
+} from "./Entity.js"
+import { PredicateType } from "./Predicate.js"
 
-// Artist entity
-export const Artist = Schema.Struct({
-  mb_id: Schema.String,
-  name: Schema.String,
-  type: Schema.Literal("artist"),
-  disambiguation: Schema.NullOr(Schema.String),
-  sort_name: Schema.NullOr(Schema.String),
-  artist_type: Schema.NullOr(Schema.String),
-  gender: Schema.NullOr(Schema.String),
-  country: Schema.NullOr(Schema.String),
-  begin_date: Schema.NullOr(Schema.String),
-  end_date: Schema.NullOr(Schema.String),
-  ended: Schema.NullOr(Schema.Boolean),
-  created_at: Schema.DateTimeUtc,
-  updated_at: Schema.DateTimeUtc
-})
-export type Artist = Schema.Schema.Type<typeof Artist>
-export const isArtist = Schema.is(Artist)
+export const RelationsUriParser = Schema.TemplateLiteralParser(
+  EntityUriPrefix,
+  Schema.Literal("rel"),
+  Schema.Literal("/"),
+  EntityType,
+  Schema.Literal("/"),
+  Schema.Union(
+    MbArtistId,
+    MbRecordingId,
+    MbReleaseId,
+    MbGenreId,
+    MbReleaseGroupId,
+    MbWorkId,
+    MbLabelId,
+    MbAreaId,
+    Schema.String
+  ),
+  Schema.Literal("/"),
+  PredicateType,
+  Schema.Literal("/"),
+  EntityType,
+  Schema.Literal("/"),
+  Schema.Union(
+    MbArtistId,
+    MbRecordingId,
+    MbReleaseId,
+    MbGenreId,
+    MbReleaseGroupId,
+    MbWorkId,
+    MbLabelId,
+    MbAreaId,
+    Schema.String
+  )
+)
+export type RelationsUriParser = Schema.Schema.Type<typeof RelationsUriParser>
 
-// =============================================
-// Relationship Types
-// =============================================
-
-// Predicate types from MusicBrainz relationships
+export type RelationsUri = Schema.Schema.Type<typeof RelationsUri>
+export const RelationsUri = Schema.String.pipe(Schema.brand("RelationsUri"))
 
 // Relationship between entities
 export const Relationship = Schema.Struct({
   subject_id: Schema.String,
-  subject_type: EntityResolution.EntityType,
+  subject_type: EntityType,
   subject_name: Schema.String,
   predicate: PredicateType,
   object_id: Schema.String,
-  object_type: EntityResolution.EntityType,
+  object_type: EntityType,
   object_name: Schema.String,
   attribute_type: Schema.NullOr(Schema.String),
   source: Schema.Literal("musicbrainz", "kexp"),
@@ -46,16 +72,18 @@ export type Relationship = Schema.Schema.Type<typeof Relationship>
 export type NonArtistRelationship = Schema.Schema.Type<typeof NonArtistRelationship>
 export const NonArtistRelationship = Schema.Struct({
   ...Relationship.fields,
-  object_type: EntityResolution.EntityType.pipe(
+  object_type: EntityType.pipe(
     Schema.pickLiteral("recording", "release", "release_group", "work", "label", "area", "genre")
   )
 })
 
+export type ArtistRelationship = Schema.Schema.Type<typeof ArtistRelationship>
 export const ArtistRelationship = Schema.Struct({
   ...Relationship.fields,
   subject_type: Schema.Literal("artist")
 }).pipe(Schema.brand("Relationship/Artist"))
 
+export type RecordingRelationship = Schema.Schema.Type<typeof RecordingRelationship>
 export const RecordingRelationship = Schema.Struct({
   ...Relationship.fields,
   object_type: Schema.Literal("recording")
@@ -67,8 +95,6 @@ export const ArtistRecordingRelationship = Schema.Struct({
   subject_type: Schema.Literal("artist"),
   object_type: Schema.Literal("recording")
 }).pipe(Schema.brand("Relationship/ArtistRecording"))
-
-const { NonArtistEntity } = EntityResolution
 
 export const EntityFromNonArtistRelationship = Schema.transformOrFail(
   NonArtistRelationship,
@@ -91,7 +117,7 @@ export const EntityFromNonArtistRelationship = Schema.transformOrFail(
         new ParseResult.Forbidden(
           ast,
           domain,
-          "Cannot encode to persisted shape from domain shape"
+          "Cannot encode relationship from entity"
         )
       )
     }

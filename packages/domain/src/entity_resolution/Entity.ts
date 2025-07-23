@@ -1,7 +1,4 @@
 import { ParseResult, Schema } from "effect"
-import type { Relationship } from "../knowledge_base/types.js"
-import { PredicateType } from "./predicate.js"
-
 import { KexpTrackPlay } from "../kexp/schemas.js"
 
 export const EntityType = Schema.Literal(
@@ -67,65 +64,10 @@ export const EntityUriParser = Schema.TemplateLiteralParser(
 )
 export type EntityUriParser = Schema.Schema.Type<typeof EntityUriParser>
 
-// crate://rel//artist_id/predicate/object_type/object_id
-export const RelationsUriParser = Schema.TemplateLiteralParser(
-  EntityUriPrefix,
-  Schema.Literal("rel"),
-  Schema.Literal("/"),
-  EntityType,
-  Schema.Literal("/"),
-  Schema.Union(
-    MbArtistId,
-    MbRecordingId,
-    MbReleaseId,
-    MbGenreId,
-    MbReleaseGroupId,
-    MbWorkId,
-    MbLabelId,
-    MbAreaId,
-    Schema.String
-  ),
-  Schema.Literal("/"),
-  PredicateType,
-  Schema.Literal("/"),
-  EntityType,
-  Schema.Literal("/"),
-  Schema.Union(
-    MbArtistId,
-    MbRecordingId,
-    MbReleaseId,
-    MbGenreId,
-    MbReleaseGroupId,
-    MbWorkId,
-    MbLabelId,
-    MbAreaId,
-    Schema.String
-  )
-)
-export type RelationsUriParser = Schema.Schema.Type<typeof RelationsUriParser>
-
-// === Artist Cache View ===
-
-export const createRelationsUri = (relation: Relationship): string =>
-  Schema.encodeSync(RelationsUriParser)(
-    [
-      "crate://",
-      "rel",
-      "/",
-      relation.subject_type,
-      "/",
-      relation.subject_id,
-      "/",
-      relation.predicate,
-      "/",
-      relation.object_type,
-      "/",
-      relation.object_id
-    ] as const
-  )
+// crate://rel/<subj_entity_type>/<subj_id>/<predicate>/<obj_entity_type>/<obj_id>
 
 // Helper functions to create entity URIs using the parser
-export const createEntityUri = (entityType: EntityType, id: string) =>
+export const createEntityUri = (entityType: EntityType, id: string): EntityUri =>
   EntityUri.make(Schema.encodeSync(EntityUriParser)(["crate://", entityType, "/", id] as const))
 
 // Base entity shape
@@ -262,6 +204,7 @@ export const NonArtistEntity = Schema.Union(
   Schema.Data(GenreEntity)
 )
 
+export type Entity = Schema.Schema.Type<typeof Entity>
 export const Entity = Schema.Union(Schema.Data(PlayEntity), Schema.Data(ArtistEntity), NonArtistEntity)
 
 export const HashsetNonArtistEntity = NonArtistEntity.pipe(Schema.HashSet)

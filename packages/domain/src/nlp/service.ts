@@ -1,6 +1,6 @@
 import type { Brand, Effect } from "effect"
 import { Context } from "effect"
-import type { AnalyzedText } from "./nlp.js"
+import type { ParsedText } from "./nlp.js"
 
 // THIS IS THE CORRECTION:
 // WinkDoc is now a branded `unknown`, making it a truly opaque type.
@@ -15,7 +15,7 @@ export class Nlp extends Context.Tag("NLP")<
   Nlp,
   {
     /** Processes raw text into sentences, tokens, and mentions */
-    readonly processText: (text: string) => Effect.Effect<AnalyzedText>
+    readonly processText: (text: string) => Effect.Effect<ParsedText>
     /** Extracts `Token` objects from the opaque document. */
     // readonly extractTokens: (doc: WinkDoc) => Effect.Effect<ReadonlyArray<Token>>
 
