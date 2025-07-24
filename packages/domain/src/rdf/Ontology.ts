@@ -1,10 +1,11 @@
-import { Context, Data, Effect, HashMap, Layer, Option } from "effect"
+import { Console, Context, Data, Effect, HashMap, Layer, Option } from "effect"
 import type { Attribute, AttributeId } from "./Entity.js"
 import { Entity, EntityType, EntityUri, WithMetadata } from "./Entity.js"
 import { PredicateSignature } from "./Predicate.js"
 import type { Predicate, PredicateUri } from "./Predicate.js"
 import type { ParsedSchema, SourceSchema } from "./SchemaTransform.js"
 import { parseMultipleSchemas } from "./SchemaTransform.js"
+import { visualizeOntology } from "./Visualize.js"
 
 // ============================================================================
 // Domain Errors
@@ -18,46 +19,68 @@ export class UnknownPredicateError extends Data.TaggedError("UnknownPredicateErr
   readonly predicateId: string
 }> {}
 
+const OntologyTypeId: unique symbol = Symbol.for("RDF/Ontology")
+export type OntologyTypeId = typeof OntologyTypeId
+
 // ============================================================================
-// Ontology Service
+// Ontology Service with toString
 // ============================================================================
+
+export interface IOntology {
+  readonly entityFactories: HashMap.HashMap<string, (id: string) => Entity | WithMetadata<any>>
+  readonly entityWithMetadataFactories: HashMap.HashMap<string, <A>(id: string, value: A) => WithMetadata<A>>
+  readonly predicates: HashMap.HashMap<string, Predicate>
+  readonly attributes: HashMap.HashMap<string, Attribute>
+  readonly predicateHierarchy: HashMap.HashMap<PredicateUri, ReadonlySet<PredicateUri>>
+  readonly predicatesBySourceEntity: HashMap.HashMap<string, ReadonlyArray<Predicate>>
+  readonly predicatesByTargetEntity: HashMap.HashMap<string, ReadonlyArray<Predicate>>
+
+  // Formal ontology functions from O = (T, P, A, δ, π, ≺)
+  readonly predicateSignatures: HashMap.HashMap<PredicateUri, PredicateSignature> // δ function
+  readonly predicateAttributes: HashMap.HashMap<PredicateUri, ReadonlySet<AttributeId>> // π function
+
+  // Helper methods
+  readonly getPredicateDescendants: (predicateId: PredicateUri) => ReadonlySet<PredicateUri> // ≺ hierarchy
+  readonly createEntity: <T extends EntityType>(type: T, id: string) => Effect.Effect<Entity, UnknownEntityTypeError>
+  readonly createEntityWithMetadata: <T extends EntityType, A>(
+    type: T,
+    id: string,
+    value: A
+  ) => Effect.Effect<WithMetadata<A>, UnknownEntityTypeError>
+  readonly getPredicatesForEntityPair: (sourceType: string, targetType: string) => ReadonlyArray<Predicate>
+
+  // Formal ontology query functions
+  readonly getPredicateSignature: (predicateId: PredicateUri) => Option.Option<PredicateSignature> // δ(p)
+  readonly getPredicateSignatures: () => ReadonlyArray<PredicateSignature>
+
+  readonly getPredicateAttributes: (predicateId: PredicateUri) => ReadonlySet<AttributeId> // π(p)
+  readonly getAttributes: () => ReadonlyArray<Attribute>
+
+  // Visualization methods
+  readonly toString: (ontology: IOntology) => string
+  readonly toFormalString: (ontology: IOntology) => string
+  readonly toPrettyString: (
+    ontology: IOntology,
+    options?: { width?: number; style?: "compact" | "formal" | "summary" }
+  ) => string
+
+  // Query functions
+  readonly getEntityTypes: () => ReadonlyArray<EntityType>
+  readonly getPredicateTypes: () => ReadonlyArray<Predicate>
+}
 
 // Represents the formal structure of our knowledge base with live implementation
 export class Ontology extends Context.Tag("Ontology")<
   Ontology,
-  {
-    readonly entityFactories: HashMap.HashMap<string, (id: string) => Entity | WithMetadata<any>>
-    readonly entityWithMetadataFactories: HashMap.HashMap<string, <A>(id: string, value: A) => WithMetadata<A>>
-    readonly predicates: HashMap.HashMap<string, Predicate>
-    readonly attributes: HashMap.HashMap<string, Attribute>
-    readonly predicateHierarchy: HashMap.HashMap<PredicateUri, ReadonlySet<PredicateUri>>
-    readonly predicatesBySourceEntity: HashMap.HashMap<string, ReadonlyArray<Predicate>>
-    readonly predicatesByTargetEntity: HashMap.HashMap<string, ReadonlyArray<Predicate>>
-
-    // Formal ontology functions from O = (T, P, A, δ, π, ≺)
-    readonly predicateSignatures: HashMap.HashMap<PredicateUri, PredicateSignature> // δ function
-    readonly predicateAttributes: HashMap.HashMap<PredicateUri, ReadonlySet<AttributeId>> // π function
-
-    // Helper methods
-    readonly getPredicateDescendants: (predicateId: PredicateUri) => ReadonlySet<PredicateUri> // ≺ hierarchy
-    readonly createEntity: <T extends EntityType>(type: T, id: string) => Effect.Effect<Entity, UnknownEntityTypeError>
-    readonly createEntityWithMetadata: <T extends EntityType, A>(
-      type: T,
-      id: string,
-      value: A
-    ) => Effect.Effect<WithMetadata<A>, UnknownEntityTypeError>
-    readonly getPredicatesForEntityPair: (sourceType: string, targetType: string) => ReadonlyArray<Predicate>
-
-    // Formal ontology query functions
-    readonly getPredicateSignature: (predicateId: PredicateUri) => Option.Option<PredicateSignature> // δ(p)
-    readonly getPredicateAttributes: (predicateId: PredicateUri) => ReadonlySet<AttributeId> // π(p)
-  }
->() {}
+  IOntology
+>() {
+  readonly [OntologyTypeId]: OntologyTypeId = OntologyTypeId
+}
 
 /**
  * Build ontology implementation from parsed schema using functional operations
  */
-const buildOntologyFromParsed = (parsed: ParsedSchema) => {
+const fromSchemaJson = (parsed: ParsedSchema): IOntology => {
   // Create entity factory functions using map
   const entityFactories = HashMap.map(parsed.entities, (entity) => Entity.MakeClass(entity.type))
 
@@ -193,7 +216,10 @@ const buildOntologyFromParsed = (parsed: ParsedSchema) => {
 
   return {
     entityFactories,
-    entityWithMetadataFactories,
+    entityWithMetadataFactories: entityWithMetadataFactories as HashMap.HashMap<
+      string,
+      <A>(id: string, value: A) => WithMetadata<A>
+    >,
     predicates: parsed.predicates,
     attributes: parsed.attributes,
     predicateHierarchy,
@@ -206,7 +232,23 @@ const buildOntologyFromParsed = (parsed: ParsedSchema) => {
     createEntityWithMetadata,
     getPredicatesForEntityPair,
     getPredicateSignature,
-    getPredicateAttributes
+    getPredicateAttributes,
+    getEntityTypes: () => Array.from(HashMap.keys(parsed.entities)) as unknown as ReadonlyArray<EntityType>,
+    getPredicateTypes: () => Array.from(HashMap.keys(parsed.predicates)) as unknown as ReadonlyArray<Predicate>,
+    getPredicateSignatures: () => Array.from(HashMap.values(predicateSignatures)),
+    getAttributes: () => Array.from(HashMap.values(parsed.attributes)),
+    toFormalString: (ontology: IOntology) => visualizeOntology(100)(ontology),
+    toPrettyString: (ontology: IOntology, options = {}) => {
+      const { style = "compact", width = 80 } = options
+      switch (style) {
+        case "formal":
+          return visualizeOntology(width)(ontology)
+        case "summary":
+          return visualizeOntology(width)(ontology).split("\n").slice(0, 20).join("\n") + "\n..."
+        default:
+          return visualizeOntology(width)(ontology)
+      }
+    }
   }
 }
 
@@ -230,8 +272,10 @@ export const Make = (schemas: ReadonlyArray<SourceSchema>): Layer.Layer<Ontology
         predicates: predicatesMap,
         predicatesBySourceEntity: predicatesBySourceEntityMap,
         predicatesByTargetEntity: predicatesByTargetEntityMap
-      } = buildOntologyFromParsed(parsed)
-      return Ontology.of({
+      } = fromSchemaJson(parsed)
+
+      // Create the ontology instance for visualization
+      const ontologyInstance = {
         attributes: attributesMap,
         entityFactories: entityFactoriesMap,
         entityWithMetadataFactories: entityWithMetadataFactoriesMap as HashMap.HashMap<
@@ -244,6 +288,7 @@ export const Make = (schemas: ReadonlyArray<SourceSchema>): Layer.Layer<Ontology
         predicatesByTargetEntity: predicatesByTargetEntityMap,
         predicateAttributes: predicateAttributesMap,
         predicateSignatures: predicateSignaturesMap,
+        entities: parsed.entities,
         getPredicateDescendants: (predicateId: PredicateUri) => {
           return HashMap.get(predicateHierarchyMap, predicateId).pipe(
             Option.getOrElse(() => new Set()),
@@ -274,8 +319,61 @@ export const Make = (schemas: ReadonlyArray<SourceSchema>): Layer.Layer<Ontology
           )
         },
         getPredicateSignature,
-        getPredicateAttributes
+        getPredicateAttributes,
+        getAttributes: () => Array.from(HashMap.values(attributesMap)),
+        getPredicateSignatures: () => Array.from(HashMap.values(predicateSignaturesMap)),
+        getEntityTypes: () => Array.from(HashMap.keys(parsed.entities)) as unknown as ReadonlyArray<EntityType>,
+        getPredicateTypes: () => Array.from(HashMap.keys(parsed.predicates)) as unknown as ReadonlyArray<Predicate>
+      }
+
+      return Ontology.of({
+        ...ontologyInstance,
+        toString: (ontology: IOntology) => visualizeOntology(80)(ontology),
+        toFormalString: (ontology: IOntology) => visualizeOntology(100)(ontology),
+        toPrettyString: (ontology: IOntology, options = {}) => {
+          const { style = "compact", width = 80 } = options
+          switch (style) {
+            case "formal":
+              return visualizeOntology(width)(ontology)
+            case "summary":
+              return visualizeOntology(width)(ontology).split("\n").slice(0, 20).join("\n") + "\n..."
+            default:
+              return visualizeOntology(width)(ontology)
+          }
+        }
       })
     })
   )
 }
+
+// ============================================================================
+// Convenience Functions
+// ============================================================================
+
+/**
+ * Print the ontology to console
+ * @since 1.0.0
+ */
+export const printOntology = Effect.gen(function*() {
+  const ontology = yield* Ontology
+  yield* Console.log(ontology.toString(ontology))
+})
+
+/**
+ * Print formal mathematical structure
+ * @since 1.0.0
+ */
+export const printFormalStructure = Effect.gen(function*() {
+  const ontology = yield* Ontology
+  yield* Console.log(ontology.toFormalString(ontology))
+})
+
+/**
+ * Get a string representation of the ontology
+ * @since 1.0.0
+ */
+export const getOntologyString = (style: "compact" | "formal" | "summary" = "compact") =>
+  Effect.gen(function*() {
+    const ontology = yield* Ontology
+    return ontology.toPrettyString(ontology, { style })
+  })
