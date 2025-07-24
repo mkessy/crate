@@ -1,33 +1,25 @@
 import { Cardinality } from "./Cardinality.js"
-import type { AttributeTypeId, PredicateGroupingTypeId, PredicateTypeId } from "./Entity.js"
-import {
-  Attribute,
-  AttributeId,
-  Direction,
-  Entity,
-  EntityUri,
-  Predicate,
-  PredicateGrouping,
-  PredicateURI,
-  Triple,
-  TripleURI,
-  WithMetadata
-} from "./Entity.js"
+import type { AttributeTypeId } from "./Entity.js"
+import { Attribute, AttributeId, Entity, EntityUri, WithMetadata } from "./Entity.js"
 import * as KnowledgeGraph from "./KnowledgeGraph.js"
+import type { PredicateGroupingTypeId, PredicateTypeId } from "./Predicate.js"
+import { Predicate, PredicateGrouping, PredicateUri } from "./Predicate.js"
+import * as SchemaTransform from "./SchemaTransform.js"
+import { Triple, TripleUri } from "./Triple.js"
 
 export {
   Attribute,
   AttributeId,
   Cardinality,
-  Direction,
   Entity,
   EntityUri,
   KnowledgeGraph,
   Predicate,
   PredicateGrouping,
-  PredicateURI,
+  PredicateUri,
+  SchemaTransform,
   Triple,
-  TripleURI,
+  TripleUri,
   WithMetadata
 }
 export type { AttributeTypeId, PredicateGroupingTypeId, PredicateTypeId }

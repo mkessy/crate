@@ -5,7 +5,7 @@ import type * as TTraversable from "@effect/typeclass/Traversable"
 import { Chunk, Data, Effect, pipe } from "effect"
 import { dual } from "effect/Function"
 import type { Kind, TypeLambda } from "effect/HKT"
-import type * as Entity from "./Entity.js"
+import type { Triple } from "./Triple.js"
 
 // Import the Array traversable instance
 import * as ArrayTraversable from "@effect/typeclass/data/Array"
@@ -85,14 +85,14 @@ export class TripleGraph<A> implements KnowledgeGraph<A> {
 
 export const make = <A>(triples: Iterable<A>): TripleGraph<A> => new TripleGraph(Chunk.fromIterable(triples))
 
-export const empty = <A = Entity.Triple>(): TripleGraph<A> => new TripleGraph<A>(Chunk.empty())
+export const empty = <A = Triple>(): TripleGraph<A> => new TripleGraph<A>(Chunk.empty())
 
-export const fromChunk = <A = Entity.Triple>(triples: Chunk.Chunk<A>): TripleGraph<A> => new TripleGraph(triples)
+export const fromChunk = <A = Triple>(triples: Chunk.Chunk<A>): TripleGraph<A> => new TripleGraph(triples)
 
-export const fromArray = <A = Entity.Triple>(triples: ReadonlyArray<A>): TripleGraph<A> =>
+export const fromArray = <A = Triple>(triples: ReadonlyArray<A>): TripleGraph<A> =>
   new TripleGraph(Chunk.fromIterable(triples))
 
-export const of = <A = Entity.Triple>(triple: A): TripleGraph<A> => new TripleGraph(Chunk.of(triple))
+export const of = <A = Triple>(triple: A): TripleGraph<A> => new TripleGraph(Chunk.of(triple))
 
 // --- Combinators ---
 
@@ -182,21 +182,21 @@ export class CardinalityViolation extends Data.TaggedError("CardinalityViolation
   readonly message: string
 }> {}
 
-export const validateCardinality = <A extends Entity.Triple>(
+export const validateCardinality = <A extends Triple>(
   self: KnowledgeGraph<A>
 ): Effect.Effect<KnowledgeGraph<A>, CardinalityViolation> => Effect.succeed(self)
 
 export const load = <R, E>(
-  loader: Effect.Effect<Chunk.Chunk<Entity.Triple>, E, R>
-): Effect.Effect<KnowledgeGraph<Entity.Triple>, E, R> =>
+  loader: Effect.Effect<Chunk.Chunk<Triple>, E, R>
+): Effect.Effect<KnowledgeGraph<Triple>, E, R> =>
   pipe(
     loader,
     Effect.map(fromChunk)
   )
 
 export const loadFromChunk = <R, E>(
-  loader: Effect.Effect<Chunk.Chunk<Entity.Triple>, E, R>
-): Effect.Effect<KnowledgeGraph<Entity.Triple>, E, R> =>
+  loader: Effect.Effect<Chunk.Chunk<Triple>, E, R>
+): Effect.Effect<KnowledgeGraph<Triple>, E, R> =>
   pipe(
     loader,
     Effect.map(fromChunk)

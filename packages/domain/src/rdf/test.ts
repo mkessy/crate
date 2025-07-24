@@ -1,235 +1,150 @@
-import { Chunk, HashSet, pipe } from "effect"
-import * as Cardinality from "./Cardinality.js"
-import * as Entity from "./Entity.js"
-import * as TripleGraph from "./KnowledgeGraph.js"
+import * as SchemaTransform from "./SchemaTransform.js"
 
-// === MusicBrainz Entities ===
-const BeatlesArtist = Entity.Entity.make({
-  id: Entity.EntityUri.make("mb:artist:b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d"),
-  type: "artist"
-})
+// Import schema JSON files
+import { Array, HashMap, Option } from "effect"
+import kexpSchemaJson from "../entity_resolution/KnowledgeBase/kexp_schema.json" with { type: "json" }
+import mbSchemaJson from "../entity_resolution/KnowledgeBase/mb_schema.json" with { type: "json" }
 
-const JohnLennon = Entity.Entity.make({
-  id: Entity.EntityUri.make("mb:artist:4d5447d7-c61c-4120-ba1b-d7f471d385b9"),
-  type: "artist"
-})
+// === Schema Parsing Tests ===
+console.log("=== Schema Transform Tests ===\n")
 
-const PaulMcCartney = Entity.Entity.make({
-  id: Entity.EntityUri.make("mb:artist:ba550d0e-adac-4864-b88b-407cab5e76af"),
-  type: "artist"
-})
+// Test MusicBrainz schema parsing
+console.log("1. Testing MusicBrainz Schema Parsing...")
+try {
+  const mbSchema = SchemaTransform.parseSchema(mbSchemaJson as SchemaTransform.SourceSchema)
 
-const ComeTogetherRecording = Entity.Entity.make({
-  id: Entity.EntityUri.make("mb:recording:85c90a43-0bce-4c25-84a9-1ae8a45a1eb3"),
-  type: "recording"
-})
+  console.log(`✓ MusicBrainz Schema parsed successfully`)
+  console.log(`  - Entities: ${Object.keys(mbSchema.entities).length}`)
+  console.log(`  - Predicates: ${Object.keys(mbSchema.predicates).length}`)
+  console.log(`  - Attributes: ${Object.keys(mbSchema.attributes).length}`)
+  console.log(`  - Version: ${mbSchema.metadata.version}`)
 
-const HeyJudeRecording = Entity.Entity.make({
-  id: Entity.EntityUri.make("mb:recording:2daaa52c-a4b3-405a-b9aa-e1b9f7c5f17e"),
-  type: "recording"
-})
+  // Show some entities
+  console.log(`  - Entity types: ${mbSchema.entities.pipe(HashMap.keys, Array.fromIterable).slice(0, 5).join(", ")}...`)
 
-const AbbeyRoadRelease = Entity.Entity.make({
-  id: Entity.EntityUri.make("mb:release:0c79ea55-4532-4c53-9035-c4b0de36e5ac"),
-  type: "release"
-})
-
-// === MusicBrainz-inspired Predicates ===
-const performer = Entity.Predicate.make({
-  id: Entity.PredicateURI.make("mb:performer"),
-  forwardPhrase: "performed on",
-  reversePhrase: "performers",
-  longForm: "performed on",
-  description: "Indicates an artist that performed on this recording",
-  cardinality0: Cardinality.oneToMany(1),
-  cardinality1: Cardinality.oneToMany(1)
-})
-
-// Producer predicate (for future use)
-// const producer = Entity.Predicate.make({
-//   id: Entity.PredicateURI.make("mb:producer"),
-//   forwardPhrase: "produced",
-//   reversePhrase: "producers",
-//   longForm: "produced",
-//   description: "Responsible for the creative and practical aspects of making a recording",
-//   cardinality0: Cardinality.oneToMany(1),
-//   cardinality1: Cardinality.oneToMany(1)
-// })
-
-const composer = Entity.Predicate.make({
-  id: Entity.PredicateURI.make("mb:composer"),
-  forwardPhrase: "composed",
-  reversePhrase: "composers",
-  longForm: "composed",
-  description: "Wrote the music for this work",
-  cardinality0: Cardinality.oneToMany(1),
-  cardinality1: Cardinality.oneToMany(1)
-})
-
-const memberOf = Entity.Predicate.make({
-  id: Entity.PredicateURI.make("mb:member-of"),
-  forwardPhrase: "member of",
-  reversePhrase: "members",
-  longForm: "is/was member of",
-  description: "This indicates a person is a member of a group",
-  cardinality0: Cardinality.oneToMany(1),
-  cardinality1: Cardinality.oneToMany(1)
-})
-
-const releasedOn = Entity.Predicate.make({
-  id: Entity.PredicateURI.make("mb:released-on"),
-  forwardPhrase: "released on",
-  reversePhrase: "recordings",
-  longForm: "was released on",
-  description: "Indicates that a recording was released on a particular release",
-  cardinality0: Cardinality.oneToMany(1),
-  cardinality1: Cardinality.oneToMany(1)
-})
-
-// === Attributes ===
-const vocals = Entity.Attribute.make({
-  id: Entity.AttributeId.make("mb:vocals"),
-  name: "vocals",
-  description: "The performer provided vocals"
-})
-
-const guitar = Entity.Attribute.make({
-  id: Entity.AttributeId.make("mb:guitar"),
-  name: "guitar",
-  description: "The performer played guitar"
-})
-
-const bass = Entity.Attribute.make({
-  id: Entity.AttributeId.make("mb:bass"),
-  name: "bass",
-  description: "The performer played bass"
-})
-
-const leadVocals = Entity.Attribute.make({
-  id: Entity.AttributeId.make("mb:lead-vocals"),
-  name: "lead vocals",
-  description: "The performer provided lead vocals"
-})
-
-// === Create Triples ===
-const johnMemberOfBeatles = Entity.Triple.Make({
-  subject: JohnLennon,
-  predicate: memberOf,
-  object: BeatlesArtist,
-  attributes: [vocals, guitar]
-})
-
-const paulMemberOfBeatles = Entity.Triple.Make({
-  subject: PaulMcCartney,
-  predicate: memberOf,
-  object: BeatlesArtist,
-  attributes: [vocals, bass]
-})
-
-const johnPerformedComeTogethe = Entity.Triple.Make({
-  subject: JohnLennon,
-  predicate: performer,
-  object: ComeTogetherRecording,
-  attributes: [leadVocals, guitar]
-})
-
-const johnComposedComeTogether = Entity.Triple.Make({
-  subject: JohnLennon,
-  predicate: composer,
-  object: ComeTogetherRecording,
-  attributes: []
-})
-
-const paulPerformedHeyJude = Entity.Triple.Make({
-  subject: PaulMcCartney,
-  predicate: performer,
-  object: HeyJudeRecording,
-  attributes: [leadVocals]
-})
-
-const paulComposedHeyJude = Entity.Triple.Make({
-  subject: PaulMcCartney,
-  predicate: composer,
-  object: HeyJudeRecording,
-  attributes: []
-})
-
-const comeTogetherOnAbbeyRoad = Entity.Triple.Make({
-  subject: ComeTogetherRecording,
-  predicate: releasedOn,
-  object: AbbeyRoadRelease,
-  attributes: []
-})
-
-// === Test Data ===
-const allTriples = [
-  johnMemberOfBeatles,
-  paulMemberOfBeatles,
-  johnPerformedComeTogethe,
-  johnComposedComeTogether,
-  paulPerformedHeyJude,
-  paulComposedHeyJude,
-  comeTogetherOnAbbeyRoad
-]
-
-const musicGraph = TripleGraph.make(allTriples)
-
-// === Test Script ===
-console.log("=== MusicBrainz Knowledge Graph Test ===\n")
-
-console.log(`Total triples in graph: ${musicGraph.triples.length}`)
-
-// Test filtering
-const performanceTriples = musicGraph.filter((triple) => triple.predicate.forwardPhrase === "performed on")
-pipe(
-  performanceTriples.triples,
-  Chunk.forEach((triple) => {
-    const subject = triple.subject.id
-    const object = triple.object.id
-    const attributes = triple.attributes.map((attr) => attr.name).join(", ")
-    console.log(`  ${subject} performed on ${object} (${attributes})`)
+  // Show some predicates
+  const predicateKeys = mbSchema.predicates.pipe(HashMap.keys, Array.fromIterable).slice(0, 3)
+  console.log(`  - Sample predicates:`)
+  predicateKeys.forEach((key) => {
+    const predicate = mbSchema.predicates.pipe(HashMap.get(key), Option.map((predicate) => predicate.forwardPhrase))
+    console.log(`    ${key}: "${predicate}"`)
   })
-)
+} catch (error) {
+  console.error("✗ MusicBrainz Schema parsing failed:", error)
+}
 
-// Test composition relationships
-const compositionTriples = musicGraph.filter((triple) => triple.predicate.forwardPhrase === "composed")
-pipe(
-  compositionTriples.triples,
-  Chunk.forEach((triple) => {
-    const subject = triple.subject.id
-    const object = triple.object.id
-    console.log(`  ${subject} composed ${object}`)
+console.log()
+
+// Test KEXP schema parsing
+console.log("2. Testing KEXP Schema Parsing...")
+try {
+  const kexpSchema = SchemaTransform.parseSchema(kexpSchemaJson as unknown as SchemaTransform.SourceSchema)
+
+  console.log(`✓ KEXP Schema parsed successfully`)
+  console.log(`  - Entities: ${kexpSchema.entities.pipe(HashMap.size)}`)
+  console.log(`  - Predicates: ${kexpSchema.predicates.pipe(HashMap.size)}`)
+  console.log(`  - Attributes: ${kexpSchema.attributes.pipe(HashMap.size)}`)
+  console.log(`  - Version: ${kexpSchema.metadata.version}`)
+
+  // Show entities
+  console.log(`  - Entity types: ${kexpSchema.entities.pipe(HashMap.keys, Array.fromIterable).join(", ")}`)
+
+  // Show predicates
+  console.log(`  - Predicates:`)
+  kexpSchema.predicates
+    .pipe(
+      HashMap.entries,
+      Array.fromIterable,
+      Array.map(([key, predicate]) => {
+        console.log(`    ${key}: "${predicate.forwardPhrase}"`)
+      })
+    )
+} catch (error) {
+  console.error("✗ KEXP Schema parsing failed:", error)
+}
+
+console.log()
+
+// Test multiple schema parsing
+console.log("3. Testing Multiple Schema Parsing...")
+try {
+  const combinedSchema = SchemaTransform.parseMultipleSchemas([
+    mbSchemaJson as unknown as SchemaTransform.SourceSchema,
+    kexpSchemaJson as unknown as SchemaTransform.SourceSchema
+  ])
+
+  console.log(`✓ Combined schemas parsed successfully`)
+  console.log(`  - Total entities: ${combinedSchema.entities.pipe(HashMap.size)}`)
+  console.log(`  - Total predicates: ${combinedSchema.predicates.pipe(HashMap.size)}`)
+  console.log(`  - Total attributes: ${combinedSchema.attributes.pipe(HashMap.size)}`)
+
+  // Test query utilities
+  console.log("\n  Query utilities tests:")
+
+  // Find predicates for play entity
+  const playPredicates = SchemaTransform.SchemaQueries.getPredicatesForSourceEntity(
+    combinedSchema,
+    "play"
+  )
+  console.log(`  - Play entity predicates: ${playPredicates.length}`)
+  playPredicates.forEach((predicate) => {
+    console.log(`    "${predicate.forwardPhrase}"`)
   })
-)
 
-// Test band membership
-const membershipTriples = musicGraph.filter((triple) => triple.predicate.forwardPhrase === "member of")
-pipe(
-  membershipTriples.triples,
-  Chunk.forEach((triple) => {
-    const subject = triple.subject.id
-    const object = triple.object.id
-    const instruments = triple.attributes.map((attr) => attr.name).join(", ")
-    console.log(`  ${subject} is member of ${object} (plays: ${instruments})`)
+  // Find relationships between play and artist
+  const playArtistPredicates = SchemaTransform.SchemaQueries.getPredicatesForEntityPair(
+    combinedSchema,
+    "play",
+    "artist"
+  )
+  console.log(`  - Play → Artist relationships: ${playArtistPredicates.length}`)
+  playArtistPredicates.forEach((predicate) => {
+    console.log(`    "${predicate.forwardPhrase}"`)
   })
-)
 
-// Test traverse functionality with Effect
-console.log("\n=== Testing Traverse Functionality ===")
-// For now, let's comment out the traverse test since Effect.Applicative isn't available in the same way
-// const extractSubjects = musicGraph.traverse(Effect.Applicative)((triple) => Effect.succeed(triple.subject.id))
-// Effect.runSync(extractSubjects).triples.forEach((subject, index) => {
-//   console.log(`Subject ${index + 1}: ${subject}`)
-// })
+  // Test canonical entities
+  const canonicalEntities = SchemaTransform.SchemaQueries.getEntitiesByTypes(
+    combinedSchema,
+    ["artist", "recording", "release", "release_group", "label"]
+  )
+  console.log(`  - Canonical MB entities: ${canonicalEntities.length}`)
+} catch (error) {
+  console.error("✗ Combined schema parsing failed:", error)
+}
 
-const uniqueSubjects = HashSet.make(musicGraph.map((t) => t.subject.id))
-const uniquePredicates = HashSet.make(musicGraph.map((t) => t.predicate.forwardPhrase))
-const uniqueObjects = HashSet.make(musicGraph.map((t) => t.object.id))
+console.log()
 
-console.log(`Unique subjects: ${HashSet.size(uniqueSubjects)}`)
-console.log(`Unique predicates: ${HashSet.size(uniquePredicates)}`)
-console.log(`Unique objects: ${HashSet.size(uniqueObjects)}`)
+// Test validation
+console.log("4. Testing Schema Validation...")
+try {
+  const kexpSchema = SchemaTransform.parseSchema(kexpSchemaJson as unknown as SchemaTransform.SourceSchema)
+  const validationErrors = SchemaTransform.validateParsedSchema(kexpSchema)
 
-console.log("\nSubjects:", Array.from(uniqueSubjects))
-console.log("Predicates:", Array.from(uniquePredicates))
-console.log("Objects:", Array.from(uniqueObjects))
+  if (validationErrors.length === 0) {
+    console.log("✓ KEXP schema validation passed")
+  } else {
+    console.log(`✗ KEXP schema validation found ${validationErrors.length} errors:`)
+    validationErrors.forEach((error) => console.log(`  - ${error}`))
+  }
+} catch (error) {
+  console.error("✗ Schema validation failed:", error)
+}
+
+console.log()
+
+// Test bidirectional transformation
+console.log("5. Testing Bidirectional Transform...")
+try {
+  const originalSchema = kexpSchemaJson as unknown as SchemaTransform.SourceSchema
+  const parsedSchema = SchemaTransform.parseSchema(originalSchema)
+  const encodedSchema = SchemaTransform.encodeSchema(parsedSchema)
+
+  console.log("✓ Bidirectional transform completed")
+  console.log(`  - Original entity types: ${originalSchema.entity_types.length}`)
+  console.log(`  - Encoded entity types: ${encodedSchema.entity_types.length}`)
+  console.log(`  - Schema versions match: ${originalSchema.schema_version === encodedSchema.schema_version}`)
+} catch (error) {
+  console.error("✗ Bidirectional transform failed:", error)
+}
+
+console.log("\n=== Schema Transform Tests Complete ===")
