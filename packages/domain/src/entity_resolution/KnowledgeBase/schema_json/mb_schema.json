@@ -1,0 +1,2027 @@
+{
+    "schema_version": "2.0",
+    "generated_at": "2025-01-23T10:00:00Z",
+    "description": "Comprehensive MusicBrainz relationship schema with all entity types, relationships, and attributes",
+    "entity_types": [
+        "artist",
+        "recording",
+        "release",
+        "release_group",
+        "work",
+        "label",
+        "area",
+        "place",
+        "event",
+        "instrument",
+        "series",
+        "url",
+        "genre"
+    ],
+    "attribute_definitions": [
+        {
+            "name": "start_date",
+            "uuid": "a59c5830-5ec7-48c9-9375-f563563ba3f4",
+            "type": "partial_date",
+            "description": "The date when the relationship began"
+        },
+        {
+            "name": "end_date",
+            "uuid": "31d03447-9683-41cf-8367-3829a0a3449d",
+            "type": "partial_date",
+            "description": "The date when the relationship ended"
+        },
+        {
+            "name": "instrument",
+            "uuid": "0abd7f04-5e28-425b-956f-94789d9bcbe2",
+            "type": "instrument",
+            "description": "Specifies the instrument(s) played"
+        },
+        {
+            "name": "vocal",
+            "uuid": "d92884b7-ee0c-46d5-96f3-918196ba8c5b",
+            "type": "vocal_type",
+            "description": "Specifies the vocal part",
+            "values": [
+                "lead vocals",
+                "background vocals",
+                "choir vocals",
+                "soprano vocals",
+                "alto vocals",
+                "tenor vocals",
+                "bass vocals",
+                "spoken vocals"
+            ]
+        },
+        {
+            "name": "additional",
+            "uuid": "0a5341f8-3b1d-4f99-a0c6-26b7f4e42c7f",
+            "type": "boolean",
+            "description": "Indicates a minor or less prominent role"
+        },
+        {
+            "name": "guest",
+            "uuid": "b3045913-62ac-433e-9211-ac683cdf6b5c",
+            "type": "boolean",
+            "description": "Indicates the artist was a guest performer"
+        },
+        {
+            "name": "original",
+            "uuid": "4fd3b255-a7d7-4424-9a63-40fa543b601c",
+            "type": "boolean",
+            "description": "Indicates an original member of a group"
+        },
+        {
+            "name": "eponymous",
+            "uuid": "15eea3b8-5655-43c8-b2c2-dd03c901a79b",
+            "type": "boolean",
+            "description": "Indicates a member the band is named after"
+        },
+        {
+            "name": "principal",
+            "uuid": "d3362ce5-ea76-4cb4-854b-9540fc716078",
+            "type": "boolean",
+            "description": "Indicates principal/lead position in orchestra"
+        },
+        {
+            "name": "assistant",
+            "uuid": "8c4196b1-7053-4b16-921a-f22b2898ed44",
+            "type": "boolean",
+            "description": "Indicates assistant role"
+        },
+        {
+            "name": "associate",
+            "uuid": "8d23d2dd-13df-43ea-85a0-d7eb38dc32ec",
+            "type": "boolean",
+            "description": "Indicates associate role"
+        },
+        {
+            "name": "co",
+            "uuid": "ac6f6b4c-a4ec-4483-a04e-9f425a914573",
+            "type": "boolean",
+            "description": "Indicates co-credit (co-producer, etc.)"
+        },
+        {
+            "name": "executive",
+            "uuid": "e0039285-6667-4f94-80d6-aa6520c6d359",
+            "type": "boolean",
+            "description": "Indicates executive capacity"
+        },
+        {
+            "name": "solo",
+            "uuid": "63daa0d3-9b63-4434-acff-4977c07808ca",
+            "type": "boolean",
+            "description": "Indicates solo performance"
+        },
+        {
+            "name": "cover",
+            "uuid": "1e8536bd-6eda-3822-8e78-1c0f4d3d2113",
+            "type": "boolean",
+            "description": "Indicates the recording is a cover version"
+        },
+        {
+            "name": "live",
+            "uuid": "70007db6-a8bc-46d7-a770-80e6a0bb551a",
+            "type": "boolean",
+            "description": "Indicates live performance"
+        },
+        {
+            "name": "instrumental",
+            "uuid": "c031ed4f-c9bb-4394-8cf5-e8ce4db512ae",
+            "type": "boolean",
+            "description": "Indicates no vocals"
+        },
+        {
+            "name": "partial",
+            "uuid": "d2b63be6-91ec-426a-987a-30b47f8aae2d",
+            "type": "boolean",
+            "description": "Recording contains only part of the work"
+        },
+        {
+            "name": "medley",
+            "uuid": "37da3398-5d1b-4acb-be25-df95e33e423c",
+            "type": "boolean",
+            "description": "Recording is of a medley"
+        },
+        {
+            "name": "karaoke",
+            "uuid": "3d984f6e-bbe2-4620-9425-5f32e945b60d",
+            "type": "boolean",
+            "description": "Karaoke version"
+        },
+        {
+            "name": "demo",
+            "uuid": "47bfd345-2acc-444b-ae3b-82781c7c40ca",
+            "type": "boolean",
+            "description": "Demo version"
+        },
+        {
+            "name": "video",
+            "uuid": "112054d5-e706-4dd8-99ea-09aabee36cd6",
+            "type": "boolean",
+            "description": "Video content, not just audio"
+        },
+        {
+            "name": "track_number",
+            "uuid": "a5467e42-b5a5-402c-92fe-17482502a831",
+            "type": "text",
+            "description": "Track number on release"
+        },
+        {
+            "name": "medium_number",
+            "uuid": "69585585-59d5-4925-9b3f-e30097ea75b8",
+            "type": "integer",
+            "description": "Medium/disc number"
+        },
+        {
+            "name": "catalog_number",
+            "uuid": null,
+            "type": "text",
+            "description": "Catalog number for release"
+        },
+        {
+            "name": "number",
+            "uuid": "a59c5830-5ec7-38fe-9a21-c7ea54f6650a",
+            "type": "text",
+            "description": "Number in a series or movement"
+        },
+        {
+            "name": "type",
+            "uuid": "e535a51c-5969-4a78-a447-0e6592241763",
+            "type": "text",
+            "description": "Generic type specification"
+        },
+        {
+            "name": "task",
+            "uuid": "39867b3b-0f1e-40d5-b602-4f3936b7f486",
+            "type": "text",
+            "description": "Credited task specification"
+        },
+        {
+            "name": "date",
+            "uuid": null,
+            "type": "date",
+            "description": "Date of event or release"
+        },
+        {
+            "name": "time",
+            "uuid": "ebd303c3-7f57-452a-aa3b-d780ebad868d",
+            "type": "time",
+            "description": "Time of performance (HH:MM)"
+        },
+        {
+            "name": "cancelled",
+            "uuid": "efd89258-fb07-48e9-acf9-0a54ce03606d",
+            "type": "boolean",
+            "description": "Artist cancelled appearance"
+        },
+        {
+            "name": "translated",
+            "uuid": "ed11fcb1-5a18-4e1d-b12c-633ed19c8ee1",
+            "type": "boolean",
+            "description": "Lyrics have been translated"
+        },
+        {
+            "name": "translator",
+            "uuid": "25dfb08e-9b99-44db-b30c-1d6ec6747af8",
+            "type": "boolean",
+            "description": "Entity translated something"
+        },
+        {
+            "name": "parody",
+            "uuid": "d73de9d3-934b-419c-8c83-2e48a5773b14",
+            "type": "boolean",
+            "description": "Satirical/humorous version"
+        },
+        {
+            "name": "minor",
+            "uuid": "5b66c85d-6963-4d4b-86e5-18d2caccb349",
+            "type": "boolean",
+            "description": "Minor collaboration"
+        }
+    ],
+    "relationships": [
+        {
+            "subject": "artist",
+            "objects": [
+                {
+                    "type": "artist",
+                    "relations": [
+                        {
+                            "type": "member of band",
+                            "uuid": "5be4c609-9afa-4ea0-910b-12ffb71e3821",
+                            "forward_phrase": "is member of",
+                            "reverse_phrase": "has member",
+                            "long_link_phrase": "{entity0} was a member of {entity1}",
+                            "description": "Indicates that an artist is a member of a band",
+                            "deprecated": false,
+                            "attributes": [
+                                "start_date",
+                                "end_date",
+                                "instrument",
+                                "vocal",
+                                "additional",
+                                "original",
+                                "eponymous",
+                                "principal",
+                                "task"
+                            ],
+                            "parent_type": null
+                        },
+                        {
+                            "type": "is person",
+                            "uuid": "68330a36-44cf-4fa2-86f7-56857bf56860",
+                            "forward_phrase": "is person",
+                            "reverse_phrase": "has aliases",
+                            "long_link_phrase": "{entity0} is the person {entity1}",
+                            "description": "Links a stage name or alias to a person's legal name",
+                            "deprecated": false,
+                            "attributes": [],
+                            "parent_type": null
+                        },
+                        {
+                            "type": "collaboration",
+                            "uuid": "13545499-a596-4149-a8b4-368c438379f5",
+                            "forward_phrase": "collaboration with",
+                            "reverse_phrase": "collaboration with",
+                            "long_link_phrase": "{entity0} collaborated with {entity1}",
+                            "description": "Links artists who have collaborated, but not as a formal group",
+                            "deprecated": false,
+                            "attributes": [
+                                "start_date",
+                                "end_date",
+                                "minor"
+                            ],
+                            "parent_type": null
+                        },
+                        {
+                            "type": "tribute to",
+                            "uuid": "934ba82c-6784-48a1-a5b7-dd73d4a86704",
+                            "forward_phrase": "tribute to",
+                            "reverse_phrase": "tribute by",
+                            "long_link_phrase": "{entity0} is a tribute to {entity1}",
+                            "description": "Links a tribute artist or group to the artist they are paying tribute to",
+                            "deprecated": false,
+                            "attributes": [],
+                            "parent_type": null
+                        },
+                        {
+                            "type": "conductor position",
+                            "uuid": "768c3a5b-8a1f-4a8c-b25f-1b8e4de6d6d6",
+                            "forward_phrase": "conductor for",
+                            "reverse_phrase": "conducted by",
+                            "long_link_phrase": "{entity0} is conductor for {entity1}",
+                            "description": "Links a conductor to the group they conduct",
+                            "deprecated": false,
+                            "attributes": [
+                                "start_date",
+                                "end_date",
+                                "principal"
+                            ],
+                            "parent_type": null
+                        }
+                    ]
+                },
+                {
+                    "type": "recording",
+                    "relations": [
+                        {
+                            "type": "performer",
+                            "uuid": "a25568d8-2a59-3176-8137-97551278eb2a",
+                            "forward_phrase": "performer",
+                            "reverse_phrase": "performance",
+                            "long_link_phrase": "{entity0} performed {entity1}",
+                            "description": "Abstract parent type for performance credits",
+                            "deprecated": false,
+                            "attributes": [
+                                "instrument",
+                                "vocal",
+                                "guest",
+                                "additional",
+                                "solo",
+                                "start_date",
+                                "end_date"
+                            ],
+                            "parent_type": null
+                        },
+                        {
+                            "type": "instrument",
+                            "uuid": "b3989805-7284-4375-8160-c322bc270845",
+                            "forward_phrase": "instrument",
+                            "reverse_phrase": "instrumental performance",
+                            "long_link_phrase": "{entity0} played {instrument} on {entity1}",
+                            "description": "Standard way to credit an instrumentalist",
+                            "deprecated": false,
+                            "attributes": [
+                                "instrument",
+                                "guest",
+                                "additional",
+                                "solo"
+                            ],
+                            "parent_type": "performer"
+                        },
+                        {
+                            "type": "vocals",
+                            "uuid": "d6778844-3195-4b39-b323-954f9d85a1f6",
+                            "forward_phrase": "vocals",
+                            "reverse_phrase": "vocal performance",
+                            "long_link_phrase": "{entity0} performed {vocal} vocals on {entity1}",
+                            "description": "Subtype of performer for vocalists",
+                            "deprecated": false,
+                            "attributes": [
+                                "vocal",
+                                "guest",
+                                "additional",
+                                "solo"
+                            ],
+                            "parent_type": "performer"
+                        },
+                        {
+                            "type": "conductor",
+                            "uuid": "37ef3a0c-c682-4149-8803-a3dc1e2b5884",
+                            "forward_phrase": "conductor",
+                            "reverse_phrase": "conducted performance",
+                            "long_link_phrase": "{entity0} was conductor for {entity1}",
+                            "description": "Subtype of performer for conductors",
+                            "deprecated": false,
+                            "attributes": [
+                                "guest",
+                                "additional"
+                            ],
+                            "parent_type": "performer"
+                        },
+                        {
+                            "type": "orchestra",
+                            "uuid": "2d2139a4-f1f2-47b2-8abd-7823f3e4f2c0",
+                            "forward_phrase": "orchestra",
+                            "reverse_phrase": "orchestral performance",
+                            "long_link_phrase": "{entity0} performed as orchestra on {entity1}",
+                            "description": "Orchestra performance credit",
+                            "deprecated": false,
+                            "attributes": [
+                                "guest",
+                                "additional"
+                            ],
+                            "parent_type": "performer"
+                        },
+                        {
+                            "type": "chorus master",
+                            "uuid": "45115945-597e-4cb9-852f-4e6ba583fcc8",
+                            "forward_phrase": "chorus master",
+                            "reverse_phrase": "chorus master performance",
+                            "long_link_phrase": "{entity0} was chorus master for {entity1}",
+                            "description": "Chorus master credit",
+                            "deprecated": false,
+                            "attributes": [
+                                "guest",
+                                "additional"
+                            ],
+                            "parent_type": "performer"
+                        },
+                        {
+                            "type": "production",
+                            "uuid": "66e2e7d4-a969-47c5-ac9b-c2a5444a4fcb",
+                            "forward_phrase": "production",
+                            "reverse_phrase": "produced by",
+                            "long_link_phrase": "production on {entity1}",
+                            "description": "Abstract parent for production credits",
+                            "deprecated": false,
+                            "attributes": [],
+                            "parent_type": null
+                        },
+                        {
+                            "type": "producer",
+                            "uuid": "8bf377ba-8d71-4ecc-97f2-7bb2d8a2a75f",
+                            "forward_phrase": "producer",
+                            "reverse_phrase": "produced",
+                            "long_link_phrase": "{entity0} produced {entity1}",
+                            "description": "Links a producer to a recording",
+                            "deprecated": false,
+                            "attributes": [
+                                "additional",
+                                "assistant",
+                                "associate",
+                                "co",
+                                "executive",
+                                "task"
+                            ],
+                            "parent_type": "production"
+                        },
+                        {
+                            "type": "engineer",
+                            "uuid": "e259a3f5-ce8e-4508-818a-a6d1a010b99a",
+                            "forward_phrase": "engineer",
+                            "reverse_phrase": "engineered",
+                            "long_link_phrase": "{entity0} was engineer for {entity1}",
+                            "description": "Links an engineer to a recording",
+                            "deprecated": false,
+                            "attributes": [
+                                "type",
+                                "additional",
+                                "assistant",
+                                "associate",
+                                "co"
+                            ],
+                            "parent_type": "production"
+                        },
+                        {
+                            "type": "mixer",
+                            "uuid": "3e3102e1-1896-4f50-b5b2-dd9824e46efe",
+                            "forward_phrase": "mixer",
+                            "reverse_phrase": "mixed",
+                            "long_link_phrase": "{entity0} mixed {entity1}",
+                            "description": "Links a mixer to a recording",
+                            "deprecated": false,
+                            "attributes": [
+                                "additional",
+                                "assistant",
+                                "associate",
+                                "co"
+                            ],
+                            "parent_type": "production"
+                        },
+                        {
+                            "type": "mastering",
+                            "uuid": "f5e4d3f0-9817-42a0-ad8f-ef3375cf09d5",
+                            "forward_phrase": "mastering",
+                            "reverse_phrase": "mastered",
+                            "long_link_phrase": "{entity0} mastered {entity1}",
+                            "description": "Links mastering engineer to recording",
+                            "deprecated": false,
+                            "attributes": [
+                                "additional",
+                                "assistant",
+                                "associate",
+                                "co"
+                            ],
+                            "parent_type": "production"
+                        },
+                        {
+                            "type": "remixer",
+                            "uuid": "0442346a-333e-4ce3-a34e-6e8ed614f00b",
+                            "forward_phrase": "remixer",
+                            "reverse_phrase": "remixed",
+                            "long_link_phrase": "{entity0} remixed {entity1}",
+                            "description": "Links a remixer to a recording",
+                            "deprecated": false,
+                            "attributes": [
+                                "additional",
+                                "co"
+                            ],
+                            "parent_type": "production"
+                        },
+                        {
+                            "type": "editor",
+                            "uuid": "40dff87a-e475-4aa6-b615-9935b564d756",
+                            "forward_phrase": "editor",
+                            "reverse_phrase": "edited",
+                            "long_link_phrase": "{entity0} edited {entity1}",
+                            "description": "Links an editor to a recording",
+                            "deprecated": false,
+                            "attributes": [
+                                "additional",
+                                "assistant"
+                            ],
+                            "parent_type": "production"
+                        },
+                        {
+                            "type": "art direction",
+                            "uuid": "a3b0c3d5-41ba-4fe5-b4dc-f1e67e2f35d5",
+                            "forward_phrase": "art direction",
+                            "reverse_phrase": "art directed by",
+                            "long_link_phrase": "{entity0} did art direction for {entity1}",
+                            "description": "Art direction credit",
+                            "deprecated": false,
+                            "attributes": [],
+                            "parent_type": null
+                        },
+                        {
+                            "type": "design/illustration",
+                            "uuid": "8f47b4f1-d407-466a-ac89-41b6e37e5c35",
+                            "forward_phrase": "design/illustration",
+                            "reverse_phrase": "designed/illustrated by",
+                            "long_link_phrase": "{entity0} did design/illustration for {entity1}",
+                            "description": "Design or illustration credit",
+                            "deprecated": false,
+                            "attributes": [
+                                "type"
+                            ],
+                            "parent_type": null
+                        },
+                        {
+                            "type": "liner notes",
+                            "uuid": "87680e03-b25f-4cd9-8b32-53b0e3ae24f4",
+                            "forward_phrase": "liner notes",
+                            "reverse_phrase": "liner notes by",
+                            "long_link_phrase": "{entity0} wrote liner notes for {entity1}",
+                            "description": "Liner notes writer credit",
+                            "deprecated": false,
+                            "attributes": [],
+                            "parent_type": null
+                        },
+                        {
+                            "type": "miscellaneous support",
+                            "uuid": "b47146d3-d5e5-4b50-9836-9c2305ddd8e0",
+                            "forward_phrase": "miscellaneous support",
+                            "reverse_phrase": "miscellaneous support by",
+                            "long_link_phrase": "{entity0} provided miscellaneous support for {entity1}",
+                            "description": "Generic support credit",
+                            "deprecated": false,
+                            "attributes": [
+                                "task"
+                            ],
+                            "parent_type": null
+                        },
+                        {
+                            "type": "photography",
+                            "uuid": "0b58dc9b-9c49-4b19-bb58-9c06d41c8fbf",
+                            "forward_phrase": "photography",
+                            "reverse_phrase": "photography by",
+                            "long_link_phrase": "{entity0} did photography for {entity1}",
+                            "description": "Photography credit",
+                            "deprecated": false,
+                            "attributes": [
+                                "type"
+                            ],
+                            "parent_type": null
+                        }
+                    ]
+                },
+                {
+                    "type": "work",
+                    "relations": [
+                        {
+                            "type": "writer",
+                            "uuid": "a3a47728-b49a-48b2-a48d-b83b7bd58d76",
+                            "forward_phrase": "writer",
+                            "reverse_phrase": "written by",
+                            "long_link_phrase": "{entity0} wrote {entity1}",
+                            "description": "General writer credit",
+                            "deprecated": false,
+                            "attributes": [
+                                "additional"
+                            ],
+                            "parent_type": null
+                        },
+                        {
+                            "type": "composer",
+                            "uuid": "d59d99ea-23d4-4a80-b066-edca32ee158f",
+                            "forward_phrase": "composer",
+                            "reverse_phrase": "composition",
+                            "long_link_phrase": "{entity0} composed {entity1}",
+                            "description": "Links a composer to a musical work",
+                            "deprecated": false,
+                            "attributes": [
+                                "additional"
+                            ],
+                            "parent_type": "writer"
+                        },
+                        {
+                            "type": "lyricist",
+                            "uuid": "3e48faba-ec01-47fd-8e89-30e819177411",
+                            "forward_phrase": "lyricist",
+                            "reverse_phrase": "lyrics by",
+                            "long_link_phrase": "{entity0} wrote lyrics for {entity1}",
+                            "description": "Links a lyricist to a work",
+                            "deprecated": false,
+                            "attributes": [
+                                "additional",
+                                "translator"
+                            ],
+                            "parent_type": "writer"
+                        },
+                        {
+                            "type": "librettist",
+                            "uuid": "4e14de7d-f985-4946-85be-c0ffc7469722",
+                            "forward_phrase": "librettist",
+                            "reverse_phrase": "libretto by",
+                            "long_link_phrase": "{entity0} wrote libretto for {entity1}",
+                            "description": "Links a librettist to an opera or musical work",
+                            "deprecated": false,
+                            "attributes": [
+                                "additional",
+                                "translator"
+                            ],
+                            "parent_type": "writer"
+                        },
+                        {
+                            "type": "arranger",
+                            "uuid": "7e48f217-065b-42de-a6f4-e31f3d4c4a8d",
+                            "forward_phrase": "arranger",
+                            "reverse_phrase": "arrangement",
+                            "long_link_phrase": "{entity0} arranged {entity1}",
+                            "description": "Links an artist who created an arrangement",
+                            "deprecated": false,
+                            "attributes": [
+                                "type",
+                                "additional"
+                            ],
+                            "parent_type": null
+                        },
+                        {
+                            "type": "orchestrator",
+                            "uuid": "0084e70a-873e-4f7a-a5e2-e7a5257c8c6f",
+                            "forward_phrase": "orchestrator",
+                            "reverse_phrase": "orchestration",
+                            "long_link_phrase": "{entity0} orchestrated {entity1}",
+                            "description": "Links an orchestrator to a work",
+                            "deprecated": false,
+                            "attributes": [
+                                "additional"
+                            ],
+                            "parent_type": "arranger"
+                        }
+                    ]
+                },
+                {
+                    "type": "release",
+                    "relations": [
+                        {
+                            "type": "compiler",
+                            "uuid": "a7413590-7b23-4033-8233-6199343e33b9",
+                            "forward_phrase": "compiler",
+                            "reverse_phrase": "compiled",
+                            "long_link_phrase": "{entity0} compiled {entity1}",
+                            "description": "Links an artist who compiled a release",
+                            "deprecated": false,
+                            "attributes": [],
+                            "parent_type": null
+                        },
+                        {
+                            "type": "DJ mix",
+                            "uuid": "2d24d075-f0aa-49dc-9e84-75a965e75f65",
+                            "forward_phrase": "DJ mix",
+                            "reverse_phrase": "DJ mixed by",
+                            "long_link_phrase": "{entity0} did DJ mix for {entity1}",
+                            "description": "Links a DJ to their mix release",
+                            "deprecated": false,
+                            "attributes": [],
+                            "parent_type": null
+                        },
+                        {
+                            "type": "liner notes",
+                            "uuid": "a2a87fdd-2fdb-4beb-949a-0e9981c24394",
+                            "forward_phrase": "liner notes",
+                            "reverse_phrase": "liner notes by",
+                            "long_link_phrase": "{entity0} wrote liner notes for {entity1}",
+                            "description": "Liner notes writer for release",
+                            "deprecated": false,
+                            "attributes": [],
+                            "parent_type": null
+                        },
+                        {
+                            "type": "art direction",
+                            "uuid": "1567584f-4cfc-4e16-88c5-6a57bbb5f3f1",
+                            "forward_phrase": "art direction",
+                            "reverse_phrase": "art directed by",
+                            "long_link_phrase": "{entity0} did art direction for {entity1}",
+                            "description": "Art direction for release",
+                            "deprecated": false,
+                            "attributes": [],
+                            "parent_type": null
+                        },
+                        {
+                            "type": "design/illustration",
+                            "uuid": "4a7c99f5-5970-4973-ad78-332e8e965bb6",
+                            "forward_phrase": "design/illustration",
+                            "reverse_phrase": "designed/illustrated by",
+                            "long_link_phrase": "{entity0} did design/illustration for {entity1}",
+                            "description": "Design/illustration for release",
+                            "deprecated": false,
+                            "attributes": [
+                                "type"
+                            ],
+                            "parent_type": null
+                        },
+                        {
+                            "type": "photography",
+                            "uuid": "4d0aac97-39f5-4a67-bc2a-3fbc30f2cbfb",
+                            "forward_phrase": "photography",
+                            "reverse_phrase": "photographed by",
+                            "long_link_phrase": "{entity0} did photography for {entity1}",
+                            "description": "Photography for release",
+                            "deprecated": false,
+                            "attributes": [
+                                "type"
+                            ],
+                            "parent_type": null
+                        },
+                        {
+                            "type": "producer",
+                            "uuid": "8c2b1abc-e13b-4c0e-aba0-f3e3f9e4a3f0",
+                            "forward_phrase": "producer",
+                            "reverse_phrase": "produced",
+                            "long_link_phrase": "{entity0} produced {entity1}",
+                            "description": "Producer for entire release",
+                            "deprecated": false,
+                            "attributes": [
+                                "additional",
+                                "assistant",
+                                "associate",
+                                "co",
+                                "executive"
+                            ],
+                            "parent_type": null
+                        }
+                    ]
+                },
+                {
+                    "type": "label",
+                    "relations": [
+                        {
+                            "type": "founded",
+                            "uuid": "31b22f20-415e-48f1-8895-397615dee3ea",
+                            "forward_phrase": "founded",
+                            "reverse_phrase": "founder",
+                            "long_link_phrase": "{entity0} founded {entity1}",
+                            "description": "Links an artist to a label they founded",
+                            "deprecated": false,
+                            "attributes": [
+                                "start_date"
+                            ],
+                            "parent_type": null
+                        },
+                        {
+                            "type": "signed with",
+                            "uuid": "85172b8b-4375-47e9-a39c-5527a274c35e",
+                            "forward_phrase": "signed with",
+                            "reverse_phrase": "signed artist",
+                            "long_link_phrase": "{entity0} signed with {entity1}",
+                            "description": "Indicates an artist was signed to a label",
+                            "deprecated": false,
+                            "attributes": [
+                                "start_date",
+                                "end_date"
+                            ],
+                            "parent_type": null
+                        }
+                    ]
+                },
+                {
+                    "type": "area",
+                    "relations": [
+                        {
+                            "type": "is from",
+                            "uuid": "b3651dbb-3c06-46a8-a57b-e3be92449cc0",
+                            "forward_phrase": "is from",
+                            "reverse_phrase": "native of",
+                            "long_link_phrase": "{entity0} is from {entity1}",
+                            "description": "Links an artist to their area of origin",
+                            "deprecated": false,
+                            "attributes": [
+                                "start_date",
+                                "end_date"
+                            ],
+                            "parent_type": null
+                        },
+                        {
+                            "type": "lives in",
+                            "uuid": "d06e9eb8-7cf1-4abd-a5c1-eeb2a21fb231",
+                            "forward_phrase": "lives in",
+                            "reverse_phrase": "resident",
+                            "long_link_phrase": "{entity0} lives in {entity1}",
+                            "description": "Current residence of artist",
+                            "deprecated": false,
+                            "attributes": [
+                                "start_date",
+                                "end_date"
+                            ],
+                            "parent_type": null
+                        }
+                    ]
+                },
+                {
+                    "type": "place",
+                    "relations": [
+                        {
+                            "type": "formed in",
+                            "uuid": "6e85c1f3-4e68-4204-8004-c227dd0dc08d",
+                            "forward_phrase": "formed in",
+                            "reverse_phrase": "formation location of",
+                            "long_link_phrase": "{entity0} was formed in {entity1}",
+                            "description": "Links a group to where it was formed",
+                            "deprecated": false,
+                            "attributes": [
+                                "date"
+                            ],
+                            "parent_type": null
+                        }
+                    ]
+                },
+                {
+                    "type": "event",
+                    "relations": [
+                        {
+                            "type": "performer",
+                            "uuid": "936c7c95-3156-3889-a062-8a0cd57f8946",
+                            "forward_phrase": "performer",
+                            "reverse_phrase": "performance",
+                            "long_link_phrase": "{entity0} performed at {entity1}",
+                            "description": "Artist performed at event",
+                            "deprecated": false,
+                            "attributes": [
+                                "instrument",
+                                "vocal",
+                                "guest",
+                                "cancelled",
+                                "principal"
+                            ],
+                            "parent_type": null
+                        },
+                        {
+                            "type": "host",
+                            "uuid": "f4f1e4f6-e4a1-4b14-a44f-f3e7fa2c4316",
+                            "forward_phrase": "host",
+                            "reverse_phrase": "hosted by",
+                            "long_link_phrase": "{entity0} hosted {entity1}",
+                            "description": "Host of an event",
+                            "deprecated": false,
+                            "attributes": [],
+                            "parent_type": null
+                        }
+                    ]
+                },
+                {
+                    "type": "instrument",
+                    "relations": [
+                        {
+                            "type": "plays",
+                            "uuid": "e3362223-246c-4e89-8698-95812c387ab1",
+                            "forward_phrase": "plays",
+                            "reverse_phrase": "played by",
+                            "long_link_phrase": "{entity0} plays {entity1}",
+                            "description": "Links artist to instrument they play",
+                            "deprecated": false,
+                            "attributes": [
+                                "start_date",
+                                "end_date"
+                            ],
+                            "parent_type": null
+                        }
+                    ]
+                },
+                {
+                    "type": "url",
+                    "relations": [
+                        {
+                            "type": "official homepage",
+                            "uuid": "fe33d6b8-136b-426b-8c88-49fe4e2071ee",
+                            "forward_phrase": "official homepage",
+                            "reverse_phrase": "official homepage for",
+                            "long_link_phrase": "official homepage at {entity1}",
+                            "description": "The official homepage for an artist",
+                            "deprecated": false,
+                            "attributes": [],
+                            "parent_type": null
+                        },
+                        {
+                            "type": "social network",
+                            "uuid": "99429741-f3f6-484b-84f8-23af51991770",
+                            "forward_phrase": "social network",
+                            "reverse_phrase": "social network page for",
+                            "long_link_phrase": "social networking page at {entity1}",
+                            "description": "A link to a social media profile",
+                            "deprecated": false,
+                            "attributes": [],
+                            "parent_type": null
+                        },
+                        {
+                            "type": "discogs",
+                            "uuid": "04a5b104-a4c2-4bac-99f2-7b3738222600",
+                            "forward_phrase": "discogs",
+                            "reverse_phrase": "discogs page for",
+                            "long_link_phrase": "Discogs page at {entity1}",
+                            "description": "Link to the artist's page on Discogs",
+                            "deprecated": false,
+                            "attributes": [],
+                            "parent_type": null
+                        },
+                        {
+                            "type": "wikipedia",
+                            "uuid": "6de0b5e2-a3ef-4a65-85aa-d237d6127823",
+                            "forward_phrase": "wikipedia",
+                            "reverse_phrase": "wikipedia page for",
+                            "long_link_phrase": "Wikipedia page at {entity1}",
+                            "description": "Wikipedia article",
+                            "deprecated": false,
+                            "attributes": [],
+                            "parent_type": null
+                        },
+                        {
+                            "type": "youtube",
+                            "uuid": "d9c71318-b102-4476-9671-44420c2e47f7",
+                            "forward_phrase": "youtube",
+                            "reverse_phrase": "youtube channel for",
+                            "long_link_phrase": "YouTube channel at {entity1}",
+                            "description": "YouTube channel",
+                            "deprecated": false,
+                            "attributes": [],
+                            "parent_type": null
+                        },
+                        {
+                            "type": "soundcloud",
+                            "uuid": "d028a975-0470-4dbc-9402-eaaf87e72c58",
+                            "forward_phrase": "soundcloud",
+                            "reverse_phrase": "soundcloud page for",
+                            "long_link_phrase": "SoundCloud page at {entity1}",
+                            "description": "SoundCloud profile",
+                            "deprecated": false,
+                            "attributes": [],
+                            "parent_type": null
+                        },
+                        {
+                            "type": "bandcamp",
+                            "uuid": "c535de4c-a112-4974-b138-46e349938c8d",
+                            "forward_phrase": "bandcamp",
+                            "reverse_phrase": "bandcamp page for",
+                            "long_link_phrase": "Bandcamp page at {entity1}",
+                            "description": "Bandcamp profile",
+                            "deprecated": false,
+                            "attributes": [],
+                            "parent_type": null
+                        },
+                        {
+                            "type": "allmusic",
+                            "uuid": "ca197be4-e654-4c3f-8a95-fb4e7b860066",
+                            "forward_phrase": "allmusic",
+                            "reverse_phrase": "allmusic page for",
+                            "long_link_phrase": "AllMusic page at {entity1}",
+                            "description": "AllMusic profile",
+                            "deprecated": false,
+                            "attributes": [],
+                            "parent_type": null
+                        },
+                        {
+                            "type": "imdb",
+                            "uuid": "dfd36bc7-0c06-49fa-8b79-07836e5a98f3",
+                            "forward_phrase": "imdb",
+                            "reverse_phrase": "imdb page for",
+                            "long_link_phrase": "IMDb page at {entity1}",
+                            "description": "Internet Movie Database profile",
+                            "deprecated": false,
+                            "attributes": [],
+                            "parent_type": null
+                        },
+                        {
+                            "type": "myspace",
+                            "uuid": null,
+                            "forward_phrase": "myspace",
+                            "reverse_phrase": "myspace page for",
+                            "long_link_phrase": "MySpace page at {entity1}",
+                            "description": "MySpace profile",
+                            "deprecated": true,
+                            "deprecation_reason": "Use 'social network' instead",
+                            "attributes": [],
+                            "parent_type": null
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "subject": "work",
+            "objects": [
+                {
+                    "type": "recording",
+                    "relations": [
+                        {
+                            "type": "recording of",
+                            "uuid": "e25f716c-0498-4f35-9c55-359008985a49",
+                            "forward_phrase": "recordings",
+                            "reverse_phrase": "recording of",
+                            "long_link_phrase": "{entity0} is a recording of {entity1}",
+                            "description": "This relationship indicates that a recording is a performance of a work",
+                            "deprecated": false,
+                            "attributes": [
+                                "cover",
+                                "live",
+                                "instrumental",
+                                "partial",
+                                "medley",
+                                "demo",
+                                "karaoke",
+                                "video"
+                            ],
+                            "parent_type": null
+                        }
+                    ]
+                },
+                {
+                    "type": "work",
+                    "relations": [
+                        {
+                            "type": "part of",
+                            "uuid": "ca8d334d-3cd4-4a0c-87bc-924dc1244e4a",
+                            "forward_phrase": "has part",
+                            "reverse_phrase": "part of",
+                            "long_link_phrase": "{entity1} is a part of {entity0}",
+                            "description": "Used for movements of classical works or parts of a suite",
+                            "deprecated": false,
+                            "attributes": [
+                                "number"
+                            ],
+                            "parent_type": null
+                        },
+                        {
+                            "type": "arrangement of",
+                            "uuid": "49474147-ce57-4184-9724-dd9eb329a148",
+                            "forward_phrase": "has arrangement",
+                            "reverse_phrase": "arrangement of",
+                            "long_link_phrase": "{entity0} is an arrangement of {entity1}",
+                            "description": "Indicates that a work is an arrangement of another work",
+                            "deprecated": false,
+                            "attributes": [
+                                "type"
+                            ],
+                            "parent_type": null
+                        },
+                        {
+                            "type": "medley of",
+                            "uuid": "b25639d9-3903-438a-8043-43959d28ad31",
+                            "forward_phrase": "is medley in",
+                            "reverse_phrase": "medley of",
+                            "long_link_phrase": "{entity1} is a medley of {entity0}",
+                            "description": "Indicates that a work is a medley containing other works",
+                            "deprecated": false,
+                            "attributes": [],
+                            "parent_type": null
+                        },
+                        {
+                            "type": "based on",
+                            "uuid": "3c37b9fa-a96d-4d47-a34f-7e83e1e98b14",
+                            "forward_phrase": "is basis for",
+                            "reverse_phrase": "based on",
+                            "long_link_phrase": "{entity0} is based on {entity1}",
+                            "description": "Links a work to another work from which it derives",
+                            "deprecated": false,
+                            "attributes": [],
+                            "parent_type": null
+                        },
+                        {
+                            "type": "translation of",
+                            "uuid": "50f19cf5-c31a-407f-a929-3669ea5091b1",
+                            "forward_phrase": "has translation",
+                            "reverse_phrase": "translation of",
+                            "long_link_phrase": "{entity0} is a translation of {entity1}",
+                            "description": "Links a work containing translated lyrics to the original work",
+                            "deprecated": false,
+                            "attributes": [
+                                "translated"
+                            ],
+                            "parent_type": null
+                        },
+                        {
+                            "type": "later version",
+                            "uuid": "1ad9301e-f9da-4092-a212-82c21a5ab7d4",
+                            "forward_phrase": "has later version",
+                            "reverse_phrase": "later version of",
+                            "long_link_phrase": "{entity0} is a later version of {entity1}",
+                            "description": "Links different versions of the same work",
+                            "deprecated": false,
+                            "attributes": [],
+                            "parent_type": null
+                        }
+                    ]
+                },
+                {
+                    "type": "label",
+                    "relations": [
+                        {
+                            "type": "published by",
+                            "uuid": "dff36cf2-6e00-4e85-a2b5-c36ba10351db",
+                            "forward_phrase": "publisher",
+                            "reverse_phrase": "published by",
+                            "long_link_phrase": "{entity0} was published by {entity1}",
+                            "description": "Links a work to its publisher",
+                            "deprecated": false,
+                            "attributes": [
+                                "start_date",
+                                "end_date"
+                            ],
+                            "parent_type": null
+                        }
+                    ]
+                },
+                {
+                    "type": "url",
+                    "relations": [
+                        {
+                            "type": "lyrics",
+                            "uuid": "e4d73442-3762-45a8-905c-401da65544ed",
+                            "forward_phrase": "lyrics",
+                            "reverse_phrase": "lyrics for",
+                            "long_link_phrase": "lyrics available at {entity1}",
+                            "description": "Link to lyrics site",
+                            "deprecated": false,
+                            "attributes": [],
+                            "parent_type": null
+                        },
+                        {
+                            "type": "score",
+                            "uuid": "0cc8527e-ea40-40dd-b144-3b7588e759bf",
+                            "forward_phrase": "score",
+                            "reverse_phrase": "score for",
+                            "long_link_phrase": "score available at {entity1}",
+                            "description": "Link to musical score",
+                            "deprecated": false,
+                            "attributes": [],
+                            "parent_type": null
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "subject": "recording",
+            "objects": [
+                {
+                    "type": "release",
+                    "relations": [
+                        {
+                            "type": "appears on",
+                            "uuid": "55393969-80e9-3d13-8027-14664309322c",
+                            "forward_phrase": "tracklist",
+                            "reverse_phrase": "appears on",
+                            "long_link_phrase": "{entity0} appears on {entity1}",
+                            "description": "Places a recording on a release, forming a tracklist",
+                            "deprecated": false,
+                            "attributes": [
+                                "track_number",
+                                "medium_number"
+                            ],
+                            "parent_type": null
+                        }
+                    ]
+                },
+                {
+                    "type": "recording",
+                    "relations": [
+                        {
+                            "type": "remix of",
+                            "uuid": "c55651a3-83d8-4424-9104-a15ea279e897",
+                            "forward_phrase": "has remix",
+                            "reverse_phrase": "remix of",
+                            "long_link_phrase": "{entity0} is a remix of {entity1}",
+                            "description": "Links a remix to the original recording",
+                            "deprecated": false,
+                            "attributes": [],
+                            "parent_type": null
+                        },
+                        {
+                            "type": "samples from",
+                            "uuid": "a3005666-a872-32c3-ad06-98af558e99b0",
+                            "forward_phrase": "sampled in",
+                            "reverse_phrase": "samples from",
+                            "long_link_phrase": "{entity0} samples material from {entity1}",
+                            "description": "Links a recording that samples another recording",
+                            "deprecated": false,
+                            "attributes": [],
+                            "parent_type": null
+                        },
+                        {
+                            "type": "cover of",
+                            "uuid": "fff8e571-6a40-4054-9e37-a5a694dd7831",
+                            "forward_phrase": "has cover",
+                            "reverse_phrase": "cover of",
+                            "long_link_phrase": "{entity0} is a cover of {entity1}",
+                            "description": "Links a cover recording to the original",
+                            "deprecated": false,
+                            "attributes": [],
+                            "parent_type": null
+                        },
+                        {
+                            "type": "mashup of",
+                            "uuid": "579be069-7cf4-45d4-b74f-653ae3d59327",
+                            "forward_phrase": "mashed up in",
+                            "reverse_phrase": "mashup of",
+                            "long_link_phrase": "{entity0} is a mashup containing {entity1}",
+                            "description": "Links a mashup to recordings it combines",
+                            "deprecated": false,
+                            "attributes": [],
+                            "parent_type": null
+                        },
+                        {
+                            "type": "edit of",
+                            "uuid": "c74d4090-d576-4ab9-aacd-d49a43dd39e7",
+                            "forward_phrase": "has edit",
+                            "reverse_phrase": "edit of",
+                            "long_link_phrase": "{entity0} is an edit of {entity1}",
+                            "description": "Links an edited version to the original",
+                            "deprecated": false,
+                            "attributes": [
+                                "type"
+                            ],
+                            "parent_type": null
+                        },
+                        {
+                            "type": "compilated from",
+                            "uuid": "28338ee6-d578-485a-bb53-61dbfd7c6545",
+                            "forward_phrase": "compiled into",
+                            "reverse_phrase": "compilated from",
+                            "long_link_phrase": "{entity0} was compiled from {entity1}",
+                            "description": "Links compilation track to original",
+                            "deprecated": false,
+                            "attributes": [],
+                            "parent_type": null
+                        }
+                    ]
+                },
+                {
+                    "type": "place",
+                    "relations": [
+                        {
+                            "type": "recorded at",
+                            "uuid": "ad82a728-32c8-4c82-88a2-b2db006a12dd",
+                            "forward_phrase": "recording location",
+                            "reverse_phrase": "recorded at",
+                            "long_link_phrase": "{entity0} was recorded at {entity1}",
+                            "description": "Links recording to the place where it was made",
+                            "deprecated": false,
+                            "attributes": [
+                                "start_date",
+                                "end_date"
+                            ],
+                            "parent_type": null
+                        },
+                        {
+                            "type": "mixed at",
+                            "uuid": "77604fef-2688-46a5-87f6-bb2467833fb4",
+                            "forward_phrase": "mixing location",
+                            "reverse_phrase": "mixed at",
+                            "long_link_phrase": "{entity0} was mixed at {entity1}",
+                            "description": "Links recording to mixing location",
+                            "deprecated": false,
+                            "attributes": [
+                                "start_date",
+                                "end_date"
+                            ],
+                            "parent_type": null
+                        },
+                        {
+                            "type": "mastered at",
+                            "uuid": "c29b00b5-e707-4c17-9b8f-e28b99e59e23",
+                            "forward_phrase": "mastering location",
+                            "reverse_phrase": "mastered at",
+                            "long_link_phrase": "{entity0} was mastered at {entity1}",
+                            "description": "Links recording to mastering location",
+                            "deprecated": false,
+                            "attributes": [
+                                "start_date",
+                                "end_date"
+                            ],
+                            "parent_type": null
+                        }
+                    ]
+                },
+                {
+                    "type": "event",
+                    "relations": [
+                        {
+                            "type": "recorded at",
+                            "uuid": "b021a8f6-164a-4e6f-9f17-c752e63aa7e7",
+                            "forward_phrase": "recording event",
+                            "reverse_phrase": "recorded at",
+                            "long_link_phrase": "{entity0} was recorded at {entity1}",
+                            "description": "Links a live recording to the event where it was captured",
+                            "deprecated": false,
+                            "attributes": [
+                                "time"
+                            ],
+                            "parent_type": null
+                        }
+                    ]
+                },
+                {
+                    "type": "url",
+                    "relations": [
+                        {
+                            "type": "streaming page",
+                            "uuid": "7e41ef12-a124-4324-afdb-fdbae687a89c",
+                            "forward_phrase": "streaming page",
+                            "reverse_phrase": "streaming page for",
+                            "long_link_phrase": "can be streamed at {entity1}",
+                            "description": "Link to streaming service",
+                            "deprecated": false,
+                            "attributes": [],
+                            "parent_type": null
+                        },
+                        {
+                            "type": "purchase for download",
+                            "uuid": "92777657-504c-4acb-bd33-51a2bd30e19e",
+                            "forward_phrase": "purchase for download",
+                            "reverse_phrase": "download page for",
+                            "long_link_phrase": "can be purchased for download at {entity1}",
+                            "description": "Digital purchase link",
+                            "deprecated": false,
+                            "attributes": [],
+                            "parent_type": null
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "subject": "release",
+            "objects": [
+                {
+                    "type": "release_group",
+                    "relations": [
+                        {
+                            "type": "part of",
+                            "uuid": "7f8589f2-3d5b-4d83-aff6-905e46105f63",
+                            "forward_phrase": "releases",
+                            "reverse_phrase": "part of",
+                            "long_link_phrase": "{entity0} is part of the release group {entity1}",
+                            "description": "Links a release to a release group",
+                            "deprecated": false,
+                            "attributes": [],
+                            "parent_type": null
+                        }
+                    ]
+                },
+                {
+                    "type": "label",
+                    "relations": [
+                        {
+                            "type": "released by",
+                            "uuid": "675c02d6-06b2-4403-81a9-195c863a340e",
+                            "forward_phrase": "catalog",
+                            "reverse_phrase": "released by",
+                            "long_link_phrase": "{entity0} was released by {entity1}",
+                            "description": "Links a release to the label(s) that published it",
+                            "deprecated": false,
+                            "attributes": [
+                                "catalog_number"
+                            ],
+                            "parent_type": null
+                        }
+                    ]
+                },
+                {
+                    "type": "area",
+                    "relations": [
+                        {
+                            "type": "release event",
+                            "uuid": "c8690623-9528-4091-88f5-30353ba5574a",
+                            "forward_phrase": "release events",
+                            "reverse_phrase": "released in",
+                            "long_link_phrase": "{entity0} was released in {entity1}",
+                            "description": "Indicates where a release was released",
+                            "deprecated": false,
+                            "attributes": [
+                                "date"
+                            ],
+                            "parent_type": null
+                        }
+                    ]
+                },
+                {
+                    "type": "place",
+                    "relations": [
+                        {
+                            "type": "manufactured at",
+                            "uuid": "87b2c3d6-f0ef-4e17-88f3-0896e23b7036",
+                            "forward_phrase": "manufactured at",
+                            "reverse_phrase": "manufacturing location for",
+                            "long_link_phrase": "{entity0} was manufactured at {entity1}",
+                            "description": "Manufacturing/pressing plant",
+                            "deprecated": false,
+                            "attributes": [
+                                "start_date",
+                                "end_date"
+                            ],
+                            "parent_type": null
+                        }
+                    ]
+                },
+                {
+                    "type": "series",
+                    "relations": [
+                        {
+                            "type": "part of",
+                            "uuid": "741a0ddb-0d51-4362-8cd4-8474c86f8d58",
+                            "forward_phrase": "part of",
+                            "reverse_phrase": "has releases",
+                            "long_link_phrase": "{entity0} is part of the series {entity1}",
+                            "description": "Links release to a series",
+                            "deprecated": false,
+                            "attributes": [
+                                "number"
+                            ],
+                            "parent_type": null
+                        }
+                    ]
+                },
+                {
+                    "type": "url",
+                    "relations": [
+                        {
+                            "type": "official homepage",
+                            "uuid": "ee42f0f6-70ec-43ec-a7bd-9a47acd2a5f1",
+                            "forward_phrase": "official homepage",
+                            "reverse_phrase": "official homepage for",
+                            "long_link_phrase": "official homepage at {entity1}",
+                            "description": "Official website for the release",
+                            "deprecated": false,
+                            "attributes": [],
+                            "parent_type": null
+                        },
+                        {
+                            "type": "discogs",
+                            "uuid": "99e550f3-5ab4-3110-b5b9-fe01d970b126",
+                            "forward_phrase": "discogs",
+                            "reverse_phrase": "discogs page for",
+                            "long_link_phrase": "Discogs page at {entity1}",
+                            "description": "Discogs page for release",
+                            "deprecated": false,
+                            "attributes": [],
+                            "parent_type": null
+                        },
+                        {
+                            "type": "streaming page",
+                            "uuid": "b9f9a515-f299-4f47-b07f-8a2cf7265283",
+                            "forward_phrase": "streaming page",
+                            "reverse_phrase": "streaming page for",
+                            "long_link_phrase": "can be streamed at {entity1}",
+                            "description": "Streaming service page",
+                            "deprecated": false,
+                            "attributes": [],
+                            "parent_type": null
+                        },
+                        {
+                            "type": "purchase for download",
+                            "uuid": "f3e58cc0-0a1f-4f00-a5f3-21eefd36e026",
+                            "forward_phrase": "purchase for download",
+                            "reverse_phrase": "download page for",
+                            "long_link_phrase": "can be purchased for download at {entity1}",
+                            "description": "Digital purchase page",
+                            "deprecated": false,
+                            "attributes": [],
+                            "parent_type": null
+                        },
+                        {
+                            "type": "crowdfunding page",
+                            "uuid": "da5fa875-4388-4745-a15b-29a2fb9c226f",
+                            "forward_phrase": "crowdfunding page",
+                            "reverse_phrase": "crowdfunding page for",
+                            "long_link_phrase": "crowdfunding campaign at {entity1}",
+                            "description": "Crowdfunding campaign page",
+                            "deprecated": false,
+                            "attributes": [],
+                            "parent_type": null
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "subject": "release_group",
+            "objects": [
+                {
+                    "type": "series",
+                    "relations": [
+                        {
+                            "type": "part of",
+                            "uuid": "858ef88f-0025-4c88-8b96-e6757d4a0144",
+                            "forward_phrase": "part of",
+                            "reverse_phrase": "has release groups",
+                            "long_link_phrase": "{entity0} is part of the series {entity1}",
+                            "description": "Links release group to a series",
+                            "deprecated": false,
+                            "attributes": [
+                                "number"
+                            ],
+                            "parent_type": null
+                        }
+                    ]
+                },
+                {
+                    "type": "url",
+                    "relations": [
+                        {
+                            "type": "official homepage",
+                            "uuid": "87d97dfc-3206-42fd-89d5-99593d5f1297",
+                            "forward_phrase": "standalone website",
+                            "reverse_phrase": "standalone website for",
+                            "long_link_phrase": "has a standalone website at {entity1}",
+                            "description": "Official website specifically for the release group",
+                            "deprecated": false,
+                            "attributes": [],
+                            "parent_type": null
+                        },
+                        {
+                            "type": "discography entry",
+                            "uuid": "d5d0e135-49f9-4e08-85af-b9f319e29ff3",
+                            "forward_phrase": "discography entry",
+                            "reverse_phrase": "discography entry for",
+                            "long_link_phrase": "discography entry at {entity1}",
+                            "description": "Entry in artist's discography page",
+                            "deprecated": false,
+                            "attributes": [],
+                            "parent_type": null
+                        },
+                        {
+                            "type": "wikipedia",
+                            "uuid": "89e4a949-0976-440d-bda1-5f772c1e5710",
+                            "forward_phrase": "wikipedia",
+                            "reverse_phrase": "wikipedia page for",
+                            "long_link_phrase": "Wikipedia page at {entity1}",
+                            "description": "Wikipedia article about the album",
+                            "deprecated": false,
+                            "attributes": [],
+                            "parent_type": null
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "subject": "label",
+            "objects": [
+                {
+                    "type": "label",
+                    "relations": [
+                        {
+                            "type": "sub label",
+                            "uuid": "6bb19cc4-f4e3-4394-a1e8-88c06099f533",
+                            "forward_phrase": "has sub label",
+                            "reverse_phrase": "sub label of",
+                            "long_link_phrase": "{entity0} has sub label {entity1}",
+                            "description": "Links a parent label to its sub-label/imprint",
+                            "deprecated": false,
+                            "attributes": [
+                                "start_date",
+                                "end_date"
+                            ],
+                            "parent_type": null
+                        },
+                        {
+                            "type": "renamed from",
+                            "uuid": "e6582795-9d7e-4a5d-9272-ac80cf617023",
+                            "forward_phrase": "renamed to",
+                            "reverse_phrase": "renamed from",
+                            "long_link_phrase": "{entity0} was renamed from {entity1}",
+                            "description": "Links label renamings",
+                            "deprecated": false,
+                            "attributes": [
+                                "date"
+                            ],
+                            "parent_type": null
+                        },
+                        {
+                            "type": "label distributes label",
+                            "uuid": "8a3eaab2-6107-4538-a7fc-83d789007a73",
+                            "forward_phrase": "distributes",
+                            "reverse_phrase": "distributed by",
+                            "long_link_phrase": "{entity0} distributes {entity1}",
+                            "description": "Distribution relationship between labels",
+                            "deprecated": false,
+                            "attributes": [
+                                "start_date",
+                                "end_date"
+                            ],
+                            "parent_type": null
+                        }
+                    ]
+                },
+                {
+                    "type": "area",
+                    "relations": [
+                        {
+                            "type": "label location",
+                            "uuid": "b1de4b8f-486f-40b6-8318-7208d0fec141",
+                            "forward_phrase": "located in",
+                            "reverse_phrase": "location for",
+                            "long_link_phrase": "{entity0} is located in {entity1}",
+                            "description": "Headquarters location of label",
+                            "deprecated": false,
+                            "attributes": [
+                                "start_date",
+                                "end_date"
+                            ],
+                            "parent_type": null
+                        }
+                    ]
+                },
+                {
+                    "type": "url",
+                    "relations": [
+                        {
+                            "type": "official homepage",
+                            "uuid": "87fd6e74-3d0d-44fc-b72c-f5cd108dc274",
+                            "forward_phrase": "official homepage",
+                            "reverse_phrase": "official homepage for",
+                            "long_link_phrase": "official homepage at {entity1}",
+                            "description": "Official label website",
+                            "deprecated": false,
+                            "attributes": [],
+                            "parent_type": null
+                        },
+                        {
+                            "type": "discogs",
+                            "uuid": "a0f42f27-6192-4b02-bb1f-85a8f5089b77",
+                            "forward_phrase": "discogs",
+                            "reverse_phrase": "discogs page for",
+                            "long_link_phrase": "Discogs page at {entity1}",
+                            "description": "Discogs label page",
+                            "deprecated": false,
+                            "attributes": [],
+                            "parent_type": null
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "subject": "area",
+            "objects": [
+                {
+                    "type": "area",
+                    "relations": [
+                        {
+                            "type": "part of",
+                            "uuid": "de7cc874-8b1b-3a05-8272-f3834c968fb7",
+                            "forward_phrase": "has parts",
+                            "reverse_phrase": "part of",
+                            "long_link_phrase": "{entity1} is part of {entity0}",
+                            "description": "Administrative subdivision (e.g., city in state)",
+                            "deprecated": false,
+                            "attributes": [
+                                "start_date",
+                                "end_date"
+                            ],
+                            "parent_type": null
+                        }
+                    ]
+                },
+                {
+                    "type": "url",
+                    "relations": [
+                        {
+                            "type": "geonames",
+                            "uuid": "e4f69e3b-4d64-416d-b82a-6bbc1c103f0b",
+                            "forward_phrase": "geonames",
+                            "reverse_phrase": "geonames page for",
+                            "long_link_phrase": "GeoNames entry at {entity1}",
+                            "description": "GeoNames geographical database entry",
+                            "deprecated": false,
+                            "attributes": [],
+                            "parent_type": null
+                        },
+                        {
+                            "type": "wikidata",
+                            "uuid": "e4d73442-3762-45a8-905c-401da654a77e",
+                            "forward_phrase": "wikidata",
+                            "reverse_phrase": "wikidata page for",
+                            "long_link_phrase": "Wikidata entry at {entity1}",
+                            "description": "Wikidata entry",
+                            "deprecated": false,
+                            "attributes": [],
+                            "parent_type": null
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "subject": "place",
+            "objects": [
+                {
+                    "type": "area",
+                    "relations": [
+                        {
+                            "type": "located in",
+                            "uuid": "0c5c9c94-728d-4a0b-a8ba-4d1b2f75b8f1",
+                            "forward_phrase": "located in",
+                            "reverse_phrase": "location for",
+                            "long_link_phrase": "{entity0} is located in {entity1}",
+                            "description": "Links a place to the area containing it",
+                            "deprecated": false,
+                            "attributes": [],
+                            "parent_type": null
+                        }
+                    ]
+                },
+                {
+                    "type": "place",
+                    "relations": [
+                        {
+                            "type": "parts",
+                            "uuid": "c52782a2-62ee-48cf-af8e-e056dace268f",
+                            "forward_phrase": "has parts",
+                            "reverse_phrase": "part of",
+                            "long_link_phrase": "{entity1} is part of {entity0}",
+                            "description": "Links venue complex to individual venues",
+                            "deprecated": false,
+                            "attributes": [],
+                            "parent_type": null
+                        }
+                    ]
+                },
+                {
+                    "type": "url",
+                    "relations": [
+                        {
+                            "type": "official homepage",
+                            "uuid": "6279d551-b47f-44c9-80de-25ced10604c9",
+                            "forward_phrase": "official homepage",
+                            "reverse_phrase": "official homepage for",
+                            "long_link_phrase": "official homepage at {entity1}",
+                            "description": "Official venue website",
+                            "deprecated": false,
+                            "attributes": [],
+                            "parent_type": null
+                        },
+                        {
+                            "type": "songkick",
+                            "uuid": "0beccc0a-e2f4-4145-8c87-0bea1d8dcf72",
+                            "forward_phrase": "songkick",
+                            "reverse_phrase": "songkick page for",
+                            "long_link_phrase": "Songkick page at {entity1}",
+                            "description": "Songkick venue page",
+                            "deprecated": false,
+                            "attributes": [],
+                            "parent_type": null
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "subject": "event",
+            "objects": [
+                {
+                    "type": "area",
+                    "relations": [
+                        {
+                            "type": "held in",
+                            "uuid": "542f8484-8bc7-4ce0-a022-747850b2b928",
+                            "forward_phrase": "held in",
+                            "reverse_phrase": "location for",
+                            "long_link_phrase": "{entity0} was held in {entity1}",
+                            "description": "Area where event took place",
+                            "deprecated": false,
+                            "attributes": [],
+                            "parent_type": null
+                        }
+                    ]
+                },
+                {
+                    "type": "place",
+                    "relations": [
+                        {
+                            "type": "held at",
+                            "uuid": "e2c6f697-07dc-38b1-be0b-83d740165532",
+                            "forward_phrase": "held at",
+                            "reverse_phrase": "hosted",
+                            "long_link_phrase": "{entity0} was held at {entity1}",
+                            "description": "Venue where event took place",
+                            "deprecated": false,
+                            "attributes": [
+                                "time"
+                            ],
+                            "parent_type": null
+                        }
+                    ]
+                },
+                {
+                    "type": "series",
+                    "relations": [
+                        {
+                            "type": "part of",
+                            "uuid": "707d947d-9563-328a-9742-ac4afc9f284a",
+                            "forward_phrase": "part of",
+                            "reverse_phrase": "has events",
+                            "long_link_phrase": "{entity0} is part of {entity1}",
+                            "description": "Links event to event series (tour, festival)",
+                            "deprecated": false,
+                            "attributes": [
+                                "number"
+                            ],
+                            "parent_type": null
+                        }
+                    ]
+                },
+                {
+                    "type": "url",
+                    "relations": [
+                        {
+                            "type": "official homepage",
+                            "uuid": "41930af2-cb94-488d-a4f1-d4a945b0bdd4",
+                            "forward_phrase": "official homepage",
+                            "reverse_phrase": "official homepage for",
+                            "long_link_phrase": "official homepage at {entity1}",
+                            "description": "Official event website",
+                            "deprecated": false,
+                            "attributes": [],
+                            "parent_type": null
+                        },
+                        {
+                            "type": "songkick",
+                            "uuid": "f2bb2a78-86ef-4a26-8b84-0e12236a03d2",
+                            "forward_phrase": "songkick",
+                            "reverse_phrase": "songkick page for",
+                            "long_link_phrase": "Songkick page at {entity1}",
+                            "description": "Songkick event page",
+                            "deprecated": false,
+                            "attributes": [],
+                            "parent_type": null
+                        },
+                        {
+                            "type": "setlist.fm",
+                            "uuid": "027fce0c-c621-4fd1-b728-1678ae08f280",
+                            "forward_phrase": "setlist.fm",
+                            "reverse_phrase": "setlist.fm page for",
+                            "long_link_phrase": "setlist at {entity1}",
+                            "description": "Setlist.fm page",
+                            "deprecated": false,
+                            "attributes": [],
+                            "parent_type": null
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "subject": "series",
+            "objects": [
+                {
+                    "type": "url",
+                    "relations": [
+                        {
+                            "type": "official homepage",
+                            "uuid": "fe829d13-2289-41d6-adde-d85a16c88a67",
+                            "forward_phrase": "official homepage",
+                            "reverse_phrase": "official homepage for",
+                            "long_link_phrase": "official homepage at {entity1}",
+                            "description": "Official series website",
+                            "deprecated": false,
+                            "attributes": [],
+                            "parent_type": null
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "subject": "instrument",
+            "objects": [
+                {
+                    "type": "instrument",
+                    "relations": [
+                        {
+                            "type": "related to",
+                            "uuid": "798e8dc8-7cf2-44f1-b796-52a8c37034a2",
+                            "forward_phrase": "related to",
+                            "reverse_phrase": "related to",
+                            "long_link_phrase": "{entity0} is related to {entity1}",
+                            "description": "Links related instruments",
+                            "deprecated": false,
+                            "attributes": [
+                                "type"
+                            ],
+                            "parent_type": null
+                        },
+                        {
+                            "type": "part of",
+                            "uuid": "f6100277-c7b8-4c8d-aa26-d8cd014b6761",
+                            "forward_phrase": "has parts",
+                            "reverse_phrase": "part of",
+                            "long_link_phrase": "{entity1} is part of {entity0}",
+                            "description": "Links instrument family to specific instruments",
+                            "deprecated": false,
+                            "attributes": [],
+                            "parent_type": null
+                        }
+                    ]
+                },
+                {
+                    "type": "url",
+                    "relations": [
+                        {
+                            "type": "information page",
+                            "uuid": "7bd06b4e-6133-4655-a7a6-7f33b0584f78",
+                            "forward_phrase": "information page",
+                            "reverse_phrase": "information page for",
+                            "long_link_phrase": "has information at {entity1}",
+                            "description": "Information about the instrument",
+                            "deprecated": false,
+                            "attributes": [],
+                            "parent_type": null
+                        },
+                        {
+                            "type": "wikidata",
+                            "uuid": "1486fccd-cf59-35e4-9399-b50e2b255877",
+                            "forward_phrase": "wikidata",
+                            "reverse_phrase": "wikidata page for",
+                            "long_link_phrase": "Wikidata entry at {entity1}",
+                            "description": "Wikidata entry",
+                            "deprecated": false,
+                            "attributes": [],
+                            "parent_type": null
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "relationship_hierarchies": [
+        {
+            "name": "performer",
+            "parent_uuid": "a25568d8-2a59-3176-8137-97551278eb2a",
+            "children": [
+                "instrument",
+                "vocals",
+                "conductor",
+                "orchestra",
+                "chorus master"
+            ],
+            "description": "Groups all types of performance credits"
+        },
+        {
+            "name": "production",
+            "parent_uuid": "66e2e7d4-a969-47c5-ac9b-c2a5444a4fcb",
+            "children": [
+                "producer",
+                "engineer",
+                "mixer",
+                "mastering",
+                "remixer",
+                "editor"
+            ],
+            "description": "Groups all technical and production roles"
+        },
+        {
+            "name": "writer",
+            "parent_uuid": "a3a47728-b49a-48b2-a48d-b83b7bd58d76",
+            "children": [
+                "composer",
+                "lyricist",
+                "librettist"
+            ],
+            "description": "Groups all writing credits"
+        },
+        {
+            "name": "arranger",
+            "parent_uuid": "7e48f217-065b-42de-a6f4-e31f3d4c4a8d",
+            "children": [
+                "orchestrator"
+            ],
+            "description": "Groups arrangement types"
+        }
+    ],
+    "implementation_notes": {
+        "cardinality": {
+            "0": "Few relationships expected",
+            "1": "Many relationships expected"
+        },
+        "orderability": {
+            "0": "Not orderable",
+            "1": "Orderable forward",
+            "2": "Orderable backward"
+        },
+        "deprecated_replacements": {
+            "myspace": "Use 'social network' relationship type instead",
+            "specific_engineer_types": "Use 'engineer' with 'type' attribute"
+        }
+    }
+}
