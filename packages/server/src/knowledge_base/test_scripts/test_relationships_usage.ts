@@ -27,8 +27,7 @@ const program = Effect.gen(function*() {
 
 // The service would be provided via the layer system in your application
 const runnable = program.pipe(
-  Effect.provide(RelationshipService.Default),
-  Effect.provide(Layer.scope)
+  Effect.provide(RelationshipService.Default)
 )
 
 runnable.pipe(Effect.runPromise)

@@ -6,6 +6,7 @@ import {
   DateTime,
   Duration,
   Effect,
+  Equal,
   Layer,
   Option,
   Request,
@@ -416,9 +417,26 @@ export class FactPlaysService extends Effect.Service<FactPlaysService>()("FactPl
 
     const insertPlays = (plays: InsertPlaysQuery) => Effect.request(InsertPlaysRequest({ plays }), InsertPlaysResolver)
 
+    const getLatestPersistedPlay = () =>
+      Effect.gen(function*() {
+        const query = SqlSchema.findOne({
+          Request: Schema.Struct({}),
+          Result: FactPlay,
+          execute: () =>
+            sql`
+            SELECT * FROM fact_plays 
+            ORDER BY airdate DESC, id DESC
+            LIMIT 1
+          `
+        })
+        return yield* query({})
+      })
+
     const UPDATE_PLAYS_LIMIT = 100
-    const updatePlays = (until: DateTime.Utc) =>
-      Stream.paginateEffect(
+    const updatePlays = Effect.gen(function*() {
+      const latestPlay = yield* getLatestPersistedPlay()
+
+      return yield* Stream.paginateEffect(
         `${KEXP_API_URL}/plays?limit=${UPDATE_PLAYS_LIMIT}`,
         (url) =>
           kexp.fetchPlaysFromUrl(url).pipe(
@@ -430,7 +448,18 @@ export class FactPlaysService extends Effect.Service<FactPlaysService>()("FactPl
       )
         .pipe(
           Stream.mapConcatChunk((plays) => plays),
-          Stream.takeWhile((play) => DateTime.greaterThan(DateTime.unsafeMake(play.airdate), until)),
+          Stream.takeWhile((play) => {
+            if (Option.isNone(latestPlay)) return true
+
+            const latestPlayValue = latestPlay.value
+            const playAirdate = DateTime.unsafeMake(play.airdate)
+            const latestAirdate = DateTime.unsafeMake(latestPlayValue.airdate)
+
+            if (DateTime.lessThan(playAirdate, latestAirdate)) return false
+            if (Equal.equals(playAirdate, latestAirdate) && play.id <= latestPlayValue.id) return false
+
+            return true
+          }),
           Stream.grouped(100),
           Stream.mapEffect((chunk) =>
             Effect.gen(function*() {
@@ -443,6 +472,7 @@ export class FactPlaysService extends Effect.Service<FactPlaysService>()("FactPl
           ),
           Stream.runCount
         )
+    })
 
     const getPlayById = (playId: PlayId) =>
       Effect.request(PlayByIdRequest({ queryString: `play:${playId}` }), PlayByIdResolver).pipe(
@@ -548,6 +578,7 @@ export class FactPlaysService extends Effect.Service<FactPlaysService>()("FactPl
       getLocalPlays,
 
       // Utility methods
+      getLatestPersistedPlay,
       getRecentPlays,
       searchPlays,
 
