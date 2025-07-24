@@ -83,7 +83,7 @@ export class TripleGraph<A> implements KnowledgeGraph<A> {
 
 // --- Constructors ---
 
-export const make = <A>(triples: Iterable<A>): TripleGraph<A> => new TripleGraph(Chunk.fromIterable(triples))
+export const make = <A = Triple>(triples: Iterable<A>): TripleGraph<A> => new TripleGraph(Chunk.fromIterable(triples))
 
 export const empty = <A = Triple>(): TripleGraph<A> => new TripleGraph<A>(Chunk.empty())
 

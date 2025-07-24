@@ -1,4 +1,3 @@
-import { EntityResolution } from "@crate/domain"
 import { FetchHttpClient, HttpClient, HttpClientRequest, HttpClientResponse } from "@effect/platform"
 import type { RequestError, ResponseError } from "@effect/platform/HttpClientError"
 import { SqlClient, SqlSchema } from "@effect/sql"
@@ -9,6 +8,7 @@ import { AuditLog, MBArtistFetchMetaData } from "../../audit/schemas.js"
 import * as AuditService from "../../audit/service.js"
 import { MusicKBSqlLive } from "../../sql/Sql.js"
 import * as MBEntities from "../entity_persistence/schemas.js"
+import { MbArtistId } from "../entity_persistence/schemas.js"
 import * as MBDataService from "../entity_persistence/service.js"
 import * as RelationshipService from "../relationships/service.js"
 import * as MBSchemas from "./schemas.js"
@@ -78,7 +78,7 @@ export class MusicBrainzService extends Effect.Service<MusicBrainzService>()("Mu
                     status: error.response.status
                   })
                 }))
-                yield* mbData.deleteUnresolvedMBArtists(EntityResolution.MbArtistId.make(artistId))
+                yield* mbData.deleteUnresolvedMBArtists(MBEntities.MbArtistId.make(artistId))
               }
               return yield* Effect.fail(error)
             }))),
@@ -107,7 +107,7 @@ export class MusicBrainzService extends Effect.Service<MusicBrainzService>()("Mu
         const { relations, ...artist } = yield* fetchArtist(artistId, kexpPlayId, userAgent)
 
         const artistInsert = yield* Schema.decode(MBEntities.ArtistMBEntityMaster.insert)({
-          artist_mb_id: EntityResolution.MbArtistId.make(artist.id),
+          artist_mb_id: MBEntities.MbArtistId.make(artist.id),
           artist_aliases: JSON.stringify(artist.aliases ?? []),
           artist_name: artist.name,
           artist_disambiguation: artist.disambiguation ?? null,
@@ -186,7 +186,7 @@ export class MusicBrainzService extends Effect.Service<MusicBrainzService>()("Mu
                 const entity = yield* mbData.insertArtistEntity(artistInsert)
 
                 // Delete unresolved artist
-                yield* mbData.deleteUnresolvedMBArtists(EntityResolution.MbArtistId.make(unresolved.artist_mb_id))
+                yield* mbData.deleteUnresolvedMBArtists(MbArtistId.make(unresolved.artist_mb_id))
 
                 // Insert relationships if any exist
                 yield* Effect.when(() => validRelationships.length > 0)(
