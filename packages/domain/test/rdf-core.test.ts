@@ -1,17 +1,18 @@
 import { assert, beforeEach, describe, it } from "@effect/vitest"
-import { Equal, Hash, Schema } from "effect"
+import { Equal, Hash, Option, Schema } from "effect"
 import * as Cardinality from "../src/rdf/Cardinality.js"
-import { TripleURIMake } from "../src/rdf/Entity.js"
+import type { AttributeType } from "../src/rdf/Entity.js"
 import {
   Attribute,
   AttributeId,
   Entity,
   EntityUri,
   Predicate,
-  PredicateURI,
+  PredicateUri,
   Triple,
   WithMetadata
 } from "../src/rdf/index.js"
+import { TripleURIMake } from "../src/rdf/Triple.js"
 
 describe("RDF Core Classes", () => {
   describe("Entity", () => {
@@ -312,13 +313,15 @@ describe("RDF Core Classes", () => {
     describe("construction and properties", () => {
       it("should create Predicate with all required fields", () => {
         const predicate = new Predicate({
-          id: PredicateURI.make("performed"),
+          id: PredicateUri.make("performed"),
           forwardPhrase: "performed",
           reversePhrase: "performed by",
           longForm: "Artist performed Recording",
           description: "Indicates that an artist performed a recording",
           cardinality0: Cardinality.Many,
-          cardinality1: Cardinality.One
+          cardinality1: Cardinality.One,
+          parent: Option.none(),
+          attributes: new Set()
         })
 
         assert.strictEqual(predicate.id, "performed")
@@ -333,23 +336,27 @@ describe("RDF Core Classes", () => {
     describe("equality", () => {
       it("should be equal when id matches", () => {
         const predicate1 = new Predicate({
-          id: PredicateURI.make("performed"),
+          id: PredicateUri.make("performed"),
           forwardPhrase: "performed",
           reversePhrase: "performed by",
           longForm: "Artist performed Recording",
           description: "Test description",
           cardinality0: Cardinality.Many,
-          cardinality1: Cardinality.One
+          cardinality1: Cardinality.One,
+          parent: Option.none(),
+          attributes: new Set()
         })
 
         const predicate2 = new Predicate({
-          id: PredicateURI.make("performed"),
+          id: PredicateUri.make("performed"),
           forwardPhrase: "different phrase",
           reversePhrase: "different reverse",
           longForm: "Different long form",
           description: "Different description",
           cardinality0: Cardinality.One,
-          cardinality1: Cardinality.Many
+          cardinality1: Cardinality.Many,
+          parent: Option.none(),
+          attributes: new Set()
         })
 
         assert.isTrue(Equal.equals(predicate1, predicate2))
@@ -357,23 +364,27 @@ describe("RDF Core Classes", () => {
 
       it("should not be equal when id differs", () => {
         const predicate1 = new Predicate({
-          id: PredicateURI.make("performed"),
+          id: PredicateUri.make("performed"),
           forwardPhrase: "performed",
           reversePhrase: "performed by",
           longForm: "Artist performed Recording",
           description: "Test description",
           cardinality0: Cardinality.Many,
-          cardinality1: Cardinality.One
+          cardinality1: Cardinality.One,
+          parent: Option.none(),
+          attributes: new Set()
         })
 
         const predicate2 = new Predicate({
-          id: PredicateURI.make("created"),
+          id: PredicateUri.make("created"),
           forwardPhrase: "performed",
           reversePhrase: "performed by",
           longForm: "Artist performed Recording",
           description: "Test description",
           cardinality0: Cardinality.Many,
-          cardinality1: Cardinality.One
+          cardinality1: Cardinality.One,
+          parent: Option.none(),
+          attributes: new Set()
         })
 
         assert.isFalse(Equal.equals(predicate1, predicate2))
@@ -381,13 +392,15 @@ describe("RDF Core Classes", () => {
 
       it("should not be equal to non-Predicate objects", () => {
         const predicate = new Predicate({
-          id: PredicateURI.make("performed"),
+          id: PredicateUri.make("performed"),
           forwardPhrase: "performed",
           reversePhrase: "performed by",
           longForm: "Artist performed Recording",
           description: "Test description",
           cardinality0: Cardinality.Many,
-          cardinality1: Cardinality.One
+          cardinality1: Cardinality.One,
+          parent: Option.none(),
+          attributes: new Set()
         })
 
         const notPredicate = { id: "performed" }
@@ -398,23 +411,27 @@ describe("RDF Core Classes", () => {
     describe("hashing", () => {
       it("should have same hash for predicates with same id", () => {
         const predicate1 = new Predicate({
-          id: PredicateURI.make("performed"),
+          id: PredicateUri.make("performed"),
           forwardPhrase: "performed",
           reversePhrase: "performed by",
           longForm: "Artist performed Recording",
           description: "Test description",
           cardinality0: Cardinality.Many,
-          cardinality1: Cardinality.One
+          cardinality1: Cardinality.One,
+          parent: Option.none(),
+          attributes: new Set()
         })
 
         const predicate2 = new Predicate({
-          id: PredicateURI.make("performed"),
+          id: PredicateUri.make("performed"),
           forwardPhrase: "different",
           reversePhrase: "different",
           longForm: "different",
           description: "different",
           cardinality0: Cardinality.One,
-          cardinality1: Cardinality.Many
+          cardinality1: Cardinality.Many,
+          parent: Option.none(),
+          attributes: new Set()
         })
 
         assert.strictEqual(Hash.hash(predicate1), Hash.hash(predicate2))
@@ -422,23 +439,27 @@ describe("RDF Core Classes", () => {
 
       it("should have different hash for predicates with different ids", () => {
         const predicate1 = new Predicate({
-          id: PredicateURI.make("performed"),
+          id: PredicateUri.make("performed"),
           forwardPhrase: "performed",
           reversePhrase: "performed by",
           longForm: "Artist performed Recording",
           description: "Test description",
           cardinality0: Cardinality.Many,
-          cardinality1: Cardinality.One
+          cardinality1: Cardinality.One,
+          parent: Option.none(),
+          attributes: new Set()
         })
 
         const predicate2 = new Predicate({
-          id: PredicateURI.make("created"),
+          id: PredicateUri.make("created"),
           forwardPhrase: "performed",
           reversePhrase: "performed by",
           longForm: "Artist performed Recording",
           description: "Test description",
           cardinality0: Cardinality.Many,
-          cardinality1: Cardinality.One
+          cardinality1: Cardinality.One,
+          parent: Option.none(),
+          attributes: new Set()
         })
 
         assert.notStrictEqual(Hash.hash(predicate1), Hash.hash(predicate2))
@@ -464,18 +485,21 @@ describe("RDF Core Classes", () => {
       })
 
       performedPredicate = new Predicate({
-        id: PredicateURI.make("performed"),
+        id: PredicateUri.make("performed"),
         forwardPhrase: "performed",
         reversePhrase: "performed by",
         longForm: "Artist performed Recording",
         description: "Test description",
         cardinality0: Cardinality.Many,
-        cardinality1: Cardinality.One
+        cardinality1: Cardinality.One,
+        parent: Option.none(),
+        attributes: new Set()
       })
 
       testAttribute = new Attribute({
         id: AttributeId.make("test-attr"),
         name: "Test Attribute",
+        type: "test" as AttributeType,
         description: "A test attribute"
       })
     })
@@ -580,13 +604,15 @@ describe("RDF Core Classes", () => {
 
       it("should not be equal when predicate differs", () => {
         const otherPredicate = new Predicate({
-          id: PredicateURI.make("created"),
+          id: PredicateUri.make("created"),
           forwardPhrase: "created",
           reversePhrase: "created by",
           longForm: "Artist created Recording",
           description: "Test description",
           cardinality0: Cardinality.Many,
-          cardinality1: Cardinality.One
+          cardinality1: Cardinality.One,
+          parent: Option.none(),
+          attributes: new Set()
         })
 
         const triple1 = Triple.Make({
@@ -708,13 +734,15 @@ describe("RDF Core Classes", () => {
 
       it("should have different hash when predicate differs", () => {
         const otherPredicate = new Predicate({
-          id: PredicateURI.make("created"),
+          id: PredicateUri.make("created"),
           forwardPhrase: "created",
           reversePhrase: "created by",
           longForm: "Artist created Recording",
           description: "Test description",
           cardinality0: Cardinality.Many,
-          cardinality1: Cardinality.One
+          cardinality1: Cardinality.One,
+          parent: Option.none(),
+          attributes: new Set()
         })
 
         const triple1 = Triple.Make({
@@ -781,27 +809,33 @@ describe("RDF Core Classes", () => {
         const attribute1 = new Attribute({
           id: AttributeId.make("attr1"),
           name: "Attribute 1",
-          description: "First attribute"
+          description: "First attribute",
+          allowedValues: new Set<string>(),
+          type: "test" as AttributeType
         })
 
         const attribute2 = new Attribute({
           id: AttributeId.make("attr2"),
           name: "Attribute 2",
-          description: "Second attribute"
+          description: "Second attribute",
+          allowedValues: new Set<string>(),
+          type: "test" as AttributeType
         })
 
         const triple1 = Triple.Make({
           subject: artistEntity,
           predicate: performedPredicate,
           object: recordingEntity,
-          attributes: [attribute1]
+          attributes: [attribute1],
+          direction: "forward"
         })
 
         const triple2 = Triple.Make({
           subject: artistEntity,
           predicate: performedPredicate,
           object: recordingEntity,
-          attributes: [attribute2]
+          attributes: [attribute2],
+          direction: "forward"
         })
 
         assert.strictEqual(Hash.hash(triple1), Hash.hash(triple2))
