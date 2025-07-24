@@ -1,10 +1,11 @@
-import type { EntityResolution } from "@crate/domain"
 import { Model } from "@effect/sql"
 import type { Either } from "effect"
 import { Effect, Schema } from "effect"
 import type { ParseError } from "effect/ParseResult"
 import { PersistedRelationship } from "../relationships/schemas.js"
-import type * as MBSchemas from "./schemas.js"
+
+import type { EntityType, PredicateType } from "../entity_persistence/schemas.js"
+import type { MBQueryError } from "../entity_persistence/service.js"
 
 export type MBArtistFromApiEncoded = Schema.Schema.Encoded<typeof MBArtistFromApi>
 export type MBArtistFromApi = Schema.Schema.Type<typeof MBArtistFromApi>
@@ -114,10 +115,10 @@ export const MBArtistResponse = MBArtistFromApi
 export type MBArtistResponse = Schema.Schema.Type<typeof MBArtistResponse>
 
 export const relationsFromMBArtist = (
-  artist: MBSchemas.MBArtistFromApi,
+  artist: MBArtistFromApi,
   kexpPlayId: number | null
 ): Effect.Effect<
-  ReadonlyArray<Either.Either<Schema.Schema.Type<typeof PersistedRelationship.insert>, ParseError>>
+  ReadonlyArray<Either.Either<Schema.Schema.Type<typeof PersistedRelationship.insert>, ParseError | MBQueryError>>
 > =>
   Effect.forEach(artist.relations, (relation) =>
     Effect.gen(function*() {
@@ -166,9 +167,9 @@ export const relationsFromMBArtist = (
             subject_id: artist.id,
             subject_type: "artist",
             subject_name: artist.name,
-            predicate: relation.type as EntityResolution.PredicateType,
+            predicate: relation.type as PredicateType,
             object_id: objectId,
-            object_type: targetType === "release-group" ? "release_group" : targetType as EntityResolution.EntityType,
+            object_type: targetType === "release-group" ? "release_group" : targetType as EntityType,
             object_name: objectName,
             attribute_type: attributeType, // Now consistent
             source: "musicbrainz",

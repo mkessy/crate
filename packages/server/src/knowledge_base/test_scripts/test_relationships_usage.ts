@@ -1,6 +1,5 @@
-import { EntityResolution } from "@crate/domain"
-
 import { Effect, HashSet, Layer, Schema } from "effect"
+import { ArtistEntity } from "../entity_persistence/schemas.js"
 import { RelationshipService } from "../relationships/service.js"
 
 // Example usage of the RelationshipService with type-safe predicates and entity types
@@ -12,13 +11,13 @@ const program = Effect.gen(function*() {
     "a74b1b7f-71a5-4011-9441-d0b5e4122711"
   )
 
-  const entityHash = Schema.decodeSync(EntityResolution.NonArtistEntity.pipe(Schema.HashSet))(artistRecordings)
+  const entityHash = Schema.decodeSync(ArtistEntity.pipe(Schema.HashSet))(artistRecordings)
   console.log("Artist recordings:", artistRecordings.length)
   console.log("Entity hash:", HashSet.size(entityHash))
 
   // check if any of the entity_uri are the same
 
-  const entityUris = HashSet.fromIterable(HashSet.map(entityHash, (entity) => entity.entity_uri)).pipe(
+  const entityUris = HashSet.fromIterable(HashSet.map(entityHash, (entity) => entity.entity_mb_id)).pipe(
     HashSet.toValues
   )
   console.log("Entity uris:", entityUris.length)

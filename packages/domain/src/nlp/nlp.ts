@@ -1,31 +1,34 @@
-import { Data, Hash } from "effect"
+import { Schema } from "effect"
 import type { TupleOf } from "effect/Types"
-import type { Mention } from "../entity_resolution/index.js"
 
 export type Span = TupleOf<2, number>
 
-export const Span = (start: number, end: number) => Data.tuple(start, end) as Span
+export const Span = Schema.TaggedClass<Span>()("Span", {
+  start: Schema.Number,
+  end: Schema.Number
+})
 
-export class Token extends Data.Class<{
-  readonly text: string
-  readonly span: Span
-  readonly sentenceIndex: number
-}> {}
+export class Token extends Schema.TaggedClass<Token>()("Token", {
+  text: Schema.String,
+  span: Span,
+  sentenceIndex: Schema.Number
+}) {
+}
 
-export class Sentence extends Data.Class<{
-  readonly text: string
-  readonly span: Span
-  readonly tokens: ReadonlyArray<Token>
-  readonly index: number
-}> {}
+export class Sentence extends Schema.TaggedClass<Sentence>()("Sentence", {
+  text: Schema.String,
+  span: Span,
+  tokens: Schema.Array(Token),
+  index: Schema.Number
+}) {
+}
 
-export class AnalyzedText extends Data.Class<{
-  readonly id: string
-  readonly rawText: string
-  readonly sentences: ReadonlyArray<Sentence>
-  readonly mentions: ReadonlyArray<Mention>
-}> {
-  [Hash.symbol](): number {
-    return Hash.hash(this.rawText)
-  }
+export type ParsedTextId = Schema.Schema.Type<typeof ParsedTextId>
+export const ParsedTextId = Schema.Number.pipe(Schema.brand("ParsedTextId"))
+
+export class ParsedText extends Schema.TaggedClass<ParsedText>()("ParsedText", {
+  id: ParsedTextId,
+  text: Schema.String,
+  sents: Schema.Array(Sentence)
+}) {
 }

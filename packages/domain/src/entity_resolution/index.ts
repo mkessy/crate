@@ -1,16 +1,9 @@
-/**
- * Entity Resolution module
- *
- * This module provides types and service interfaces for entity resolution
- * in the music discovery system. It's designed to be environment-agnostic
- * and can be used in both server and web contexts.
- */
+import * as Candidate from "./Candidate.js"
+import * as KnowledgeBase from "./KnowledgeBase/index.js"
+import * as Mention from "./Mention.js"
+import * as ResolutionContext from "./ResolutionContext.js"
 
-export * from "./Candidate.js"
-export * from "./mention/Mention.js"
-export * from "./predicate.js"
+export { Candidate, KnowledgeBase, Mention, ResolutionContext }
 export * from "./ResolutionCache.js"
-export * from "./ResolutionScope.js"
-export * from "./schemas.js"
 export * from "./TrieFinder.js"
 export * from "./utils.js"

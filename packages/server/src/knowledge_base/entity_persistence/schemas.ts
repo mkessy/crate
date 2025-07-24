@@ -1,7 +1,55 @@
-import { EntityResolution } from "@crate/domain"
 import { KexpTrackPlay } from "@crate/server/kexp/schemas.js"
 import { Model } from "@effect/sql"
 import { Equal, Hash, pipe, Schema, String } from "effect"
+
+export type EntityType = Schema.Schema.Type<typeof EntityType>
+export const EntityType = Schema.Literal(
+  "place",
+  "area",
+  "genre",
+  "artist",
+  "recording",
+  "release",
+  "release_group",
+  "label",
+  "event",
+  "series",
+  "work",
+  "play",
+  "comment",
+  "instrument",
+  "url"
+)
+
+export type PredicateType = Schema.Schema.Type<typeof PredicateType>
+export const PredicateType = Schema.String.pipe(Schema.brand("PredicateType"))
+
+export type MbArtistId = Schema.Schema.Type<typeof MbArtistId>
+export const MbArtistId = Schema.String.pipe(Schema.brand("MbArtistId"))
+
+export type MbRecordingId = Schema.Schema.Type<typeof MbRecordingId>
+export const MbRecordingId = Schema.String.pipe(Schema.brand("MbRecordingId"))
+
+export type MbReleaseId = Schema.Schema.Type<typeof MbReleaseId>
+export const MbReleaseId = Schema.String.pipe(Schema.brand("MbReleaseId"))
+
+export type MbReleaseGroupId = Schema.Schema.Type<typeof MbReleaseGroupId>
+export const MbReleaseGroupId = Schema.String.pipe(Schema.brand("MbReleaseGroupId"))
+
+export type MbLabelId = Schema.Schema.Type<typeof MbLabelId>
+export const MbLabelId = Schema.String.pipe(Schema.brand("MbLabelId"))
+
+export type MbWorkId = Schema.Schema.Type<typeof MbWorkId>
+export const MbWorkId = Schema.String.pipe(Schema.brand("MbWorkId"))
+
+export type MbPlayId = Schema.Schema.Type<typeof MbPlayId>
+export const MbPlayId = Schema.String.pipe(Schema.brand("MbPlayId"))
+
+export type MbEventId = Schema.Schema.Type<typeof MbEventId>
+export const MbEventId = Schema.String.pipe(Schema.brand("MbEventId"))
+
+export type MbSeriesId = Schema.Schema.Type<typeof MbSeriesId>
+export const MbSeriesId = Schema.String.pipe(Schema.brand("MbSeriesId"))
 
 const normalizeText = (text: string) => {
   pipe(
@@ -65,7 +113,7 @@ export class KexpPlay extends Model.Class<KexpPlay>("KexpPlay")({
 }
 
 export class ArtistMBEntityMaster extends Model.Class<ArtistMBEntityMaster>("ArtistMBEntityMaster")({
-  artist_mb_id: EntityResolution.MbArtistId,
+  artist_mb_id: MbArtistId,
   artist_name: Schema.String,
   artist_disambiguation: Schema.NullOr(Schema.String),
   artist_type: Schema.NullishOr(Schema.String),
@@ -75,7 +123,7 @@ export class ArtistMBEntityMaster extends Model.Class<ArtistMBEntityMaster>("Art
   artist_life_begin: Schema.NullOr(Schema.String),
   artist_life_end: Schema.NullOr(Schema.String),
   artist_life_ended: Model.BooleanFromNumber,
-  entity_type: EntityResolution.EntityType,
+  entity_type: Schema.Literal("artist"),
   entity_mb_id: Schema.String,
   relation_type: Schema.String,
   direction: Schema.Literal("forward", "backward"),
@@ -91,10 +139,10 @@ export class ArtistMBEntityMaster extends Model.Class<ArtistMBEntityMaster>("Art
 export type ArtistMBEntityMasterEncoded = Schema.Schema.Encoded<typeof ArtistMBEntityMaster>
 
 export class ArtistEntity extends Schema.Class<ArtistEntity>("ArtistEntity")({
-  artist_mb_id: EntityResolution.MbArtistId,
+  artist_mb_id: MbArtistId,
   artist_name: Schema.String,
   artist_disambiguation: Schema.NullOr(Schema.String),
-  entity_type: EntityResolution.EntityType,
+  entity_type: Schema.Literal("artist"),
   entity_mb_id: Schema.String,
   entity_name: Schema.String,
   relation_type: Schema.String,

@@ -6,7 +6,7 @@
  * for efficient entity matching. All functions are pure and use Effect's
  * String and Array modules for functional composition.
  */
-import { Array, pipe, String } from "effect"
+import { pipe, String } from "effect"
 
 /**
  * Remove diacritics from a string.
@@ -88,41 +88,8 @@ export const normalize = (text: string): string =>
  *   "spirit"
  * ]
  */
-export const generateNGrams = (text: string): ReadonlyArray<string> => {
-  const words = pipe(
-    text,
-    String.split(" "),
-    Array.filter(String.isNonEmpty)
-  )
-
-  // For empty or single-word inputs
-  if (words.length === 0) return []
-  if (words.length === 1) return words
-
-  // Generate all n-grams using a functional approach
-  return pipe(
-    Array.range(0, words.length - 1),
-    Array.flatMap((start) =>
-      pipe(
-        Array.range(start + 1, words.length),
-        Array.map((end) =>
-          pipe(
-            words.slice(start, end),
-            Array.join(" ")
-          )
-        )
-      )
-    )
-  )
-}
 
 /**
  * Convenience function that combines normalization and n-gram generation.
  * This is useful when you want to go directly from raw text to n-grams.
  */
-export const normalizeAndGenerateNGrams = (text: string): ReadonlyArray<string> =>
-  pipe(
-    text,
-    normalize,
-    generateNGrams
-  )
