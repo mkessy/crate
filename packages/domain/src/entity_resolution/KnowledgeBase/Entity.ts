@@ -1,7 +1,10 @@
+// packages/domain/src/entity_resolution/KnowledgeBase/Entity.ts
+
 import { Schema } from "effect"
 import type { ExtractEntityType } from "../../rdf/Entity.js"
 import { Entity, WithMetadata } from "../../rdf/index.js"
 
+// Metadata Schemas
 type ArtistMetaData = Schema.Schema.Type<typeof ArtistMetaData>
 const ArtistMetaData = Schema.Struct({
   name: Schema.String,
@@ -51,7 +54,31 @@ const AreaEntityMetaData = Schema.Struct({})
 type GenreEntityMetaData = Schema.Schema.Type<typeof GenreEntityMetaData>
 const GenreEntityMetaData = Schema.Struct({})
 
-// Basic Entity makers (without metadata)
+// New Metadata Schemas
+type InstrumentEntityMetaData = Schema.Schema.Type<typeof InstrumentEntityMetaData>
+const InstrumentEntityMetaData = Schema.Struct({
+  description: Schema.NullOr(Schema.String),
+  instrument_type: Schema.String
+})
+
+type PlaceEntityMetaData = Schema.Schema.Type<typeof PlaceEntityMetaData>
+const PlaceEntityMetaData = Schema.Struct({
+  address: Schema.NullOr(Schema.String),
+  coordinates: Schema.optional(Schema.Struct({ lat: Schema.Number, lon: Schema.Number }))
+})
+
+type EventEntityMetaData = Schema.Schema.Type<typeof EventEntityMetaData>
+const EventEntityMetaData = Schema.Struct({
+  time: Schema.NullOr(Schema.String),
+  cancelled: Schema.Boolean
+})
+
+type SeriesEntityMetaData = Schema.Schema.Type<typeof SeriesEntityMetaData>
+const SeriesEntityMetaData = Schema.Struct({
+  series_type: Schema.String
+})
+
+// Basic Entity makers
 const MakeArtistEntity = Entity.MakeClass("artist")
 const MakeRecordingEntity = Entity.MakeClass("recording")
 const MakeReleaseEntity = Entity.MakeClass("release")
@@ -60,6 +87,11 @@ const MakeWorkEntity = Entity.MakeClass("work")
 const MakeLabelEntity = Entity.MakeClass("label")
 const MakeAreaEntity = Entity.MakeClass("area")
 const MakeGenreEntity = Entity.MakeClass("genre")
+// New Basic Entity Makers
+const MakeInstrumentEntity = Entity.MakeClass("instrument")
+const MakePlaceEntity = Entity.MakeClass("place")
+const MakeEventEntity = Entity.MakeClass("event")
+const MakeSeriesEntity = Entity.MakeClass("series")
 
 // WithMetadata Entity makers
 const MakeArtistWithMetadata = WithMetadata.MakeWithMetadataClass<ArtistMetaData, "artist">({
@@ -110,6 +142,27 @@ const MakeGenreWithMetadata = WithMetadata.MakeWithMetadataClass<GenreEntityMeta
   schema: GenreEntityMetaData
 })
 
+// New WithMetadata Entity Makers
+const MakeInstrumentWithMetadata = WithMetadata.MakeWithMetadataClass<InstrumentEntityMetaData, "instrument">({
+  type: "instrument",
+  schema: InstrumentEntityMetaData
+})
+
+const MakePlaceWithMetadata = WithMetadata.MakeWithMetadataClass<PlaceEntityMetaData, "place">({
+  type: "place",
+  schema: PlaceEntityMetaData
+})
+
+const MakeEventWithMetadata = WithMetadata.MakeWithMetadataClass<EventEntityMetaData, "event">({
+  type: "event",
+  schema: EventEntityMetaData
+})
+
+const MakeSeriesWithMetadata = WithMetadata.MakeWithMetadataClass<SeriesEntityMetaData, "series">({
+  type: "series",
+  schema: SeriesEntityMetaData
+})
+
 // Type extractors
 type ArtistEntityType = ExtractEntityType<typeof MakeArtistWithMetadata>
 type PlayEntityType = ExtractEntityType<typeof MakePlayEntity>
@@ -120,6 +173,11 @@ type WorkEntityType = ExtractEntityType<typeof MakeWorkWithMetadata>
 type LabelEntityType = ExtractEntityType<typeof MakeLabelWithMetadata>
 type AreaEntityType = ExtractEntityType<typeof MakeAreaWithMetadata>
 type GenreEntityType = ExtractEntityType<typeof MakeGenreWithMetadata>
+// New Entity Types
+type InstrumentEntityType = ExtractEntityType<typeof MakeInstrumentWithMetadata>
+type PlaceEntityType = ExtractEntityType<typeof MakePlaceWithMetadata>
+type EventEntityType = ExtractEntityType<typeof MakeEventWithMetadata>
+type SeriesEntityType = ExtractEntityType<typeof MakeSeriesWithMetadata>
 
 type EntityType =
   | ArtistEntityType
@@ -131,30 +189,40 @@ type EntityType =
   | LabelEntityType
   | AreaEntityType
   | GenreEntityType
+  | InstrumentEntityType
+  | PlaceEntityType
+  | EventEntityType
+  | SeriesEntityType
 
 // Export all entity makers and types
 export {
   type AreaEntityMetaData,
   type AreaEntityType,
-  // Types
   type ArtistEntityType,
-  // Metadata types
   type ArtistMetaData,
   type EntityType,
+  type EventEntityMetaData,
+  type EventEntityType,
   type GenreEntityMetaData,
   type GenreEntityType,
+  type InstrumentEntityMetaData,
+  type InstrumentEntityType,
   type LabelEntityMetaData,
   type LabelEntityType,
   MakeAreaEntity,
   MakeAreaWithMetadata,
-  // Basic entity makers
   MakeArtistEntity,
-  // WithMetadata entity makers
   MakeArtistWithMetadata,
+  MakeEventEntity,
+  MakeEventWithMetadata,
   MakeGenreEntity,
   MakeGenreWithMetadata,
+  MakeInstrumentEntity,
+  MakeInstrumentWithMetadata,
   MakeLabelEntity,
   MakeLabelWithMetadata,
+  MakePlaceEntity,
+  MakePlaceWithMetadata,
   MakePlayEntity,
   MakeRecordingEntity,
   MakeRecordingWithMetadata,
@@ -162,8 +230,12 @@ export {
   MakeReleaseGroupEntity,
   MakeReleaseGroupWithMetadata,
   MakeReleaseWithMetadata,
+  MakeSeriesEntity,
+  MakeSeriesWithMetadata,
   MakeWorkEntity,
   MakeWorkWithMetadata,
+  type PlaceEntityMetaData,
+  type PlaceEntityType,
   type PlayEntityMetaData,
   type PlayEntityType,
   type RecordingEntityMetaData,
@@ -172,6 +244,8 @@ export {
   type ReleaseEntityType,
   type ReleaseGroupEntityMetaData,
   type ReleaseGroupEntityType,
+  type SeriesEntityMetaData,
+  type SeriesEntityType,
   type WorkEntityMetaData,
   type WorkEntityType
 }

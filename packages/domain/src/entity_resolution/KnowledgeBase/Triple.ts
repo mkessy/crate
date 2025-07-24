@@ -1,4 +1,4 @@
-import { Entity, EntityURI, Triple } from "../../rdf/index.js"
+import { Entity, EntityUri, Triple } from "../../rdf/index.js"
 import {
   acappella,
   // Attributes
@@ -20,7 +20,6 @@ import {
 import {
   arranger,
   composer,
-  conductor,
   instrument,
   lyricist,
   masteringEngineer,
@@ -42,32 +41,32 @@ import {
 
 // Create example entities for demonstration
 const bobDylan = Entity.make({
-  id: EntityURI.make("mb:artist:72c536dc-7137-4477-a521-567eeb840fa8"),
+  id: EntityUri.make("mb:artist:72c536dc-7137-4477-a521-567eeb840fa8"),
   type: "artist"
 })
 
 const theFreewheelin = Entity.make({
-  id: EntityURI.make("mb:release:f5093c06-23e3-404f-aeaa-40f72885ee3a"),
+  id: EntityUri.make("mb:release:f5093c06-23e3-404f-aeaa-40f72885ee3a"),
   type: "release"
 })
 
 const blowinInTheWind = Entity.make({
-  id: EntityURI.make("mb:recording:6ca797d9-3332-4721-b2b6-2df71b2be33b"),
+  id: EntityUri.make("mb:recording:6ca797d9-3332-4721-b2b6-2df71b2be33b"),
   type: "recording"
 })
 
 const blowinInTheWindWork = Entity.make({
-  id: EntityURI.make("mb:work:2ce02909-598b-44ef-b456-7504ce002345"),
+  id: EntityUri.make("mb:work:2ce02909-598b-44ef-b456-7504ce002345"),
   type: "work"
 })
 
 const tomWilson = Entity.make({
-  id: EntityURI.make("mb:artist:a6623d39-2d8e-4f70-8242-0a9553b91e50"),
+  id: EntityUri.make("mb:artist:a6623d39-2d8e-4f70-8242-0a9553b91e50"),
   type: "artist"
 })
 
 const _studio = Entity.make({
-  id: EntityURI.make("mb:place:4352063b-a833-421b-a420-e7fb295dece0"),
+  id: EntityUri.make("mb:place:4352063b-a833-421b-a420-e7fb295dece0"),
   type: "place"
 })
 
@@ -133,7 +132,7 @@ export const recordingWorkTriple = Triple.Make({
  */
 export const liveVersionTriple = Triple.Make({
   subject: Entity.make({
-    id: EntityURI.make("mb:recording:live-version-123"),
+    id: EntityUri.make("mb:recording:live-version-123"),
     type: "recording"
   }),
   predicate: performance,
@@ -148,7 +147,7 @@ export const liveVersionTriple = Triple.Make({
  */
 export const instrumentalVersionTriple = Triple.Make({
   subject: Entity.make({
-    id: EntityURI.make("mb:recording:instrumental-version-456"),
+    id: EntityUri.make("mb:recording:instrumental-version-456"),
     type: "recording"
   }),
   predicate: performance,
@@ -191,7 +190,7 @@ export const dylanLyricistTriple = Triple.Make({
  */
 export const coArrangerTriple = Triple.Make({
   subject: Entity.make({
-    id: EntityURI.make("mb:artist:arranger-example"),
+    id: EntityUri.make("mb:artist:arranger-example"),
     type: "artist"
   }),
   predicate: arranger,
@@ -222,7 +221,7 @@ export const wilsonProducerTriple = Triple.Make({
  */
 export const assistantEngineerTriple = Triple.Make({
   subject: Entity.make({
-    id: EntityURI.make("mb:artist:engineer-example"),
+    id: EntityUri.make("mb:artist:engineer-example"),
     type: "artist"
   }),
   predicate: recordingEngineer,
@@ -237,7 +236,7 @@ export const assistantEngineerTriple = Triple.Make({
  */
 export const coMixerTriple = Triple.Make({
   subject: Entity.make({
-    id: EntityURI.make("mb:artist:mixer-example"),
+    id: EntityUri.make("mb:artist:mixer-example"),
     type: "artist"
   }),
   predicate: mixer,
@@ -252,7 +251,7 @@ export const coMixerTriple = Triple.Make({
  */
 export const remasteringTriple = Triple.Make({
   subject: Entity.make({
-    id: EntityURI.make("mb:artist:mastering-engineer"),
+    id: EntityUri.make("mb:artist:mastering-engineer"),
     type: "artist"
   }),
   predicate: masteringEngineer,
@@ -271,7 +270,7 @@ export const remasteringTriple = Triple.Make({
  */
 export const publisherTriple = Triple.Make({
   subject: Entity.make({
-    id: EntityURI.make("mb:label:publisher-example"),
+    id: EntityUri.make("mb:label:publisher-example"),
     type: "label"
   }),
   predicate: publisher,
@@ -286,7 +285,7 @@ export const publisherTriple = Triple.Make({
  */
 export const subPublisherTriple = Triple.Make({
   subject: Entity.make({
-    id: EntityURI.make("mb:label:sub-publisher-example"),
+    id: EntityUri.make("mb:label:sub-publisher-example"),
     type: "label"
   }),
   predicate: publisher,
@@ -301,7 +300,7 @@ export const subPublisherTriple = Triple.Make({
  */
 export const copyrightTriple = Triple.Make({
   subject: Entity.make({
-    id: EntityURI.make("mb:label:columbia-records"),
+    id: EntityUri.make("mb:label:columbia-records"),
     type: "label"
   }),
   predicate: phonographicCopyright,
@@ -318,7 +317,7 @@ export const samplingTriple = Triple.Make({
   subject: bobDylan,
   predicate: samplesFromArtist,
   object: Entity.make({
-    id: EntityURI.make("mb:recording:hip-hop-track"),
+    id: EntityUri.make("mb:recording:hip-hop-track"),
     type: "recording"
   }),
   attributes: [additional],
@@ -335,7 +334,7 @@ export const samplingTriple = Triple.Make({
  */
 export const guestBackgroundVocalsTriple = Triple.Make({
   subject: Entity.make({
-    id: EntityURI.make("mb:artist:guest-vocalist"),
+    id: EntityUri.make("mb:artist:guest-vocalist"),
     type: "artist"
   }),
   predicate: vocal,
@@ -350,7 +349,7 @@ export const guestBackgroundVocalsTriple = Triple.Make({
  */
 export const executiveCoProducerTriple = Triple.Make({
   subject: Entity.make({
-    id: EntityURI.make("mb:artist:exec-producer"),
+    id: EntityUri.make("mb:artist:exec-producer"),
     type: "artist"
   }),
   predicate: producer,
@@ -365,7 +364,7 @@ export const executiveCoProducerTriple = Triple.Make({
  */
 export const choirPerformanceTriple = Triple.Make({
   subject: Entity.make({
-    id: EntityURI.make("mb:recording:choir-version"),
+    id: EntityUri.make("mb:recording:choir-version"),
     type: "recording"
   }),
   predicate: performance,

@@ -5,32 +5,32 @@ import * as TripleGraph from "./KnowledgeGraph.js"
 
 // === MusicBrainz Entities ===
 const BeatlesArtist = Entity.Entity.make({
-  id: Entity.EntityURI.make("mb:artist:b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d"),
+  id: Entity.EntityUri.make("mb:artist:b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d"),
   type: "artist"
 })
 
 const JohnLennon = Entity.Entity.make({
-  id: Entity.EntityURI.make("mb:artist:4d5447d7-c61c-4120-ba1b-d7f471d385b9"),
+  id: Entity.EntityUri.make("mb:artist:4d5447d7-c61c-4120-ba1b-d7f471d385b9"),
   type: "artist"
 })
 
 const PaulMcCartney = Entity.Entity.make({
-  id: Entity.EntityURI.make("mb:artist:ba550d0e-adac-4864-b88b-407cab5e76af"),
+  id: Entity.EntityUri.make("mb:artist:ba550d0e-adac-4864-b88b-407cab5e76af"),
   type: "artist"
 })
 
 const ComeTogetherRecording = Entity.Entity.make({
-  id: Entity.EntityURI.make("mb:recording:85c90a43-0bce-4c25-84a9-1ae8a45a1eb3"),
+  id: Entity.EntityUri.make("mb:recording:85c90a43-0bce-4c25-84a9-1ae8a45a1eb3"),
   type: "recording"
 })
 
 const HeyJudeRecording = Entity.Entity.make({
-  id: Entity.EntityURI.make("mb:recording:2daaa52c-a4b3-405a-b9aa-e1b9f7c5f17e"),
+  id: Entity.EntityUri.make("mb:recording:2daaa52c-a4b3-405a-b9aa-e1b9f7c5f17e"),
   type: "recording"
 })
 
 const AbbeyRoadRelease = Entity.Entity.make({
-  id: Entity.EntityURI.make("mb:release:0c79ea55-4532-4c53-9035-c4b0de36e5ac"),
+  id: Entity.EntityUri.make("mb:release:0c79ea55-4532-4c53-9035-c4b0de36e5ac"),
   type: "release"
 })
 

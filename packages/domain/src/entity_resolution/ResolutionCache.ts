@@ -1,7 +1,7 @@
 import type { Chunk, HashMap, Option, Trie } from "effect"
 import { Effect } from "effect"
+import type { Entity, EntityUri } from "../rdf/index.js"
 import type { Candidate } from "./Candidate.js"
-import type { Entity, EntityUri } from "./KnowledgeBaseSchema.js"
 
 /**
  * Type alias for the Trie structure used in the resolution cache.

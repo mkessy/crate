@@ -10,7 +10,7 @@ import { Cardinality } from "./Cardinality.js"
  * @since 1.0.0
  * @category models
  */
-export const EntityURI = Schema.String.pipe(
+export const EntityUri = Schema.String.pipe(
   Schema.trimmed(),
   Schema.brand("EntityURI")
 )
@@ -19,7 +19,7 @@ export const EntityURI = Schema.String.pipe(
  * @since 1.0.0
  * @category models
  */
-export type EntityURI = Schema.Schema.Type<typeof EntityURI>
+export type EntityUri = Schema.Schema.Type<typeof EntityUri>
 
 const EntityTypeId: unique symbol = Symbol.for("RDF/Entity")
 export type EntityTypeId = typeof EntityTypeId
@@ -31,12 +31,19 @@ export type ExtractEntityType<E> = E extends Entity | WithMetadata<any> ? E["typ
   : never
 
 export class Entity extends Schema.Class<Entity>("Entity")({
-  id: EntityURI,
+  id: EntityUri,
   type: Schema.String
 }, {
   disableValidation: true
 }) {
-  readonly [EntityTypeId]: EntityTypeId = EntityTypeId;
+  readonly [EntityTypeId]: EntityTypeId = EntityTypeId
+
+  constructor(props: {
+    readonly id: EntityUri
+    readonly type: string
+  }, options?: Schema.MakeOptions) {
+    super(props, options)
+  }
 
   [Hash.symbol](): number {
     return pipe(
@@ -46,12 +53,13 @@ export class Entity extends Schema.Class<Entity>("Entity")({
   }
 
   [Equal.symbol](that: unknown): boolean {
-    return (that instanceof Entity) && this.id === that.id && this.type === that.type
+    return (that instanceof WithMetadata || that instanceof Entity) &&
+      Equal.equals(this.id, that.id) && Equal.equals(this.type, that.type)
   }
 
   static MakeClass(type: string): (id: string) => Entity {
     return (id: string) => {
-      return Entity.make({ id: EntityURI.make(`crate://${type}/${id}`), type })
+      return Entity.make({ id: EntityUri.make(`crate://${type}/${id}`), type })
     }
   }
 }
@@ -64,7 +72,7 @@ export class WithMetadata<A> extends Entity {
   readonly value: A
 
   constructor(props: {
-    readonly id: EntityURI
+    readonly id: EntityUri
     readonly type: string
     readonly value: A
   }, options?: Schema.MakeOptions) {
@@ -78,14 +86,13 @@ export class WithMetadata<A> extends Entity {
   [Hash.symbol](): number {
     return pipe(
       Hash.hash(this.id),
-      Hash.combine(Hash.hash(this.type)),
-      Hash.combine(Hash.hash(this.value))
+      Hash.combine(Hash.hash(this.type))
     )
   }
 
   [Equal.symbol](that: unknown): boolean {
     return (that instanceof WithMetadata || that instanceof Entity) &&
-      this.id === that.id && this.type === that.type
+      Equal.equals(this.id, that.id) && Equal.equals(this.type, that.type)
   }
 
   static MakeWithMetadataClass<A, T extends string>(props: {
@@ -95,7 +102,7 @@ export class WithMetadata<A> extends Entity {
     return (id: string, value: A) => {
       const val = Schema.decodeUnknownSync(props.schema)(value)
       return WithMetadata.make({
-        id: EntityURI.make(`crate://${props.type}/${id}`),
+        id: EntityUri.make(`crate://${props.type}/${id}`),
         type: props.type,
         value: val as A
       }) as WithMetadata<A> & { type: T }
@@ -190,13 +197,13 @@ export type TypeId = typeof TypeId
 
 export type TripleURI = Schema.Schema.Encoded<typeof TripleURI>
 export const TripleURI = Schema.TemplateLiteralParser(
-  EntityURI,
+  EntityUri,
   "/",
   PredicateURI,
   "/",
-  EntityURI
+  EntityUri
 )
-export const TripleURIMake = (subject: EntityURI, predicate: PredicateURI, object: EntityURI): TripleURI =>
+export const TripleURIMake = (subject: EntityUri, predicate: PredicateURI, object: EntityUri): TripleURI =>
   Schema.encodeSync(TripleURI)([subject, "/", predicate, "/", object])
 
 export type Direction = Schema.Schema.Type<typeof Direction>
@@ -226,8 +233,7 @@ export class Triple extends Schema.TaggedClass<Triple>()("Triple", {
       Hash.hash(this.subject.id),
       Hash.combine(Hash.hash(this.predicate.id)),
       Hash.combine(Hash.hash(this.object.id)),
-      Hash.combine(Hash.hash(this.direction)),
-      Hash.combine(Hash.array(this.attributes))
+      Hash.combine(Hash.hash(this.direction))
     )
   }
 

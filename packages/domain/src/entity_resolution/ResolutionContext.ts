@@ -1,7 +1,6 @@
 import { Schema } from "effect"
 import { ParsedText } from "../nlp/index.js"
-import { Triple, TripleURI } from "../rdf/Entity.js"
-import { Entity, EntityUri } from "./KnowledgeBaseSchema.js"
+import { Entity, EntityUri, Triple, TripleURI } from "../rdf/index.js"
 import { Mention, MentionId } from "./Mention.js"
 
 export type ResolutionContextId = Schema.Schema.Type<typeof ResolutionContextId>

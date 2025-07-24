@@ -1,254 +1,100 @@
-import { ManyToMany, ManyToOne } from "../../rdf/Cardinality.js"
+import { ManyToMany, ManyToOne, OneToMany } from "../../rdf/Cardinality.js"
 import { Predicate, PredicateGrouping, PredicateURI } from "../../rdf/index.js"
 
-// ============================================================================
-// PREDICATE GROUPINGS
-// ============================================================================
-
-// Helper function to create predicate URIs
-const predicateURI = (id: string): ReturnType<typeof PredicateURI.make> => PredicateURI.make(`mb:${id}`)
-
-// ============================================================================
-// PERFORMANCE RELATIONSHIPS
-// ============================================================================
-
-/**
- * Artist-Recording: Performer relationship
- * @since 1.0.0
- */
-export const performer = Predicate.make({
-  id: predicateURI("performer"),
-  forwardPhrase: "{additional:additionally} {guest} {solo} performed",
-  reversePhrase: "{additional} {guest} {solo} performer",
-  longForm: "{additional:additionally} {guest} {solo} performed",
-  description: "Indicates an artist that performed on this recording.",
-  cardinality0: ManyToMany.make(), // Artist -> Many relationships
-  cardinality1: ManyToOne.make() // Recording -> Few relationships
-})
-
-/**
- * Artist-Recording: Instrumental performance
- * @since 1.0.0
- */
-export const instrument = Predicate.make({
-  id: predicateURI("instrument"),
-  forwardPhrase: "{additional} {guest} {solo} {instrument:%|instruments}",
-  reversePhrase: "{additional} {guest} {solo} {instrument:%|instruments}",
-  longForm: "performed {additional} {guest} {solo} {instrument:%|instruments} on",
-  description: "Indicates an artist that performed one or more instruments on this recording.",
+export const publishedBy = Predicate.make({
+  id: PredicateURI.make("published-by"),
+  forwardPhrase: "published by",
+  reversePhrase: "publisher for",
+  longForm: "is published by",
+  description: "Indicates the publisher of a work.",
   cardinality0: ManyToMany.make(),
-  cardinality1: ManyToOne.make()
+  cardinality1: ManyToMany.make()
 })
 
-/**
- * Artist-Recording: Vocal performance
- * @since 1.0.0
- */
-export const vocal = Predicate.make({
-  id: predicateURI("vocal"),
-  forwardPhrase: "{additional} {guest} {solo} {vocal:%|vocals}",
-  reversePhrase: "{additional} {guest} {solo} {vocal:%|vocals}",
-  longForm: "performed {additional} {guest} {solo} {vocal:%|vocals} on",
-  description: "Indicates an artist that performed vocals on this recording.",
-  cardinality0: ManyToMany.make(),
-  cardinality1: ManyToOne.make()
-})
+// ============================================================================
+// STRUCTURAL RELATIONSHIPS (Recording/Release/Work -> Other)
+// ============================================================================
 
-/**
- * Artist-Recording: Conductor
- * @since 1.0.0
- */
-export const conductor = Predicate.make({
-  id: predicateURI("conductor"),
-  forwardPhrase: "{additional:additionally} {assistant} conducted",
-  reversePhrase: "{additional} {assistant} conductor",
-  longForm: "{additional:additionally} {assistant} conducted",
-  description: "This indicates an artist who conducted an orchestra, band or choir on this recording.",
-  cardinality0: ManyToMany.make(),
-  cardinality1: ManyToOne.make()
-})
-
-/**
- * Recording-Work: Performance/recording relationship
- * @since 1.0.0
- */
 export const performance = Predicate.make({
-  id: predicateURI("performance"),
-  forwardPhrase:
-    "{acappella:a cappella} {live} {medley:medley including a} {partial} {instrumental} {cover} {karaoke} {demo} recording of",
-  reversePhrase:
-    "{acappella:a cappella} {live} {medley:medleys including} {partial} {instrumental} {cover} {karaoke} {demo} recordings",
-  longForm:
-    "is {acappella:an|a} {acappella:a cappella} {live} {medley:medley including a} {partial} {instrumental} {cover} {karaoke} {demo} recording of",
-  description: "This is used to link works to their recordings.",
-  cardinality0: ManyToOne.make(), // Recording -> Few relationships
-  cardinality1: ManyToMany.make() // Work -> Many relationships
+  id: PredicateURI.make("performance"),
+  forwardPhrase: "{live} {medley:medley including a} {partial} {instrumental} {cover} recording of",
+  reversePhrase: "{live} {medley:medleys including} {partial} {instrumental} {cover} recordings",
+  longForm: "is a {live} {medley:medley including a} {partial} {instrumental} {cover} recording of",
+  description: "Links a recording to the work(s) it is a performance of.",
+  cardinality0: ManyToOne.make(),
+  cardinality1: ManyToMany.make()
 })
 
-// ============================================================================
-// AUTHORSHIP/COMPOSITION RELATIONSHIPS
-// ============================================================================
-
-/**
- * Artist-Work: Composer relationship
- * @since 1.0.0
- */
-export const composer = Predicate.make({
-  id: predicateURI("composer"),
-  forwardPhrase: "{additional:additionally} composed",
-  reversePhrase: "{additional} composer",
-  longForm: "{additional:additionally} composed",
-  description:
-    "Indicates the composer for this work, that is, the artist who wrote the music (not necessarily the lyrics).",
+export const appearsOn = Predicate.make({
+  id: PredicateURI.make("appears-on"),
+  forwardPhrase: "appears on",
+  reversePhrase: "features",
+  longForm: "appears on the release",
+  description: "Links a recording to a release it appears on.",
   cardinality0: ManyToMany.make(),
-  cardinality1: ManyToOne.make()
+  cardinality1: OneToMany.make()
+})
+
+export const partOfReleaseGroup = Predicate.make({
+  id: PredicateURI.make("part-of-release-group"),
+  forwardPhrase: "part of release group",
+  reversePhrase: "has release",
+  longForm: "is part of the release group",
+  description: "Links a release to its release group.",
+  cardinality0: ManyToOne.make(),
+  cardinality1: OneToMany.make()
 })
 
 /**
- * Artist-Work: Lyricist relationship
+ * Artist-Recording: Sampling relationship
  * @since 1.0.0
  */
-export const lyricist = Predicate.make({
-  id: predicateURI("lyricist"),
-  forwardPhrase: "{additional} lyrics",
-  reversePhrase: "{additional} lyricist",
-  longForm: "{additional:additionally} wrote the lyrics for",
-  description: "Indicates the lyricist for this work.",
+export const samplesFromArtist = Predicate.make({
+  id: PredicateURI.make("samples-from-artist"),
+  forwardPhrase: "produced material that was {additional:additionally} sampled in",
+  reversePhrase: "contains {additional} samples by",
+  longForm: "{entity1} contains {additional} samples by {entity0}",
+  description: "Indicates that the recording contains samples from material by the indicated artist.",
   cardinality0: ManyToMany.make(),
-  cardinality1: ManyToOne.make()
+  cardinality1: ManyToMany.make()
 })
 
-/**
- * Artist-Work: Writer relationship (general)
- * @since 1.0.0
- */
-export const writer = Predicate.make({
-  id: predicateURI("writer"),
-  forwardPhrase: "{additional:additionally} wrote",
-  reversePhrase: "{additional} writer",
-  longForm: "{additional:additionally} wrote",
-  description:
-    "This relationship is used to link a work to the artist responsible for writing the music and/or the words (lyrics, libretto, etc.), when no more specific information is available.",
+export const basedOn = Predicate.make({
+  id: PredicateURI.make("based-on"),
+  forwardPhrase: "based on",
+  reversePhrase: "basis for",
+  longForm: "is based on the work",
+  description: "Indicates that a work is based on another work.",
   cardinality0: ManyToMany.make(),
-  cardinality1: ManyToOne.make()
+  cardinality1: ManyToMany.make()
 })
 
-/**
- * Artist-Work: Librettist relationship
- * @since 1.0.0
- */
-export const librettist = Predicate.make({
-  id: predicateURI("librettist"),
-  forwardPhrase: "{additional} libretto",
-  reversePhrase: "{additional} librettist",
-  longForm: "{additional:additionally} wrote the libretto for",
-  description: "Indicates the librettist for this work.",
-  cardinality0: ManyToMany.make(),
-  cardinality1: ManyToOne.make()
+export const remixOf = Predicate.make({
+  id: PredicateURI.make("remix-of"),
+  forwardPhrase: "remix of",
+  reversePhrase: "remixed in",
+  longForm: "is a remix of",
+  description: "Indicates that a recording is a remix of another recording.",
+  cardinality0: ManyToOne.make(),
+  cardinality1: ManyToMany.make()
 })
 
-/**
- * Artist-Work: Arranger relationship
- * @since 1.0.0
- */
-export const arranger = Predicate.make({
-  id: predicateURI("arranger"),
-  forwardPhrase: "{additional:additionally} {associate} {co:co-}arranged",
-  reversePhrase: "{additional} {associate} {co:co-}arranger",
-  longForm: "{additional:additionally} {associate} {co:co-}arranged",
-  description: "This indicates the artist who arranged a tune into a form suitable for performance.",
+export const samples = Predicate.make({
+  id: PredicateURI.make("samples"),
+  forwardPhrase: "samples",
+  reversePhrase: "sampled in",
+  longForm: "samples material from",
+  description: "Indicates that a recording contains samples from another recording.",
   cardinality0: ManyToMany.make(),
-  cardinality1: ManyToOne.make()
+  cardinality1: ManyToMany.make()
 })
-
-// ============================================================================
-// PRODUCTION/ENGINEERING RELATIONSHIPS
-// ============================================================================
-
-/**
- * Artist-Recording: Producer relationship
- * @since 1.0.0
- */
-export const producer = Predicate.make({
-  id: predicateURI("producer"),
-  forwardPhrase: "{additional:additionally} {assistant} {associate} {co:co-}{executive:executive }produced",
-  reversePhrase: "{additional} {assistant} {associate} {co:co-}{executive:executive }producer",
-  longForm: "{additional:additionally} {assistant} {associate} {co:co-}{executive:executive }produced",
-  description:
-    "This indicates an artist who is responsible for the creative and practical day-to-day aspects involved with making a musical recording.",
-  cardinality0: ManyToMany.make(),
-  cardinality1: ManyToOne.make()
-})
-
-/**
- * Artist-Recording: Mix engineer relationship
- * @since 1.0.0
- */
-export const mixer = Predicate.make({
-  id: predicateURI("mixer"),
-  forwardPhrase: "{additional:additionally} {assistant} {associate} {co:co-}mixed",
-  reversePhrase: "{additional} {assistant} {associate} {co:co-}mixer",
-  longForm: "{additional:additionally} {assistant} {associate} {co:co-}mixed",
-  description:
-    "This describes an engineer responsible for using a mixing console to mix a recorded track into a single piece of music suitable for release.",
-  cardinality0: ManyToMany.make(),
-  cardinality1: ManyToOne.make()
-})
-
-/**
- * Artist-Recording: Recording engineer relationship
- * @since 1.0.0
- */
-export const recordingEngineer = Predicate.make({
-  id: predicateURI("recording-engineer"),
-  forwardPhrase: "{additional} {assistant} {associate} {co:co-}recording engineer for",
-  reversePhrase: "{additional} {assistant} {associate} {co:co-}recording engineer",
-  longForm: "was {additional} {assistant} {associate} {co:co-}recording engineer for",
-  description:
-    "This describes an engineer responsible for committing the performance to tape or another recording medium.",
-  cardinality0: ManyToMany.make(),
-  cardinality1: ManyToOne.make()
-})
-
-/**
- * Artist-Release: Mastering engineer relationship
- * @since 1.0.0
- */
-export const masteringEngineer = Predicate.make({
-  id: predicateURI("mastering-engineer"),
-  forwardPhrase: "{additional} {assistant} {associate} {co:co-}{pre:pre-}{re}mastering",
-  reversePhrase: "{additional} {assistant} {associate} {co:co-}{pre:pre-}{re}mastering",
-  longForm: "{additional:additionally} {assistant} {associate} {co:co-}{pre:pre-}{re}mastered",
-  description: "Indicates the mastering engineer for this release.",
-  cardinality0: ManyToMany.make(),
-  cardinality1: ManyToOne.make()
-})
-
-/**
- * Artist-Recording: Remixer relationship
- * @since 1.0.0
- */
-export const remixer = Predicate.make({
-  id: predicateURI("remixer"),
-  forwardPhrase: "{additional:additionally} {assistant} remixed",
-  reversePhrase: "{additional} {assistant} remixer",
-  longForm: "{additional:additionally} {assistant} remixed",
-  description:
-    "This links a recording to the person who remixed it by taking one or more other tracks, substantially altering them and mixing them together with other material.",
-  cardinality0: ManyToMany.make(),
-  cardinality1: ManyToOne.make()
-})
-
-// ============================================================================
-// SPECIALIZED RELATIONSHIPS
-// ============================================================================
 
 /**
  * Artist-Work: Publisher relationship
  * @since 1.0.0
  */
 export const publisher = Predicate.make({
-  id: predicateURI("publisher"),
+  id: PredicateURI.make("publisher"),
   forwardPhrase: "{sub:sub-}published",
   reversePhrase: "{sub:sub-}publisher",
   longForm: "{sub:sub-}published",
@@ -262,7 +108,7 @@ export const publisher = Predicate.make({
  * @since 1.0.0
  */
 export const phonographicCopyright = Predicate.make({
-  id: predicateURI("phonographic-copyright"),
+  id: PredicateURI.make("phonographic-copyright"),
   forwardPhrase: "holds phonographic copyright (℗) for",
   reversePhrase: "phonographic copyright (℗) by",
   longForm: "holds phonographic copyright (℗) for",
@@ -272,99 +118,276 @@ export const phonographicCopyright = Predicate.make({
   cardinality1: ManyToOne.make()
 })
 
-/**
- * Artist-Recording: Sampling relationship
- * @since 1.0.0
- */
-export const samplesFromArtist = Predicate.make({
-  id: predicateURI("samples-from-artist"),
-  forwardPhrase: "produced material that was {additional:additionally} sampled in",
-  reversePhrase: "contains {additional} samples by",
-  longForm: "{entity1} contains {additional} samples by {entity0}",
-  description: "Indicates that the recording contains samples from material by the indicated artist.",
+// ============================================================================
+// PERFORMANCE & PRODUCTION RELATIONSHIPS (Artist -> Recording/Release/Work)
+// ============================================================================
+
+export const performer = Predicate.make({
+  id: PredicateURI.make("performer"),
+  forwardPhrase: "{additional:additionally} {guest} {solo} performed",
+  reversePhrase: "{additional} {guest} {solo} performer",
+  longForm: "{additional:additionally} {guest} {solo} performed",
+  description: "Indicates an artist that performed on this recording.",
   cardinality0: ManyToMany.make(),
   cardinality1: ManyToOne.make()
 })
 
-/**
- * Performance relationships grouping
- * @since 1.0.0
- */
+export const instrument = Predicate.make({
+  id: PredicateURI.make("instrument"),
+  forwardPhrase: "{additional} {guest} {solo} {instrument:%|instruments}",
+  reversePhrase: "{additional} {guest} {solo} {instrument:%|instruments}",
+  longForm: "performed {additional} {guest} {solo} {instrument:%|instruments} on",
+  description: "Indicates an artist that performed one or more instruments on this recording.",
+  cardinality0: ManyToMany.make(),
+  cardinality1: ManyToOne.make()
+})
+
+export const vocal = Predicate.make({
+  id: PredicateURI.make("vocal"),
+  forwardPhrase: "{additional} {guest} {solo} {vocal:%|vocals}",
+  reversePhrase: "{additional} {guest} {solo} {vocal:%|vocals}",
+  longForm: "performed {additional} {guest} {solo} {vocal:%|vocals} on",
+  description: "Indicates an artist that performed vocals on this recording.",
+  cardinality0: ManyToMany.make(),
+  cardinality1: ManyToOne.make()
+})
+
+export const conductor = Predicate.make({
+  id: PredicateURI.make("conductor"),
+  forwardPhrase: "{additional:additionally} {assistant} conducted",
+  reversePhrase: "{additional} {assistant} conductor",
+  longForm: "{additional:additionally} {assistant} conducted",
+  description: "Indicates an artist who conducted an orchestra, band or choir.",
+  cardinality0: ManyToMany.make(),
+  cardinality1: ManyToOne.make()
+})
+
+export const producer = Predicate.make({
+  id: PredicateURI.make("producer"),
+  forwardPhrase: "{additional:additionally} {assistant} {associate} {co:co-}{executive:executive }produced",
+  reversePhrase: "{additional} {assistant} {associate} {co:co-}{executive:executive }producer",
+  longForm: "{additional:additionally} {assistant} {associate} {co:co-}{executive:executive }produced",
+  description: "Indicates an artist who produced a recording or release.",
+  cardinality0: ManyToMany.make(),
+  cardinality1: ManyToOne.make()
+})
+
+export const mixer = Predicate.make({
+  id: PredicateURI.make("mixer"),
+  forwardPhrase: "{additional:additionally} {assistant} {associate} {co:co-}mixed",
+  reversePhrase: "{additional} {assistant} {associate} {co:co-}mixer",
+  longForm: "{additional:additionally} {assistant} {associate} {co:co-}mixed",
+  description: "Describes an engineer who mixed a recording.",
+  cardinality0: ManyToMany.make(),
+  cardinality1: ManyToOne.make()
+})
+
+export const recordingEngineer = Predicate.make({
+  id: PredicateURI.make("recording-engineer"),
+  forwardPhrase: "{additional} {assistant} {associate} {co:co-}recording engineer for",
+  reversePhrase: "{additional} {assistant} {associate} {co:co-}recording engineer",
+  longForm: "was {additional} {assistant} {associate} {co:co-}recording engineer for",
+  description: "Describes an engineer responsible for the recording process.",
+  cardinality0: ManyToMany.make(),
+  cardinality1: ManyToOne.make()
+})
+
+export const masteringEngineer = Predicate.make({
+  id: PredicateURI.make("mastering-engineer"),
+  forwardPhrase: "{additional} {assistant} {associate} {co:co-}{pre:pre-}{re}mastering",
+  reversePhrase: "{additional} {assistant} {associate} {co:co-}{pre:pre-}{re}mastering",
+  longForm: "{additional:additionally} {assistant} {associate} {co:co-}{pre:pre-}{re}mastered",
+  description: "Indicates the mastering engineer for a release.",
+  cardinality0: ManyToMany.make(),
+  cardinality1: ManyToOne.make()
+})
+
+// ============================================================================
+// AUTHORSHIP & COMPOSITION RELATIONSHIPS (Artist -> Work)
+// ============================================================================
+
+export const composer = Predicate.make({
+  id: PredicateURI.make("composer"),
+  forwardPhrase: "{additional:additionally} composed",
+  reversePhrase: "{additional} composer",
+  longForm: "{additional:additionally} composed",
+  description: "Indicates the composer for this work.",
+  cardinality0: ManyToMany.make(),
+  cardinality1: ManyToOne.make()
+})
+
+export const lyricist = Predicate.make({
+  id: PredicateURI.make("lyricist"),
+  forwardPhrase: "{additional} lyrics",
+  reversePhrase: "{additional} lyricist",
+  longForm: "{additional:additionally} wrote the lyrics for",
+  description: "Indicates the lyricist for this work.",
+  cardinality0: ManyToMany.make(),
+  cardinality1: ManyToOne.make()
+})
+
+export const writer = Predicate.make({
+  id: PredicateURI.make("writer"),
+  forwardPhrase: "{additional:additionally} wrote",
+  reversePhrase: "{additional} writer",
+  longForm: "{additional:additionally} wrote",
+  description: "Indicates the writer of a work when no more specific role is available.",
+  cardinality0: ManyToMany.make(),
+  cardinality1: ManyToOne.make()
+})
+
+export const arranger = Predicate.make({
+  id: PredicateURI.make("arranger"),
+  forwardPhrase: "{additional:additionally} {associate} {co:co-}arranged",
+  reversePhrase: "{additional} {associate} {co:co-}arranger",
+  longForm: "{additional:additionally} {associate} {co:co-}arranged",
+  description: "Indicates the artist who arranged a work.",
+  cardinality0: ManyToMany.make(),
+  cardinality1: ManyToOne.make()
+})
+
+// ============================================================================
+// ARTIST RELATIONSHIPS (Artist -> Artist/Label)
+// ============================================================================
+
+export const memberOf = Predicate.make({
+  id: PredicateURI.make("member-of"),
+  forwardPhrase: "member of",
+  reversePhrase: "has member",
+  longForm: "is a member of",
+  description: "Indicates that an artist is a member of a group.",
+  cardinality0: ManyToMany.make(),
+  cardinality1: ManyToMany.make()
+})
+
+export const subgroupOf = Predicate.make({
+  id: PredicateURI.make("subgroup-of"),
+  forwardPhrase: "subgroup of",
+  reversePhrase: "has subgroup",
+  longForm: "is a subgroup of",
+  description: "Indicates a group is a subgroup of another group.",
+  cardinality0: ManyToMany.make(),
+  cardinality1: ManyToMany.make()
+})
+
+export const collaboration = Predicate.make({
+  id: PredicateURI.make("collaboration"),
+  forwardPhrase: "collaboration with",
+  reversePhrase: "collaborated with",
+  longForm: "is a collaboration with",
+  description: "Indicates two artists are collaborating.",
+  cardinality0: ManyToMany.make(),
+  cardinality1: ManyToMany.make()
+})
+
+// ============================================================================
+// KEXP-SPECIFIC RELATIONSHIPS
+// ============================================================================
+
+export const playedOn = Predicate.make({
+  id: PredicateURI.make("played-on"),
+  forwardPhrase: "played on",
+  reversePhrase: "featured",
+  longForm: "was played on",
+  description: "Indicates that a recording was played on a KEXP show or program.",
+  cardinality0: ManyToMany.make(),
+  cardinality1: ManyToMany.make()
+})
+
+export const hasRecording = Predicate.make({
+  id: PredicateURI.make("has-recording"),
+  forwardPhrase: "has recording",
+  reversePhrase: "recording of",
+  longForm: "has the recording",
+  description: "Links an entity to its associated recording.",
+  cardinality0: OneToMany.make(),
+  cardinality1: ManyToOne.make()
+})
+
+export const hasArtist = Predicate.make({
+  id: PredicateURI.make("has-artist"),
+  forwardPhrase: "has artist",
+  reversePhrase: "artist for",
+  longForm: "has the artist",
+  description: "Links an entity to its associated artist.",
+  cardinality0: OneToMany.make(),
+  cardinality1: ManyToOne.make()
+})
+
+export const hasRelease = Predicate.make({
+  id: PredicateURI.make("has-release"),
+  forwardPhrase: "has release",
+  reversePhrase: "release of",
+  longForm: "has the release",
+  description: "Links an entity to its associated release.",
+  cardinality0: OneToMany.make(),
+  cardinality1: ManyToOne.make()
+})
+
+export const hasLabel = Predicate.make({
+  id: PredicateURI.make("has-label"),
+  forwardPhrase: "has label",
+  reversePhrase: "label for",
+  longForm: "has the label",
+  description: "Links an entity to its associated record label.",
+  cardinality0: OneToMany.make(),
+  cardinality1: ManyToOne.make()
+})
+
+// ============================================================================
+// PREDICATE GROUPINGS
+// ============================================================================
+
 export const performancePredicates = PredicateGrouping.make({
   name: "Performance",
-  description: "Relationships indicating performance roles",
-  predicates: [performer, instrument, vocal, conductor, performance]
+  description: "Relationships indicating performance roles.",
+  predicates: [performer, instrument, vocal, conductor]
 })
 
-/**
- * Authorship relationships grouping
- * @since 1.0.0
- */
-export const authorshipPredicates = PredicateGrouping.make({
-  name: "Authorship",
-  description: "Relationships indicating creative authorship",
-  predicates: [composer, lyricist, writer, librettist, arranger]
-})
-
-/**
- * Production relationships grouping
- * @since 1.0.0
- */
 export const productionPredicates = PredicateGrouping.make({
   name: "Production",
-  description: "Relationships indicating production and engineering roles",
-  predicates: [producer, mixer, recordingEngineer, masteringEngineer, remixer]
+  description: "Relationships indicating production and engineering roles.",
+  predicates: [producer, mixer, recordingEngineer, masteringEngineer]
 })
 
-/**
- * Legal/Business relationships grouping
- * @since 1.0.0
- */
-export const businessPredicates = PredicateGrouping.make({
-  name: "Business",
-  description: "Relationships indicating legal and business roles",
-  predicates: [publisher, phonographicCopyright, samplesFromArtist]
+export const authorshipPredicates = PredicateGrouping.make({
+  name: "Authorship",
+  description: "Relationships indicating creative authorship of a work.",
+  predicates: [composer, lyricist, writer, arranger]
 })
 
-/**
- * All music relationship predicates
- * @since 1.0.0
- */
+export const artistRelationsPredicates = PredicateGrouping.make({
+  name: "Artist Relations",
+  description: "Relationships between artists, groups, and labels.",
+  predicates: [memberOf, subgroupOf, collaboration, publishedBy]
+})
+
+export const structuralPredicates = PredicateGrouping.make({
+  name: "Structural Relations",
+  description: "Relationships linking musical entities together.",
+  predicates: [performance, appearsOn, partOfReleaseGroup, basedOn, remixOf, samples]
+})
+
+export const kexpPredicates = PredicateGrouping.make({
+  name: "KEXP Relations",
+  description: "KEXP-specific relationships for radio programming and entity associations.",
+  predicates: [playedOn, hasRecording, hasArtist, hasRelease, hasLabel]
+})
+
 export const allMusicPredicates = [
-  // Performance
-  performer,
-  instrument,
-  vocal,
-  conductor,
-  performance,
-
-  // Authorship
-  composer,
-  lyricist,
-  writer,
-  librettist,
-  arranger,
-
-  // Production
-  producer,
-  mixer,
-  recordingEngineer,
-  masteringEngineer,
-  remixer,
-
-  // Business
-  publisher,
-  phonographicCopyright,
-  samplesFromArtist
+  ...performancePredicates.predicates,
+  ...productionPredicates.predicates,
+  ...authorshipPredicates.predicates,
+  ...artistRelationsPredicates.predicates,
+  ...structuralPredicates.predicates,
+  ...kexpPredicates.predicates
 ] as const
 
-/**
- * All predicate groupings
- * @since 1.0.0
- */
 export const allPredicateGroupings = [
   performancePredicates,
-  authorshipPredicates,
   productionPredicates,
-  businessPredicates
+  authorshipPredicates,
+  artistRelationsPredicates,
+  structuralPredicates,
+  kexpPredicates
 ] as const
