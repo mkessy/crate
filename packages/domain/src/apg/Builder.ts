@@ -1,5 +1,5 @@
 import { Array, HashMap, HashSet, pipe, Schema } from "effect"
-import type { APGApi, SchemaRegistry } from "./Api.js"
+import type { APGApi, EdgeRule, SchemaRegistry } from "./Api.js"
 import { type Edge, type EdgeLabel, EdgeSchema, EdgeTypeSchema } from "./Edge.js"
 import { Connect, Empty, GraphSchema, MakeVertex as GraphVertex, Overlay } from "./Graph.js"
 import { type Vertex, type VertexLabel, VertexSchema, VertexTypeSchema } from "./Vertex.js"
@@ -30,7 +30,7 @@ export interface APGBuilder<
   Labels extends string = never,
   Registry extends SchemaRegistry = {
     vertices: Record<string, Schema.Schema<any, any, any>>
-    edges: Record<string, Schema.Schema<any, any, any>>
+    edges: Record<string, { schema: Schema.Schema<any, any, any>; rule: EdgeRule }>
   }
 > {
   readonly [APGBuilderTypeId]: APGBuilderTypeId
@@ -64,7 +64,7 @@ export interface APGBuilder<
     Labels | L,
     {
       vertices: Registry["vertices"]
-      edges: Registry["edges"] & { [K in L]: typeof schema }
+      edges: Registry["edges"] & { [K in L]: { schema: typeof schema; rule: { from: From; to: To } } }
     }
   >
 
@@ -86,7 +86,7 @@ class APGBuilderImpl<
   Labels extends string = never,
   Registry extends SchemaRegistry = {
     vertices: Record<string, Schema.Schema<any, any, any>>
-    edges: Record<string, Schema.Schema<any, any, any>>
+    edges: Record<string, { schema: Schema.Schema<any, any, any>; rule: EdgeRule }>
   }
 > implements APGBuilder<Labels, Registry> {
   readonly [APGBuilderTypeId]: APGBuilderTypeId = APGBuilderTypeId
@@ -144,7 +144,7 @@ class APGBuilderImpl<
     Labels | L,
     {
       vertices: Registry["vertices"]
-      edges: Registry["edges"] & { [K in L]: typeof schema }
+      edges: Registry["edges"] & { [K in L]: { schema: typeof schema; rule: { from: From; to: To } } }
     }
   > {
     const edgeLabel = label as (L & EdgeLabel)
@@ -162,7 +162,7 @@ class APGBuilderImpl<
 
     return new APGBuilderImpl<Labels | L, {
       vertices: Registry["vertices"]
-      edges: Registry["edges"] & { [K in L]: typeof schema }
+      edges: Registry["edges"] & { [K in L]: { schema: typeof schema; rule: { from: From; to: To } } }
     }>({
       vertices: this.state.vertices,
       edges: HashMap.set(this.state.edges, label, edgeInfo),
@@ -211,7 +211,7 @@ class APGBuilderImpl<
       empty: Empty,
       vertex: GraphVertex,
       overlay: Overlay,
-      connect: Connect,
+      connect: Connect as any,
       vertices,
       edges
     }
@@ -229,6 +229,9 @@ class APGBuilderImpl<
 export const APGBuilder = {
   make: (): APGBuilder<
     never,
-    { vertices: Record<string, Schema.Schema<any, any, any>>; edges: Record<string, Schema.Schema<any, any, any>> }
+    {
+      vertices: Record<string, Schema.Schema<any, any, any>>
+      edges: Record<string, { schema: Schema.Schema<any, any, any>; rule: EdgeRule }>
+    }
   > => new APGBuilderImpl()
 }
