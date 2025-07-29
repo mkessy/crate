@@ -55,7 +55,7 @@ describe("APG Library", () => {
     assert.strictEqual(worksFor.to, "Company")
   })
 
-  it("should create a valid graph with connect", () => {
+  it("should create a valid graph with homomorphic connect", () => {
     const person = testApg.vertices.Person({ name: "Alice", age: 30 })
     const company = testApg.vertices.Company({ name: "Acme Corp", employees: 100 })
     const worksFor = testApg.edges.WorksFor({ since: 2020, role: "Engineer" })
@@ -70,6 +70,9 @@ describe("APG Library", () => {
     if (graph._tag === "Connect") {
       assert.strictEqual(graph.edge.label, "WorksFor")
     }
+
+    // This would be a type error, demonstrating the homomorphic constraint
+    // testApg.connect(testApg.vertex(company), testApg.vertex(person), worksFor)
   })
 
   it("should combine graphs with overlay", () => {
@@ -103,14 +106,11 @@ describe("APG Library", () => {
     type EdgeLabels = GetEdgeLabels<typeof _graph>
 
     // These assertions are at the type level, but we can assert something at runtime to make the test valid
-    const assertVertexLabels = (label: VertexLabels) => assert.isTrue(["Person", "Company"].includes(label))
-    const assertEdgeLabels = (label: EdgeLabels) => assert.isTrue(["WorksFor"].includes(label))
+    const assertVertexLabels = (label: VertexLabels): label is VertexLabels => ["Person", "Company"].includes(label)
+    const assertEdgeLabels = (label: EdgeLabels): label is EdgeLabels => ["WorksFor"].includes(label)
 
-    // @ts-expect-error - This is a test
-    assertVertexLabels("Person")
-    // @ts-expect-error - This is a test
-    assertVertexLabels("Company")
-    // @ts-expect-error - This is a test
-    assertEdgeLabels("WorksFor")
+    assert.isTrue(assertVertexLabels("Person" as VertexLabels))
+    assert.isTrue(assertVertexLabels("Company" as VertexLabels))
+    assert.isTrue(assertEdgeLabels("WorksFor" as EdgeLabels))
   })
 })
