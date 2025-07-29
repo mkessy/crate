@@ -1,8 +1,8 @@
+import kexpSchemaJson from "/Users/pooks/Dev/crate/data/schema_json/kexp_schema.json" with { type: "json" }
+import mbSchemaJson from "/Users/pooks/Dev/crate/data/schema_json/mb_schema.json" with { type: "json" }
 import { assert, beforeEach, describe, it } from "@effect/vitest"
 import type { Layer } from "effect"
 import { Effect, HashMap, Option } from "effect"
-import kexpSchemaJson from "../src/entity_resolution/KnowledgeBase/kexp_schema.json" with { type: "json" }
-import mbSchemaJson from "../src/entity_resolution/KnowledgeBase/mb_schema.json" with { type: "json" }
 import type { EntityType } from "../src/rdf/Entity.js"
 import { Entity, WithMetadata } from "../src/rdf/Entity.js"
 import { Make, Ontology, UnknownEntityTypeError } from "../src/rdf/Ontology.js"

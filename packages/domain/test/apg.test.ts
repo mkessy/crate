@@ -106,8 +106,11 @@ describe("APG Library", () => {
     const assertVertexLabels = (label: VertexLabels) => assert.isTrue(["Person", "Company"].includes(label))
     const assertEdgeLabels = (label: EdgeLabels) => assert.isTrue(["WorksFor"].includes(label))
 
+    // @ts-expect-error - This is a test
     assertVertexLabels("Person")
+    // @ts-expect-error - This is a test
     assertVertexLabels("Company")
+    // @ts-expect-error - This is a test
     assertEdgeLabels("WorksFor")
   })
 })
