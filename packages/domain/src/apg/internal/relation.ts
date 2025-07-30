@@ -8,15 +8,76 @@
  * @module
  */
 
-import type { Equivalence } from "effect"
-import { Array, HashSet, identity, pipe } from "effect"
-import type { GraphBacking, GraphImpl, GraphKind, Relation } from "./core.js"
+import { Array, Equal, Hash, HashSet, Inspectable, pipe } from "effect"
+import type * as R from "../Relation.js"
+import type { GraphBacking, GraphImpl, GraphKind } from "./core.js"
 import { isGraphImpl } from "./core.js"
 import * as Edge from "./edge.js"
 
 // -----------------------------------------------------------------------------
 // #region Symmetric Closure Implementation
 // -----------------------------------------------------------------------------
+const RelationSymbolKey = "@apg/Relation"
+
+/**
+ * @since 1.0.0
+ * @category symbols
+ */
+export const RelationTypeId: R.TypeId = Symbol.for(RelationSymbolKey) as R.TypeId
+
+/**
+ * The canonical representation of a Graph as a set of vertices and a set of
+ * edges. This is the normalized form used for analysis and operations.
+ *
+ * @since 1.0.0
+ * @category models
+ */
+class Relation<in out A> implements R.Relation<A> {
+  readonly [RelationTypeId]: R.TypeId = RelationTypeId
+  readonly edges: HashSet.HashSet<Edge.Edge<A>> = HashSet.empty<Edge.Edge<A>>()
+  readonly vertices: HashSet.HashSet<A> = HashSet.empty<A>()
+
+  constructor(vertices: HashSet.HashSet<A>, edges: HashSet.HashSet<Edge.Edge<A>>) {
+    this.vertices = vertices
+    this.edges = edges
+  }
+
+  [Equal.symbol](this: Relation<any>, that: Relation<any>): boolean {
+    return Equal.equals(this, that)
+  }
+
+  [Hash.symbol](this: Relation<any>): number {
+    return pipe(
+      Hash.hash(this.vertices),
+      Hash.combine(Hash.hash(this.edges)),
+      Hash.combine(Hash.string("@apg/Relation"))
+    )
+  }
+
+  [Symbol.iterator]<A>(this: Relation<A>): Iterator<A> {
+    return this.vertices[Symbol.iterator]()
+  }
+
+  [Inspectable.NodeInspectSymbol](this: Relation<any>) {
+    return this.toJSON()
+  }
+
+  pipe(): this {
+    return this
+  }
+
+  toString() {
+    return Inspectable.format(this)
+  }
+
+  toJSON<A>(this: Relation<A>) {
+    return {
+      _id: "Relation",
+      vertices: Array.fromIterable(this.vertices),
+      edges: Array.fromIterable(this.edges)
+    }
+  }
+}
 
 /**
  * Computes the symmetric closure of a set of edges.
@@ -168,33 +229,27 @@ const computeTransitiveClosure = <A>(
  * @category internal
  */
 const applyKindTransformations = <A>(
-  kind: GraphKind
-): (relation: Relation<A>) => Relation<A> => {
+  kind: GraphKind,
+  relation: R.Relation<A>
+): R.Relation<A> => {
   switch (kind) {
     case "directed":
-      // No transformation needed - directed is the default
-      return identity
-
+      return relation
     case "undirected":
-      // Apply symmetric closure: if (a,b) ∈ E then (b,a) ∈ E
-      return (relation) => ({
-        vertices: relation.vertices,
-        edges: makeSymmetricClosure(relation.edges)
-      })
-
+      return new Relation(
+        relation.vertices,
+        makeSymmetricClosure(relation.edges)
+      )
     case "reflexive":
-      // Add self-loops: ∀v ∈ V, (v,v) ∈ E
-      return (relation) => ({
-        vertices: relation.vertices,
-        edges: addReflexiveEdges(relation.vertices, relation.edges)
-      })
-
+      return new Relation(
+        relation.vertices,
+        addReflexiveEdges(relation.vertices, relation.edges)
+      )
     case "transitive":
-      // Apply transitive closure: if (a,b) ∈ E and (b,c) ∈ E then (a,c) ∈ E
-      return (relation) => ({
-        vertices: relation.vertices,
-        edges: computeTransitiveClosure(relation.edges)
-      })
+      return new Relation(
+        relation.vertices,
+        computeTransitiveClosure(relation.edges)
+      )
   }
 }
 
@@ -216,36 +271,29 @@ const applyKindTransformations = <A>(
  * @category internal
  */
 const computeRelation = <A>(
-  backing: GraphBacking<A>,
-  E: Equivalence.Equivalence<A>
-): Relation<A> => {
+  backing: GraphBacking<A>
+): R.Relation<A> => {
   switch (backing._tag) {
     case "Empty": {
-      return {
-        vertices: HashSet.empty<A>(),
-        edges: HashSet.empty<Edge.Edge<A>>()
-      }
+      return new Relation(HashSet.empty<A>(), HashSet.empty<Edge.Edge<A>>())
     }
 
     case "Vertex": {
-      return {
-        vertices: HashSet.make(backing.value),
-        edges: HashSet.empty<Edge.Edge<A>>()
-      }
+      return new Relation(HashSet.make(backing.value), HashSet.empty<Edge.Edge<A>>())
     }
 
     case "Overlay": {
-      const left = toRelation(backing.left as GraphImpl<A>, E)
-      const right = toRelation(backing.right as GraphImpl<A>, E)
-      return {
-        vertices: pipe(left.vertices, HashSet.union(right.vertices)),
-        edges: pipe(left.edges, HashSet.union(right.edges))
-      }
+      const left = toRelation(backing.left as GraphImpl<A>)
+      const right = toRelation(backing.right as GraphImpl<A>)
+      return new Relation(
+        pipe(left.vertices, HashSet.union(right.vertices)),
+        pipe(left.edges, HashSet.union(right.edges))
+      )
     }
 
     case "Connect": {
-      const left = toRelation(backing.left as GraphImpl<A>, E)
-      const right = toRelation(backing.right as GraphImpl<A>, E)
+      const left = toRelation(backing.left as GraphImpl<A>)
+      const right = toRelation(backing.right as GraphImpl<A>)
 
       // Create edges from all vertices in left to all vertices in right
       const newEdges = pipe(
@@ -259,22 +307,15 @@ const computeRelation = <A>(
         HashSet.fromIterable
       )
 
-      return {
-        vertices: pipe(left.vertices, HashSet.union(right.vertices)),
-        edges: pipe(
-          left.edges,
-          HashSet.union(right.edges),
-          HashSet.union(newEdges)
-        )
-      }
-    }
+      const vertices = pipe(left.vertices, HashSet.union(right.vertices))
+      const edges = pipe(left.edges, HashSet.union(right.edges), HashSet.union(newEdges))
 
-    case "Relation": {
-      return backing.relation
+      return new Relation(vertices, edges)
     }
   }
 }
 
+// not effectful now and so will be expensive because we won't check if the graph changed
 // -----------------------------------------------------------------------------
 // #region Public API
 // -----------------------------------------------------------------------------
@@ -294,9 +335,8 @@ const computeRelation = <A>(
  * @category conversions
  */
 export const toRelation = <A>(
-  graph: GraphImpl<A>,
-  E: Equivalence.Equivalence<A>
-): Relation<A> => {
+  graph: GraphImpl<A>
+): R.Relation<A> => {
   if (!isGraphImpl(graph)) {
     throw new Error("Invalid graph implementation")
   }
@@ -309,16 +349,17 @@ export const toRelation = <A>(
   }
 
   // Compute the base relation from the algebraic backing
-  const baseRelation = computeRelation(impl.backing, E)
+  const baseRelation = computeRelation(impl.backing)
 
   // Apply kind-specific transformations
-  const transformedRelation = pipe(
-    baseRelation,
-    applyKindTransformations(impl.kind)
-  )
+  const transformedRelation = applyKindTransformations(impl.kind, baseRelation)
 
   // Cache the result for future calls
   impl._relation = transformedRelation
 
   return transformedRelation
+}
+
+export const toReflexive = <A>(g: R.Relation<A>): R.Relation<A> => {
+  return applyKindTransformations("reflexive", g)
 }

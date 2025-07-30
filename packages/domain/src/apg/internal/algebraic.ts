@@ -8,8 +8,8 @@
  * @module
  */
 
-import type { Equivalence } from "effect"
-import { Array, Equal, Hash, Inspectable, pipe, Pipeable, Predicate } from "effect"
+import { Equal, Hash, Inspectable, pipe, Pipeable, Predicate } from "effect"
+import type * as G from "../Graph.js"
 import type { Graph, GraphBacking, GraphImpl, GraphKind } from "./core.js"
 import { GraphTypeId, isGraphImpl } from "./core.js"
 import { toRelation } from "./relation.js"
@@ -18,14 +18,14 @@ import { toRelation } from "./relation.js"
 // #region The Graph Prototype
 // -----------------------------------------------------------------------------
 
-const GraphProto: Omit<Graph<any>, GraphTypeId | "_A"> = {
-  [Equal.symbol](this: GraphImpl<any>, that: Equal.Equal): boolean {
+const GraphProto: Omit<Graph<any>, G.TypeId | "_A"> = {
+  [Equal.symbol](this: GraphImpl<any>, that: GraphImpl<any>): boolean {
     if (!isGraph(that)) return false
 
     // Two graphs are equal if they have the same vertices and edges
     // We use the default Equal.equals which respects custom Equal implementations
-    const thisRelation = toRelation(this, Equal.equals)
-    const thatRelation = toRelation(that as unknown as GraphImpl<any>, Equal.equals)
+    const thisRelation = toRelation(this)
+    const thatRelation = toRelation(that)
 
     return (
       Equal.equals(thisRelation.vertices, thatRelation.vertices) &&
@@ -35,7 +35,7 @@ const GraphProto: Omit<Graph<any>, GraphTypeId | "_A"> = {
 
   [Hash.symbol](this: GraphImpl<any>): number {
     // Hash based on the canonical relation form
-    const relation = toRelation(this, Equal.equals)
+    const relation = toRelation(this)
     return pipe(
       Hash.hash(relation.vertices),
       Hash.combine(Hash.hash(relation.edges)),
@@ -45,8 +45,7 @@ const GraphProto: Omit<Graph<any>, GraphTypeId | "_A"> = {
   [Symbol.iterator]<A>(this: GraphImpl<A>): Iterator<A> {
     // For iteration, use Equal.equals as the default vertex equivalence
     // This handles primitives correctly and respects custom Equal implementations
-    const defaultEquivalence: Equivalence.Equivalence<A> = Equal.equals
-    const relation = toRelation(this, defaultEquivalence)
+    const relation = toRelation(this)
     return relation.vertices[Symbol.iterator]()
   },
 
@@ -95,12 +94,6 @@ const inspectBacking = <A>(backing: GraphBacking<A>): unknown => {
         left: inspectBacking(backing.left.backing),
         right: inspectBacking(backing.right.backing)
       }
-    case "Relation":
-      return {
-        _tag: "Relation",
-        vertices: Array.fromIterable(backing.relation.vertices).length,
-        edges: Array.fromIterable(backing.relation.edges).length
-      }
   }
 }
 
@@ -122,7 +115,7 @@ export const makeGraph = <A>(
   kind: GraphKind = "directed"
 ): GraphImpl<A> => {
   const graph = Object.create(GraphProto)
-  graph[GraphTypeId] = GraphTypeId
+  graph[GraphTypeId] = typeof GraphTypeId
   graph.backing = backing
   graph.kind = kind
   graph._relation = undefined
@@ -150,9 +143,11 @@ export const makeOverlay = <A>(self: Graph<A>, that: Graph<A>): Graph<A> => {
     throw new Error("Invalid graph implementation")
   }
 
+  const kind = self.kind === "undirected" || that.kind === "undirected" ? "undirected" : "directed"
+
   return makeGraph(
     { _tag: "Overlay", left: self, right: that },
-    self.kind
+    kind
   )
 }
 
@@ -169,16 +164,118 @@ export const makeConnect = <A>(self: Graph<A>, that: Graph<A>): Graph<A> => {
     throw new Error("Invalid graph implementation")
   }
 
+  const kind = self.kind === "undirected" || that.kind === "undirected" ? "undirected" : "directed"
+
   return makeGraph(
     { _tag: "Connect", left: self, right: that },
-    self.kind
+    kind
   )
+}
+
+// -----------------------------------------------------------------------------
+// #region Folds and Maps
+// -----------------------------------------------------------------------------
+
+/**
+ * @since 1.0.0
+ * @category internal
+ */
+export const mapBacking = <A, B>(
+  backing: GraphBacking<A>,
+  f: (a: A) => B
+): GraphBacking<B> => {
+  switch (backing._tag) {
+    case "Empty":
+      return backing
+    case "Vertex":
+      return { _tag: "Vertex", value: f(backing.value) }
+    case "Overlay":
+      return {
+        _tag: "Overlay",
+        left: makeGraph(mapBacking(backing.left.backing, f), backing.left.kind),
+        right: makeGraph(mapBacking(backing.right.backing, f), backing.right.kind)
+      }
+    case "Connect":
+      return {
+        _tag: "Connect",
+        left: makeGraph(mapBacking(backing.left.backing, f), backing.left.kind),
+        right: makeGraph(mapBacking(backing.right.backing, f), backing.right.kind)
+      }
+  }
+}
+
+/**
+ * @since 1.0.0
+ * @category internal
+ */
+export interface Fold<A, B> {
+  readonly onEmpty: () => B
+  readonly onVertex: (value: A) => B
+  readonly onOverlay: (left: B, right: B) => B
+  readonly onConnect: (left: B, right: B) => B
+}
+
+/**
+ * @since 1.0.0
+ * @category internal
+ */
+export const foldBacking = <A, B>(
+  backing: GraphBacking<A>,
+  handler: Fold<A, B>
+): B => {
+  switch (backing._tag) {
+    case "Empty":
+      return handler.onEmpty()
+    case "Vertex":
+      return handler.onVertex(backing.value)
+    case "Overlay":
+      return handler.onOverlay(
+        foldBacking(backing.left.backing, handler),
+        foldBacking(backing.right.backing, handler)
+      )
+    case "Connect":
+      return handler.onConnect(
+        foldBacking(backing.left.backing, handler),
+        foldBacking(backing.right.backing, handler)
+      )
+  }
+}
+
+/**
+ * @since 1.0.0
+ * @category internal
+ */
+export const transposeBacking = <A>(backing: GraphBacking<A>): GraphBacking<A> => {
+  switch (backing._tag) {
+    case "Empty":
+      return backing
+    case "Vertex":
+      return backing
+    case "Overlay":
+      return {
+        _tag: "Overlay",
+        left: makeGraph(transposeBacking(backing.left.backing), backing.left.kind),
+        right: makeGraph(transposeBacking(backing.right.backing), backing.right.kind)
+      }
+    case "Connect":
+      return {
+        _tag: "Connect",
+        left: makeGraph(transposeBacking(backing.right.backing), backing.right.kind),
+        right: makeGraph(transposeBacking(backing.left.backing), backing.left.kind)
+      }
+  }
 }
 
 // -----------------------------------------------------------------------------
 // #region Utility Functions
 // -----------------------------------------------------------------------------
 
+/**
+ * Extracts the vertex type from a graph at the value level.
+ *
+ * @since 1.0.0
+ * @category internal
+ */
 /**
  * Extracts the vertex type from a graph at the value level.
  *

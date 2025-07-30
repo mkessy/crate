@@ -6,14 +6,17 @@
  *
  * @since 1.0.0
  * @module
+ * @internal
  */
 
-import type { Equal } from "effect"
-import type { HashSet } from "effect/HashSet"
+import type { Equal, HashSet } from "effect"
 import type { Inspectable } from "effect/Inspectable"
 import type { Pipeable } from "effect/Pipeable"
 import type * as Types from "effect/Types"
+import type * as G from "../Graph.js"
+import type * as R from "../Relation.js"
 import type * as Edge from "./edge.js"
+import type { RelationTypeId } from "./relation.js"
 
 // -----------------------------------------------------------------------------
 // #region Core Type Definitions
@@ -23,38 +26,36 @@ import type * as Edge from "./edge.js"
  * @since 1.0.0
  * @category symbols
  */
-export const GraphTypeId = Symbol.for("@apg/Graph")
+export const GraphSymbolKey = "@apg/Graph"
+
+/** @internal */
+export const GraphTypeId: G.TypeId = Symbol.for(GraphSymbolKey) as G.TypeId
 
 /**
- * @since 1.0.0
- * @category symbols
- */
-export type GraphTypeId = typeof GraphTypeId
-
-/**
- * A `Graph<A>` is a data structure that represents a collection of vertices of
- * type `A` and the directed edges connecting them, based on the algebraic
- * graph theory formulation by Mokhov.
- *
- * @since 1.0.0
- * @category models
- */
-export interface Graph<out A> extends Equal.Equal, Pipeable, Inspectable, Iterable<A> {
-  readonly [GraphTypeId]: GraphTypeId
-  readonly _A: Types.Covariant<A>
-}
-
-/**
- * The internal implementation of a `Graph`.
+ * The public interface for algebraic graphs.
  *
  * @since 1.0.0
  * @category models
  * @internal
  */
-export interface GraphImpl<out A> extends Graph<A> {
+export interface Graph<in out A> extends Equal.Equal, Pipeable, Inspectable, Iterable<A> {
+  readonly [GraphTypeId]: {
+    readonly _A: Types.Covariant<A>
+    readonly kind: GraphKind
+  }
+}
+
+/**
+ * The internal implementation of a Graph.
+ *
+ * @since 1.0.0
+ * @category models
+ * @internal
+ */
+export interface GraphImpl<in out A> extends Graph<A> {
   readonly kind: GraphKind
   readonly backing: GraphBacking<A>
-  _relation: Relation<A> | undefined // Mutable for memoization
+  _relation: R.Relation<A> | undefined // Mutable for memoization
 }
 
 /**
@@ -70,38 +71,40 @@ export type GraphKind =
   | "transitive" // Transitive closure applied
 
 /**
- * The backing data structure for a `Graph`, representing its algebraic
+ * The backing data structure for a Graph, representing its algebraic
  * construction following Mokhov's formulation.
  *
  * @since 1.0.0
  * @category models
+ * @internal
  */
 export type GraphBacking<A> =
   | IEmpty
   | IVertex<A>
   | IOverlay<A>
   | IConnect<A>
-  | IRelation<A>
 
 /**
- * Represents the `empty` graph constructor.
+ * Represents the empty graph constructor.
  *
  * The empty graph has no vertices and no edges.
  *
  * @since 1.0.0
  * @category models
+ * @internal
  */
 export interface IEmpty {
   readonly _tag: "Empty"
 }
 
 /**
- * Represents the `vertex` graph constructor.
+ * Represents the vertex graph constructor.
  *
  * A single vertex with no edges.
  *
  * @since 1.0.0
  * @category models
+ * @internal
  */
 export interface IVertex<A> {
   readonly _tag: "Vertex"
@@ -109,7 +112,7 @@ export interface IVertex<A> {
 }
 
 /**
- * Represents the `overlay` graph constructor.
+ * Represents the overlay graph constructor.
  *
  * The overlay of two graphs is their disjoint union.
  * Vertices: V(g1) ∪ V(g2)
@@ -117,6 +120,7 @@ export interface IVertex<A> {
  *
  * @since 1.0.0
  * @category models
+ * @internal
  */
 export interface IOverlay<A> {
   readonly _tag: "Overlay"
@@ -125,7 +129,7 @@ export interface IOverlay<A> {
 }
 
 /**
- * Represents the `connect` graph constructor.
+ * Represents the connect graph constructor.
  *
  * The connection of two graphs adds all edges from vertices in the
  * first graph to vertices in the second graph.
@@ -134,6 +138,7 @@ export interface IOverlay<A> {
  *
  * @since 1.0.0
  * @category models
+ * @internal
  */
 export interface IConnect<A> {
   readonly _tag: "Connect"
@@ -142,41 +147,36 @@ export interface IConnect<A> {
 }
 
 /**
- * Represents a `Graph` that has been canonicalized into a `Relation`.
+ * Represents a Graph that has been canonicalized into a Relation.
  *
  * This allows direct construction from a vertex and edge set.
  *
  * @since 1.0.0
  * @category models
+ * @internal
  */
 export interface IRelation<A> {
   readonly _tag: "Relation"
-  readonly relation: Relation<A>
+  readonly relation: R.Relation<A>
 }
 
 /**
- * The canonical representation of a `Graph` as a set of vertices and a set of
+ * The canonical representation of a Graph as a set of vertices and a set of
  * edges. This is the normalized form used for analysis and operations.
  *
  * @since 1.0.0
  * @category models
+ * @internal
  */
-export interface Relation<A> {
-  readonly vertices: HashSet<A>
-  readonly edges: HashSet<Edge.Edge<A>>
+export interface Relation<in out A> extends Equal.Equal, Pipeable, Inspectable, Iterable<A> {
+  readonly [RelationTypeId]: R.TypeId
+  readonly vertices: HashSet.HashSet<A>
+  readonly edges: HashSet.HashSet<Edge.Edge<A>>
 }
 
 // -----------------------------------------------------------------------------
-// #region Type Utilities
+// #region Type Guards
 // -----------------------------------------------------------------------------
-
-/**
- * Extracts the vertex type from a Graph.
- *
- * @since 1.0.0
- * @category type-level
- */
-export type VertexOf<G> = G extends Graph<infer A> ? A : never
 
 /**
  * Type guard for Graph implementations.
