@@ -1,8 +1,8 @@
+import type { Equivalence } from "effect"
 import { HashSet, pipe } from "effect"
 import { assert, describe, it } from "vitest"
 import * as G from "../src/apg/Graph.js"
 import type { Graph, GraphImpl } from "../src/apg/internal/core.js"
-import * as R from "../src/apg/Relation.js"
 
 describe("Advanced Graph Tests", () => {
   describe("Memoization and Performance", () => {
@@ -37,8 +37,8 @@ describe("Advanced Graph Tests", () => {
     describe("Reflexive Graphs", () => {
       it("should add self-loops to all vertices", () => {
         const g = pipe(
-          G.path(["a", "b", "c"])
-          // TODO: Implement reflexive
+          G.path(["a", "b", "c"]),
+          G.reflexive
         )
 
         const rel = G.toRelation(g)
@@ -53,8 +53,8 @@ describe("Advanced Graph Tests", () => {
     describe("Transitive Graphs", () => {
       it("should compute transitive closure", () => {
         const g = pipe(
-          G.path(["a", "b", "c"])
-          // TODO: Implement transitive
+          G.path(["a", "b", "c"]),
+          G.transitive
         )
 
         const rel = G.toRelation(g)
@@ -75,8 +75,8 @@ describe("Advanced Graph Tests", () => {
               G.edge("b", "c"),
               G.edge("c", "a")
             )
-          )
-          // TODO: Implement transitive
+          ),
+          G.transitive
         )
 
         const rel = G.toRelation(g)

@@ -118,7 +118,7 @@ describe("Enhanced Algebraic Laws", () => {
       )
     })
 
-    it.skip("Reflexive graphs maintain self-loops", () => {
+    it("Reflexive graphs maintain self-loops", () => {
       fc.assert(
         fc.property(graphArb, (g) => {
           const reflexive = G.reflexive(g)

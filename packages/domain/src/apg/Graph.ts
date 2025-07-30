@@ -164,6 +164,36 @@ export const toDirected = <A>(
   graph: Graph<A>
 ): DirectedGraph<A> => directed(graph)
 
+/**
+ * Creates a reflexive graph.
+ *
+ * A reflexive graph has self-loops for all vertices.
+ * Mathematically: ∀v ∈ V, (v,v) ∈ E
+ *
+ * @since 1.0.0
+ * @category constructors
+ */
+export const reflexive = <A>(graph: Graph<A>): Graph<A> => {
+  const impl = graph as unknown as internal.GraphImpl<A>
+  return internal.makeGraph(impl.backing, "reflexive") as unknown as Graph<A>
+}
+
+/**
+ * Creates a transitive graph.
+ *
+ * A transitive graph satisfies: if (a,b) ∈ E and (b,c) ∈ E then (a,c) ∈ E
+ * This computes the transitive closure of the graph.
+ *
+ * Time Complexity: O(V³) where V is the number of vertices
+ *
+ * @since 1.0.0
+ * @category constructors
+ */
+export const transitive = <A>(graph: Graph<A>): Graph<A> => {
+  const impl = graph as unknown as internal.GraphImpl<A>
+  return internal.makeGraph(impl.backing, "transitive") as unknown as Graph<A>
+}
+
 // -----------------------------------------------------------------------------
 // #region Core Algebraic Operations
 // -----------------------------------------------------------------------------
@@ -361,7 +391,7 @@ export const fold: {
   <A, B>(handler: internal.Fold<A, B>): (self: Graph<A>) => B
   <A, B>(self: Graph<A>, handler: internal.Fold<A, B>): B
 } = dual(2, (self, handler) => {
-  return internal.foldBacking((self as internal.GraphImpl<A>).backing, handler)
+  return internal.foldBacking((self as internal.GraphImpl<any>).backing, handler)
 })
 
 /**
@@ -377,7 +407,7 @@ export const map: {
   <A, B>(f: (a: A) => B): (self: Graph<A>) => Graph<B>
   <A, B>(self: Graph<A>, f: (a: A) => B): Graph<B>
 } = dual(2, (self, f) => {
-  const impl = self as internal.GraphImpl<A>
+  const impl = self as internal.GraphImpl<any>
   return internal.makeGraph(internal.mapBacking(impl.backing, f), impl.kind)
 })
 
@@ -470,7 +500,7 @@ export const vertices = <A>(graph: Graph<A>): HashSet.HashSet<A> => toRelation(g
  */
 export const edges = <A>(
   graph: Graph<A>
-): HashSet.HashSet<internal.Edge.Edge<A>> => toRelation(graph).edges
+): HashSet.HashSet<internal.E.Edge<A>> => toRelation(graph).edges
 
 /**
  * Checks if a graph contains a specific vertex.
@@ -488,7 +518,7 @@ export const hasVertex = <A>(graph: Graph<A>, vertex: A): boolean => HashSet.has
  */
 export const hasEdge = <A>(graph: Graph<A>, from: A, to: A): boolean => {
   const edgeSet = edges(graph)
-  return HashSet.has(edgeSet, internal.Edge.make(from, to))
+  return HashSet.has(edgeSet, internal.E.make(from, to))
 }
 
 /**
