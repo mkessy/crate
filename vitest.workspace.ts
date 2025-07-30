@@ -11,8 +11,13 @@ const project = (
 })
 
 export default defineWorkspace([
-  // Add specialized configuration for some packages.
-  // project({ name: "my-package|browser", environment: "happy-dom" }),
-  // Add the default configuration for all packages.
-  "packages/*"
+  "packages/*/vitest.config.ts",
+  {
+    test: {
+      name: "@crate/domain",
+      include: ["packages/domain/test/**/*.test.ts"],
+      root: "packages/domain"
+    }
+  }
 ])
+
