@@ -61,7 +61,7 @@ describe("Graph Operators", () => {
     it("should reverse the direction of all edges", () => {
       const g = G.path([1, 2, 3]) // 1 -> 2 -> 3
       const transposed = G.transpose(g)
-      const expected = G.path([3, 2, 1]) // 3 -> 2 -> 1
+      // const expected = G.path([3, 2, 1]) // 3 -> 2 -> 1
 
       // Note: The algebraic structure will be different, but the relational
       // representation of the edges will be reversed.

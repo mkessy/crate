@@ -41,7 +41,7 @@ describe("Advanced Graph Tests", () => {
           G.reflexive
         )
 
-        const rel = G.toRelation(g)
+        G.toRelation(g)
 
         // Check self-loops exist
         assert.isTrue(G.hasEdge(g, "a", "a"))
@@ -57,7 +57,7 @@ describe("Advanced Graph Tests", () => {
           G.transitive
         )
 
-        const rel = G.toRelation(g)
+        G.toRelation(g)
 
         // Direct edges
         assert.isTrue(G.hasEdge(g, "a", "b"))
@@ -79,7 +79,7 @@ describe("Advanced Graph Tests", () => {
           G.transitive
         )
 
-        const rel = G.toRelation(g)
+        G.toRelation(g)
 
         // All pairs should be connected
         assert.isTrue(G.hasEdge(g, "a", "a")) // Self-loop from cycle
@@ -153,7 +153,7 @@ describe("Advanced Graph Tests", () => {
       const vertices = ["a", "b", "c", "d"]
       const clique = G.clique(vertices)
 
-      const rel = G.toRelation(clique)
+      G.toRelation(clique)
 
       // Check all edges exist
       for (const v1 of vertices) {
@@ -174,7 +174,7 @@ describe("Advanced Graph Tests", () => {
       const g2 = G.path(["a", "b", "c"])
 
       // With a special equivalence that maps vertices
-      const isoEq: Equivalence<string | number> = (a, b) => {
+      const isoEq: Equivalence.Equivalence<string | number> = (a, b) => {
         const map: Record<string | number, string | number> = {
           1: "a",
           2: "b",

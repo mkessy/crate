@@ -98,6 +98,15 @@ export interface IEmpty {
 }
 
 /**
+ * Type guard for empty graphs.
+ *
+ * @since 1.0.0
+ * @category guards
+ * @internal
+ */
+export const isEmpty = (backing: GraphBacking<any>): backing is IEmpty => backing._tag === "Empty"
+
+/**
  * Represents the vertex graph constructor.
  *
  * A single vertex with no edges.
@@ -110,6 +119,15 @@ export interface IVertex<A> {
   readonly _tag: "Vertex"
   readonly value: A
 }
+
+/**
+ * Type guard for vertex graphs.
+ *
+ * @since 1.0.0
+ * @category guards
+ * @internal
+ */
+export const isVertex = (backing: GraphBacking<any>): backing is IVertex<any> => backing._tag === "Vertex"
 
 /**
  * Represents the overlay graph constructor.
@@ -128,6 +146,13 @@ export interface IOverlay<A> {
   readonly right: GraphImpl<A>
 }
 
+/**
+ * Type guard for overlay graphs.
+ *
+ * @since 1.0.0
+ * @category guards
+ * @internal
+ */
 /**
  * Represents the connect graph constructor.
  *

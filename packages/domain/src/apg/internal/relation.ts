@@ -286,8 +286,8 @@ const computeRelation = <A>(
       const left = toRelation(backing.left as GraphImpl<A>)
       const right = toRelation(backing.right as GraphImpl<A>)
       return new Relation(
-        pipe(left.vertices, HashSet.union(right.vertices)),
-        pipe(left.edges, HashSet.union(right.edges))
+        HashSet.union(left.vertices, right.vertices),
+        HashSet.union(left.edges, right.edges)
       )
     }
 
@@ -307,8 +307,8 @@ const computeRelation = <A>(
         HashSet.fromIterable
       )
 
-      const vertices = pipe(left.vertices, HashSet.union(right.vertices))
-      const edges = pipe(left.edges, HashSet.union(right.edges), HashSet.union(newEdges))
+      const vertices = HashSet.union(left.vertices, right.vertices)
+      const edges = HashSet.union(HashSet.union(left.edges, right.edges), newEdges)
 
       return new Relation(vertices, edges)
     }

@@ -596,3 +596,20 @@ export const predecessors = <A>(
     HashSet.map((edge) => edge.from)
   )
 }
+
+// -----------------------------------------------------------------------------
+// #region Graph Kinds
+// -----------------------------------------------------------------------------
+
+export type { ReflexiveGraph, TransitiveGraph } from "./Kind.js"
+
+export {
+  areKindsCompatible,
+  getKind,
+  GraphKindEquivalences,
+  isDirected,
+  isReflexive,
+  isTransitive,
+  isUndirected,
+  validateKind
+} from "./Kind.js"

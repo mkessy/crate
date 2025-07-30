@@ -11,7 +11,7 @@
 import { Equal, Hash, Inspectable, pipe, Pipeable, Predicate } from "effect"
 import type * as G from "../Graph.js"
 import type { Graph, GraphBacking, GraphImpl, GraphKind } from "./core.js"
-import { GraphTypeId, isGraphImpl } from "./core.js"
+import { GraphTypeId, isEmpty, isGraphImpl } from "./core.js"
 import { toRelation } from "./relation.js"
 
 // -----------------------------------------------------------------------------
@@ -143,6 +143,15 @@ export const makeOverlay = <A>(self: Graph<A>, that: Graph<A>): Graph<A> => {
     throw new Error("Invalid graph implementation")
   }
 
+  // CRITICAL FIX: Empty is the identity element for overlay
+  // overlay(empty, g) = g and overlay(g, empty) = g
+  if (isEmpty(self.backing)) {
+    return that
+  }
+  if (isEmpty(that.backing)) {
+    return self
+  }
+
   const kind = self.kind === "undirected" || that.kind === "undirected" ? "undirected" : "directed"
 
   return makeGraph(
@@ -156,12 +165,22 @@ export const makeOverlay = <A>(self: Graph<A>, that: Graph<A>): Graph<A> => {
  *
  * Creates a connection of two graphs, preserving the kind from the first graph.
  *
+ * **Critical Property**: Empty is the annihilating element for connect.
+ * - `connect(g, empty) = empty`
+ * - `connect(empty, g) = empty`
+ *
  * @since 1.0.0
  * @category internal
  */
 export const makeConnect = <A>(self: Graph<A>, that: Graph<A>): Graph<A> => {
   if (!isGraphImpl(self) || !isGraphImpl(that)) {
     throw new Error("Invalid graph implementation")
+  }
+
+  // CRITICAL FIX: Empty is the annihilating element for connect
+  // This ensures the algebraic law: connect(g, empty) = empty
+  if (isEmpty(self.backing) || isEmpty(that.backing)) {
+    return makeGraph({ _tag: "Empty" })
   }
 
   const kind = self.kind === "undirected" || that.kind === "undirected" ? "undirected" : "directed"

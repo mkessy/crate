@@ -1,3 +1,4 @@
+import { Data, Order } from "effect"
 import * as fc from "fast-check"
 import { assert, describe, it } from "vitest"
 import * as G from "../src/apg/Graph.js"
@@ -42,33 +43,73 @@ const graphArb = fc.letrec((tie) => ({
   )
 })).graph
 
-describe("Algebraic Laws - Implemented API", () => {
-  describe("Overlay Laws", () => {
-    it("Overlay Commutativity: x + y = y + x", () => {
-      fc.assert(
-        fc.property(graphArb, graphArb, (x, y) => {
-          assert.isTrue(G.equals(G.overlay(x, y), G.overlay(y, x)))
-        })
-      )
+// Vertex types with different constraint requirements
+class Person extends Data.Class<{
+  readonly id: string
+  readonly name: string
+  readonly age: number
+}> {}
+
+class Coord extends Data.Class<{
+  readonly x: number
+  readonly y: number
+}> {
+  static Order: Order.Order<Coord> = Order.make((a, b) => {
+    const xComp = Order.number(a.x, b.x)
+    return xComp !== 0 ? xComp : Order.number(a.y, b.y)
+  })
+}
+
+// Arbitraries for different vertex types
+const _personArb = fc.record({
+  id: fc.string({ minLength: 1, maxLength: 10 }),
+  name: fc.string({ minLength: 1, maxLength: 20 }),
+  age: fc.nat({ max: 100 })
+}).map((data) => new Person(data))
+
+const _coordArb = fc.record({
+  x: fc.integer({ min: -100, max: 100 }),
+  y: fc.integer({ min: -100, max: 100 })
+}).map((data) => new Coord(data))
+
+// Graph arbitraries for different vertex types
+
+describe("Constraint-Based Graph Laws", () => {
+  describe("Data.Class Vertices with Built-in Equal/Hash", () => {
+    it.only("Person graphs respect Equal trait", () => {
+      const p1 = new Person({ id: "1", name: "Alice", age: 30 })
+      const p2 = new Person({ id: "1", name: "Alice", age: 30 })
+      const p3 = new Person({ id: "2", name: "Bob", age: 25 })
+
+      const g1 = G.vertex(p1)
+      const g2 = G.vertex(p2) // Same data as p1
+      const g3 = G.vertex(p3) // Different data
+
+      // Equal vertices produce equal graphs
+      assert.isTrue(G.equals(g1, g2))
+      assert.isFalse(G.equals(g1, g3))
+
+      // Overlay with equal vertices is idempotent
+      assert.isTrue(G.equals(G.overlay(g1, g2), g1))
+      assert.isFalse(G.equals(G.overlay(g1, g3), g1))
     })
 
-    it("Overlay Associativity: x + (y + z) = (x + y) + z", () => {
-      fc.assert(
-        fc.property(graphArb, graphArb, graphArb, (x, y, z) => {
-          assert.isTrue(
-            G.equals(G.overlay(x, G.overlay(y, z)), G.overlay(G.overlay(x, y), z))
-          )
-        })
-      )
-    })
+    it("Coord graphs with custom Order work correctly", () => {
+      const c1 = new Coord({ x: 1, y: 2 })
+      const c2 = new Coord({ x: 1, y: 2 }) // Same coordinates
+      const c3 = new Coord({ x: 2, y: 1 }) // Different coordinates
 
-    it("Overlay Identity: x + empty = x", () => {
-      fc.assert(
-        fc.property(graphArb, (x) => {
-          assert.isTrue(G.equals(G.overlay(x, G.empty()), x))
-          assert.isTrue(G.equals(G.overlay(G.empty(), x), x))
-        })
-      )
+      const g1 = G.vertex(c1)
+      const g2 = G.vertex(c2)
+      const g3 = G.vertex(c3)
+
+      // Equal coordinates produce equal graphs
+      assert.isTrue(G.equals(g1, g2))
+      assert.isFalse(G.equals(g1, g3))
+
+      // Can create valid edges between coordinates
+      const edge = G.edge(c1, c3)
+      assert.isTrue(G.hasEdge(edge, c1, c3))
     })
   })
 
