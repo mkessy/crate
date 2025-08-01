@@ -1,25 +1,22 @@
-import type { Effect, HashSet } from "effect"
+import { Context, type Effect, type HashSet } from "effect"
 
-export interface SetOperations<A> {
-  // Creating variants
-  readonly intersect: (a: Set<A>, b: Set<A>) => Effect.Effect<Set<A>>
-  readonly union: (a: Set<A>, b: Set<A>) => Effect.Effect<Set<A>>
-  readonly difference: (a: Set<A>, b: Set<A>) => Effect.Effect<Set<A>>
+export class SetOperations extends Context.Tag("SetOperations")<SetOperations, {
+  readonly intersect: (a: Set<any>, b: Set<any>) => Effect.Effect<Set<any>>
+  readonly union: (a: Set<any>, b: Set<any>) => Effect.Effect<Set<any>>
+  readonly difference: (a: Set<any>, b: Set<any>) => Effect.Effect<Set<any>>
 
   // Count-only variants (key optimization!)
-  readonly intersectCount: (a: Set<A>, b: Set<A>) => Effect.Effect<number>
-  readonly unionCount: (a: Set<A>, b: Set<A>) => Effect.Effect<number>
-  readonly differenceCount: (a: Set<A>, b: Set<A>) => Effect.Effect<number>
+  readonly intersectCount: (a: Set<any>, b: Set<any>) => Effect.Effect<number>
+  readonly unionCount: (a: Set<any>, b: Set<any>) => Effect.Effect<number>
+  readonly differenceCount: (a: Set<any>, b: Set<any>) => Effect.Effect<number>
 
   // In-place variants (for memory efficiency)
-  readonly intersectInPlace: (target: HashSet.HashSet<A>, other: Set<A>) => Effect.Effect<void>
-  readonly unionInPlace: (target: HashSet.HashSet<A>, other: Set<A>) => Effect.Effect<void>
-  readonly differenceInPlace: (target: HashSet.HashSet<A>, other: Set<A>) => Effect.Effect<void>
+  readonly intersectInPlace: (target: HashSet.HashSet<any>, other: Set<any>) => Effect.Effect<void>
+  readonly unionInPlace: (target: HashSet.HashSet<any>, other: Set<any>) => Effect.Effect<void>
+  readonly differenceInPlace: (target: HashSet.HashSet<any>, other: Set<any>) => Effect.Effect<void>
 
   // Element operations
-  readonly add: (set: HashSet.HashSet<A>, elem: A) => Effect.Effect<void>
-  readonly remove: (set: HashSet.HashSet<A>, elem: A) => Effect.Effect<void>
-  readonly contains: (set: Set<A>, elem: A) => Effect.Effect<boolean>
-}
-
-// Usage in algorithms
+  readonly add: (set: HashSet.HashSet<any>, elem: any) => Effect.Effect<void>
+  readonly remove: (set: HashSet.HashSet<any>, elem: any) => Effect.Effect<void>
+  readonly contains: (set: Set<any>, elem: any) => Effect.Effect<boolean>
+}>() {}

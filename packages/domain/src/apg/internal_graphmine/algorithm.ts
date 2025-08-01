@@ -1,29 +1,37 @@
-import type { HashMap, Ref } from "effect"
+import { Context, type Effect, type HashMap, type Option, type Stream } from "effect"
 import type { Edge } from "../internal/edge.js"
+import type { NodeId } from "./algebraic_property.js"
 
-export declare function findTriangles(): void
-
-// Example 2: PageRank using fold
-export declare function pageRank(iterations: number): void
-
-export type NodeId = number
-export type EdgeId = number
-
-export interface GraphStorage<A> {
-  nodes: HashMap.HashMap<NodeId, A>
-  outgoingEdges: HashMap.HashMap<NodeId, Edge<A>>
-  incomingEdges: HashMap.HashMap<NodeId, Edge<A>>
-  edges: HashMap.HashMap<NodeId, Edge<A>>
-  nodesByLabel: HashMap.HashMap<string, NodeId>
-  edgesByType: HashMap.HashMap<string, Edge<A>>
-  propertyIndex: HashMap.HashMap<string, NodeId>
+export interface BKConfig {
+  readonly maxCliqueSize: number
+  readonly minCliqueSize: number
 }
 
-export interface AlgebraicGraphDB<A> {
-  storage: Ref.Ref<GraphStorage<A>>
-  nodes: HashMap.HashMap<NodeId, A>
-  edges: HashMap.HashMap<NodeId, Edge<A>>
-  nodesByLabel: HashMap.HashMap<string, NodeId>
-  edgesByType: HashMap.HashMap<string, Edge<A>>
-  propertyIndex: HashMap.HashMap<string, NodeId>
+export interface BKClique<A> {
+  readonly nodes: ReadonlySet<NodeId>
+  readonly edges: ReadonlySet<Edge<A>>
 }
+
+export interface Path {
+  readonly nodes: ReadonlySet<NodeId>
+  readonly edges: ReadonlySet<Edge<any>>
+}
+
+export class GraphAlgorithms extends Context.Tag("GraphAlgorithms")<GraphAlgorithms, {
+  // Pattern matching
+
+  readonly star: (node: NodeId) => Effect.Effect<BKClique<any>>
+
+  readonly bronKerbosch: (config?: BKConfig) => Stream.Stream<BKClique<any>>
+  readonly kCliqueListing: (k: number) => Stream.Stream<BKClique<any>>
+  readonly triangleCounting: () => Effect.Effect<number>
+
+  // Graph traversal (stack-safe via Effect.loop)
+  readonly bfs: (start: NodeId) => Stream.Stream<Node>
+  readonly dfs: (start: NodeId) => Stream.Stream<Node>
+  readonly shortestPath: (from: NodeId, to: NodeId) => Effect.Effect<Option.Option<Path>>
+
+  // Analysis
+  readonly pageRank: (iterations: number) => Effect.Effect<HashMap.HashMap<NodeId, number>>
+  readonly degreeDistributiona: Effect.Effect<HashMap.HashMap<number, number>>
+}>() {}

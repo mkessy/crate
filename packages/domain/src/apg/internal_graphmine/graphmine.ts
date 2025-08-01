@@ -1,12 +1,8 @@
-import type { HashMap } from "effect"
+import { type HashMap } from "effect"
 import type { Edge } from "../internal/edge.js"
-import type { GraphBacking } from "./graph.js"
-import { IEmpty IVertex, GraphKind, IOverlay, IConnect } from "../internal/core.js"
 
 export type EdgeId = number
 export type NodeId = number
-
-
 
 export interface GraphStorage<A> {
   nodes: HashMap.HashMap<NodeId, A>
