@@ -17,7 +17,6 @@ export interface SetOperations<A> {
   readonly differenceInPlace: (target: HashSet.HashSet<A>, other: Set<A>) => Effect.Effect<void>
 
   // Element operations
-  readonly add: (set: HashSet.HashSet<A>, elem: A) => Effect.Effect<void>
   readonly remove: (set: HashSet.HashSet<A>, elem: A) => Effect.Effect<void>
   readonly contains: (set: Set<A>, elem: A) => Effect.Effect<boolean>
 }

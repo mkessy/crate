@@ -2,18 +2,15 @@ import type { Effect, HashMap, Ref } from "effect"
 import type { Graph } from "../Graph.js"
 import type { Relation } from "../Relation.js"
 import type { GraphStorage } from "./algebraic_property.js"
-import type { MaterializeConfig } from "./config.js"
-import type { PrecomputedIndices } from "./precompute.js"
+import type { GraphMineConfig } from "./config.js"
+import type { Precompute } from "./Precompute.js"
 import type { SetOperations } from "./set.js"
 
 export interface StreamBackedGraph<A> extends Graph<A> {
   storage: Ref.Ref<GraphStorage<A>>
-  setOps: SetOperations<A>
+  setOps: SetOperations
 
-  config: {
-    materializedViews: HashMap.HashMap<string, MaterializeConfig>
-    preprocessing: PrecomputedIndices
-  }
+  config: GraphMineConfig
 
   views: HashMap.HashMap<string, Graph<A>>
 
@@ -28,8 +25,6 @@ export interface StreamBackedGraph<A> extends Graph<A> {
   toArray(): Effect.Effect<ReadonlyArray<A>>
 
   toRelation(): Effect.Effect<Relation<A>>
-
-  findTriangles(): Graph<[A, A, A]>
 
   materialize(name: string, config?: any): Effect.Effect<Graph<A>>
 
